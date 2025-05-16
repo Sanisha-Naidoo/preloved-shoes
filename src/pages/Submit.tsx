@@ -3,13 +3,14 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { supabase } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { toast } from "@/components/ui/sonner";
 
 const Submit = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Attempt to submit data when the component mounts
@@ -19,6 +20,12 @@ const Submit = () => {
   const submitData = async () => {
     try {
       setIsSubmitting(true);
+      setError(null);
+
+      // Check if Supabase is configured before proceeding
+      if (!isSupabaseConfigured()) {
+        throw new Error("Supabase is not configured. Please connect your Lovable Project to Supabase.");
+      }
 
       // Get all the data from session storage
       const shoeDetailsStr = sessionStorage.getItem("shoeDetails");
@@ -97,9 +104,11 @@ const Submit = () => {
 
       setIsSubmitted(true);
       toast.success("Submission successful!");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error submitting data:", error);
-      toast.error("Failed to submit data. Please try again.");
+      const errorMessage = error.message || "Failed to submit data. Please try again.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -139,6 +148,30 @@ const Submit = () => {
                 <p className="text-gray-600">
                   Please wait while we process your submission.
                 </p>
+              </div>
+            ) : error ? (
+              <div>
+                <div className="h-24 w-24 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-6">
+                  <svg
+                    className="h-12 w-12 text-red-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    ></path>
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-bold mb-4">Submission Error</h2>
+                <p className="text-gray-600 mb-8">{error}</p>
+                <Button onClick={() => navigate("/")} className="w-full">
+                  Return Home
+                </Button>
               </div>
             ) : (
               <>
