@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 
 const Submit = () => {
@@ -21,11 +21,6 @@ const Submit = () => {
     try {
       setIsSubmitting(true);
       setError(null);
-
-      // Check if Supabase is configured before proceeding
-      if (!isSupabaseConfigured()) {
-        throw new Error("Supabase is not configured. Please connect your Lovable Project to Supabase.");
-      }
 
       // Get all the data from session storage
       const shoeDetailsStr = sessionStorage.getItem("shoeDetails");
@@ -89,7 +84,6 @@ const Submit = () => {
             shoe_id: shoeId,
             sole_photo_url: photoUrl,
             rating: rating,
-            created_at: new Date().toISOString(),
           },
         ]);
 

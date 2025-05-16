@@ -9,6 +9,68 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      scans: {
+        Row: {
+          created_at: string
+          id: string
+          rating: number | null
+          shoe_id: string
+          sole_photo_url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          rating?: number | null
+          shoe_id: string
+          sole_photo_url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          rating?: number | null
+          shoe_id?: string
+          sole_photo_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scans_shoe_id_fkey"
+            columns: ["shoe_id"]
+            isOneToOne: false
+            referencedRelation: "shoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shoes: {
+        Row: {
+          barcode: string | null
+          brand: string
+          condition: string
+          created_at: string
+          id: string
+          model: string | null
+          size: string
+        }
+        Insert: {
+          barcode?: string | null
+          brand: string
+          condition: string
+          created_at?: string
+          id?: string
+          model?: string | null
+          size: string
+        }
+        Update: {
+          barcode?: string | null
+          brand?: string
+          condition?: string
+          created_at?: string
+          id?: string
+          model?: string | null
+          size?: string
+        }
+        Relationships: []
+      }
       shoutbox_messages: {
         Row: {
           id: string
