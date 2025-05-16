@@ -1,32 +1,58 @@
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
-import { ArrowLeft, Camera, Upload, Check } from "lucide-react";
+import { ArrowLeft, Camera, RefreshCw, Check } from "lucide-react";
 
 const PhotoCapture = () => {
   const navigate = useNavigate();
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
+  // Clean up camera resources when component unmounts
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
+
   const startCamera = async () => {
+    setIsLoading(true);
+    setCameraError(null);
+    
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" }
-      });
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        streamRef.current = stream;
-        setIsCameraOpen(true);
+      // First check if we have the necessary permissions
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" }
+        });
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current?.play();
+            setIsCameraOpen(true);
+            setIsLoading(false);
+          };
+          streamRef.current = stream;
+        }
+      } else {
+        setCameraError("Your browser does not support camera access");
+        setIsLoading(false);
+        // Use mockImageCapture as fallback
+        console.warn("Camera API not available - using fallback");
       }
     } catch (error) {
       console.error("Error accessing camera:", error);
+      setCameraError("Camera access denied. Please enable camera permissions.");
+      setIsLoading(false);
       toast.error("Camera access denied. Please enable camera permissions.");
     }
   };
@@ -60,8 +86,19 @@ const PhotoCapture = () => {
         
         // Store the image in session storage
         sessionStorage.setItem("solePhoto", imageDataUrl);
+        
+        toast.success("Photo captured successfully!");
       }
     }
+  };
+  
+  // Mock function to use when camera is not available (for testing)
+  const useMockImage = () => {
+    // Use a placeholder image URL
+    const mockImageUrl = "/placeholder.svg";
+    setCapturedImage(mockImageUrl);
+    sessionStorage.setItem("solePhoto", mockImageUrl);
+    toast.success("Using placeholder image (camera unavailable)");
   };
 
   const handleContinue = () => {
@@ -88,13 +125,20 @@ const PhotoCapture = () => {
 
         <Card className="overflow-hidden mb-6">
           <CardContent className="p-0">
-            {isCameraOpen ? (
+            {isLoading ? (
+              <div className="flex items-center justify-center h-64 bg-slate-100">
+                <div className="flex flex-col items-center gap-2">
+                  <RefreshCw className="h-8 w-8 text-slate-400 animate-spin" />
+                  <p className="text-slate-500">Accessing camera...</p>
+                </div>
+              </div>
+            ) : isCameraOpen ? (
               <div className="relative">
                 <video
                   ref={videoRef}
                   autoPlay
                   playsInline
-                  className="w-full h-64 object-cover"
+                  className="w-full h-64 object-cover bg-black"
                 />
                 {/* Guide overlay */}
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -142,13 +186,32 @@ const PhotoCapture = () => {
               </div>
             ) : (
               <div className="p-6 text-center">
-                <div className="py-12">
-                  <Camera className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                  <p className="text-lg font-medium mb-6">Ready to take a photo</p>
-                  <Button onClick={startCamera} className="w-full">
-                    Open Camera
-                  </Button>
-                </div>
+                {cameraError ? (
+                  <div className="py-8 text-center">
+                    <Camera className="h-12 w-12 mx-auto mb-4 text-red-400" />
+                    <p className="text-red-500 mb-4">{cameraError}</p>
+                    <div className="space-y-3">
+                      <Button onClick={startCamera} className="w-full">
+                        Try Again
+                      </Button>
+                      <Button 
+                        onClick={useMockImage} 
+                        variant="outline" 
+                        className="w-full"
+                      >
+                        Use Placeholder Image
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="py-12">
+                    <Camera className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                    <p className="text-lg font-medium mb-6">Ready to take a photo</p>
+                    <Button onClick={startCamera} className="w-full">
+                      Open Camera
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
@@ -157,7 +220,11 @@ const PhotoCapture = () => {
         {/* Hidden canvas for capturing images */}
         <canvas ref={canvasRef} className="hidden"></canvas>
 
-        <Button onClick={handleContinue} className="w-full" disabled={!capturedImage}>
+        <Button 
+          onClick={handleContinue} 
+          className="w-full" 
+          disabled={!capturedImage}
+        >
           Continue
         </Button>
       </div>
