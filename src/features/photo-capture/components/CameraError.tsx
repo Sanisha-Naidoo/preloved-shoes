@@ -6,13 +6,13 @@ import { CameraOff } from "lucide-react";
 interface CameraErrorProps {
   errorMessage: string;
   onRetry: () => void;
-  onManualCapture: () => void; // Changed prop name
+  onManualCapture: () => void;
 }
 
 export const CameraError: React.FC<CameraErrorProps> = ({
   errorMessage,
   onRetry,
-  onManualCapture, // Changed prop name
+  onManualCapture,
 }) => {
   return (
     <div className="py-8 text-center">
@@ -27,7 +27,7 @@ export const CameraError: React.FC<CameraErrorProps> = ({
           variant="outline" 
           className="w-full"
         >
-          Manual Capture
+          Enter Details Manually
         </Button>
       </div>
     </div>

@@ -1,8 +1,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import { toast } from "@/components/ui/sonner";
+import { useNavigate } from "react-router-dom";
 
 export const useCamera = () => {
+  const navigate = useNavigate();
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -182,6 +184,12 @@ export const useCamera = () => {
       startCamera();
     }, 500);
   };
+  
+  // New function to navigate to manual entry page
+  const navigateToManualEntry = () => {
+    navigate("/manual-entry");
+    toast.info("Redirecting to manual entry form");
+  };
 
   return {
     capturedImage,
@@ -196,5 +204,6 @@ export const useCamera = () => {
     cancelCameraAccess,
     startCamera,
     stopCamera,
+    navigateToManualEntry, // Export the new function
   };
 };
