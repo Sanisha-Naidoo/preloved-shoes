@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { CameraOff } from "lucide-react";
+import { CameraOff, Upload } from "lucide-react";
 
 interface CameraErrorProps {
   errorMessage: string;
@@ -27,7 +27,7 @@ export const CameraError: React.FC<CameraErrorProps> = ({
           variant="outline" 
           className="w-full"
         >
-          Enter Details Manually
+          <Upload className="mr-2 h-4 w-4" /> Upload Photo
         </Button>
       </div>
     </div>

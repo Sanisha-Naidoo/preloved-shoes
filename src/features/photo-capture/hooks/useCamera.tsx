@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { toast } from "@/components/ui/sonner";
 import { useNavigate } from "react-router-dom";
@@ -191,6 +190,47 @@ export const useCamera = () => {
     toast.info("Redirecting to manual entry form");
   };
 
+  // New function to upload photo manually
+  const uploadPhotoManually = () => {
+    // Create a file input element
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    
+    // Handle file selection
+    fileInput.onchange = (event) => {
+      const target = event.target as HTMLInputElement;
+      if (target.files && target.files.length > 0) {
+        const file = target.files[0];
+        
+        // Check if the file is an image
+        if (!file.type.startsWith('image/')) {
+          toast.error('Please select an image file');
+          return;
+        }
+        
+        // Read the selected file
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const imageDataUrl = e.target?.result as string;
+          if (imageDataUrl) {
+            setCapturedImage(imageDataUrl);
+            sessionStorage.setItem("solePhoto", imageDataUrl);
+            toast.success('Image uploaded successfully!');
+          }
+        };
+        reader.onerror = () => {
+          toast.error('Failed to read the selected file');
+        };
+        
+        reader.readAsDataURL(file);
+      }
+    };
+    
+    // Trigger the file input dialog
+    fileInput.click();
+  };
+
   return {
     capturedImage,
     isCameraOpen,
@@ -204,6 +244,7 @@ export const useCamera = () => {
     cancelCameraAccess,
     startCamera,
     stopCamera,
-    navigateToManualEntry, // Export the new function
+    navigateToManualEntry,
+    uploadPhotoManually, // Export the new function
   };
 };

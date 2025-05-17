@@ -27,7 +27,7 @@ const PhotoCapture = () => {
     useMockImage,
     retryCamera,
     cancelCameraAccess,
-    navigateToManualEntry, // Add the new function
+    uploadPhotoManually, // Use the new function instead of navigateToManualEntry
   } = useCamera();
 
   const handleContinue = () => {
@@ -66,7 +66,7 @@ const PhotoCapture = () => {
                   <CameraError 
                     errorMessage={cameraError}
                     onRetry={retryCamera}
-                    onManualCapture={navigateToManualEntry} // Use the navigation function instead of capturePhoto
+                    onManualCapture={uploadPhotoManually} // Use the upload function instead of navigation
                   />
                 ) : (
                   <div className="py-12">
@@ -81,8 +81,6 @@ const PhotoCapture = () => {
 
         {/* Hidden canvas for capturing images */}
         <canvas ref={canvasRef} className="hidden"></canvas>
-
-        {/* Remove the redundant Continue button */}
       </div>
     </div>
   );
