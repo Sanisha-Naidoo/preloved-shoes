@@ -1,14 +1,18 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
+
 const Rating = () => {
   const navigate = useNavigate();
   const [rating, setRating] = useState<number | null>(null);
+
   const handleSkip = () => {
     handleSubmit();
   };
+
   const handleSubmit = () => {
     // Store the rating in session storage
     if (rating !== null) {
@@ -16,6 +20,7 @@ const Rating = () => {
     }
     navigate("/submit");
   };
+
   return <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 p-4">
       <Button variant="ghost" className="mb-6" onClick={() => navigate(-1)}>
         <ArrowLeft className="mr-2 h-4 w-4" />
@@ -29,11 +34,11 @@ const Rating = () => {
         </p>
 
         <Card className="mb-6">
-          <CardContent className="p-6">
-            <div className="flex flex-nowrap justify-between gap-2 w-full">
+          <CardContent className="p-4">
+            <div className="grid grid-cols-10 gap-1">
               {Array.from({
               length: 10
-            }, (_, i) => i + 1).map(num => <Button key={num} variant={rating === num ? "default" : "outline"} onClick={() => setRating(num)} className="">
+            }, (_, i) => i + 1).map(num => <Button key={num} variant={rating === num ? "default" : "outline"} onClick={() => setRating(num)} className="w-full aspect-square flex items-center justify-center p-0">
                   {num}
                 </Button>)}
             </div>
@@ -51,4 +56,5 @@ const Rating = () => {
       </div>
     </div>;
 };
+
 export default Rating;
