@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -60,12 +61,16 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 flex flex-col">
       <header className="px-4 text-center py-[16px]">
         <div className="mx-auto mb-12 py-[8px]">
-          <img 
-            src="/lovable-uploads/ba6fcc1a-24b1-4e24-8750-43bdc56bb2fb.png" 
-            alt="Reboot Logo" 
-            className="h-56 w-56 mx-auto object-cover aspect-square"
-            loading="eager" 
-          />
+          <div className="bg-white rounded-2xl shadow-sm p-6 mx-auto w-64 h-64 flex items-center justify-center">
+            <AspectRatio ratio={1/1} className="w-full h-full">
+              <img 
+                src="/lovable-uploads/ba6fcc1a-24b1-4e24-8750-43bdc56bb2fb.png" 
+                alt="Reboot Logo" 
+                className="h-full w-full object-contain"
+                loading="eager" 
+              />
+            </AspectRatio>
+          </div>
         </div>
         <h1 className="font-bold mb-2 text-4xl">Reboot</h1>
         <p className="text-gray-600">Beta</p>
