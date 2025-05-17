@@ -20,7 +20,7 @@ const Index = () => {
             <CardDescription>Choose how you'd like to register your shoes</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button onClick={() => navigate('/manual-entry')} className="w-full mb-4 h-14">Manually Enter shoe Details</Button>
+            <Button onClick={() => navigate('/manual-entry')} className="w-full mb-4 h-14">Manually Enter Shoe Details</Button>
             <Button onClick={() => navigate('/barcode-scan')} className="w-full h-14" variant="secondary">
               Scan Barcode
             </Button>
