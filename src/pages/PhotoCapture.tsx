@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
 import { Camera } from "lucide-react";
 
-// Import our new components
+// Import our components
 import { PhotoCaptureHeader } from "@/features/photo-capture/components/PhotoCaptureHeader";
 import { CameraView } from "@/features/photo-capture/components/CameraView";
 import { PhotoPreview } from "@/features/photo-capture/components/PhotoPreview";
@@ -24,10 +24,9 @@ const PhotoCapture = () => {
     videoRef,
     canvasRef,
     capturePhoto,
-    useMockImage,
     retryCamera,
     cancelCameraAccess,
-    uploadPhotoManually, // Use the new function instead of navigateToManualEntry
+    uploadPhotoManually,
   } = useCamera();
 
   const handleContinue = () => {
@@ -55,9 +54,7 @@ const PhotoCapture = () => {
             ) : capturedImage ? (
               <PhotoPreview 
                 capturedImage={capturedImage}
-                onRetake={() => {
-                  retryCamera();
-                }}
+                onRetake={retryCamera}
                 onContinue={handleContinue}
               />
             ) : (
@@ -66,7 +63,7 @@ const PhotoCapture = () => {
                   <CameraError 
                     errorMessage={cameraError}
                     onRetry={retryCamera}
-                    onManualCapture={uploadPhotoManually} // Use the upload function instead of navigation
+                    onManualCapture={uploadPhotoManually}
                   />
                 ) : (
                   <div className="py-12">
@@ -81,6 +78,12 @@ const PhotoCapture = () => {
 
         {/* Hidden canvas for capturing images */}
         <canvas ref={canvasRef} className="hidden"></canvas>
+        
+        {capturedImage && (
+          <Button onClick={handleContinue} className="w-full">
+            Continue
+          </Button>
+        )}
       </div>
     </div>
   );
