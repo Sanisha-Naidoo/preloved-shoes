@@ -4,22 +4,28 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
-import { ArrowLeft, Camera, RefreshCw, Check } from "lucide-react";
+import { ArrowLeft, Camera, RefreshCw, Check, CameraOff } from "lucide-react";
 
 const PhotoCapture = () => {
   const navigate = useNavigate();
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Start in loading state
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  // Clean up camera resources when component unmounts
+  // Start the camera as soon as the component mounts (like BarcodeScanner)
   useEffect(() => {
+    console.log("PhotoCapture component mounted, starting camera automatically");
+    startCamera();
+    
+    // Clean up camera resources when component unmounts
     return () => {
       stopCamera();
+      if (timeoutId) clearTimeout(timeoutId);
     };
   }, []);
 
@@ -27,47 +33,82 @@ const PhotoCapture = () => {
     setIsLoading(true);
     setCameraError(null);
     
+    // Set a timeout to detect if camera is taking too long (8 seconds)
+    const timeout = setTimeout(() => {
+      if (isLoading) {
+        console.log("Camera access timed out after 8 seconds");
+        setCameraError("Camera initialization is taking too long. Please check your permissions or try again.");
+        setIsLoading(false);
+      }
+    }, 8000);
+    
+    setTimeoutId(timeout);
+    
     try {
+      console.log("PhotoCapture: Requesting camera access");
+      
       // Check if running on a secure context (https or localhost)
       if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+        console.error("Not on HTTPS or localhost, camera access may be blocked");
         setCameraError("Camera access requires HTTPS. Please use a secure connection.");
         setIsLoading(false);
+        clearTimeout(timeout);
         return;
       }
       
       // Check if mediaDevices API is supported
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.error("MediaDevices API not supported in this browser");
         setCameraError("Your browser doesn't support camera access");
         setIsLoading(false);
+        clearTimeout(timeout);
         return;
       }
       
-      // Request camera permissions with specific constraints
-      const constraints = { 
-        video: { 
-          facingMode: { ideal: "environment" },
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        } 
+      // First try with environment camera (mobile back camera)
+      let stream: MediaStream | null = null;
+      
+      try {
+        console.log("Trying environment camera first (mobile back camera)");
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" }
+        });
+      } catch (envError) {
+        console.log("Environment camera failed, falling back to any camera", envError);
+        // Fall back to any available camera
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true
+        });
+      }
+      
+      console.log("Camera stream obtained successfully", stream ? "✅" : "❌");
+      
+      if (!videoRef.current) {
+        console.error("Video element reference is null");
+        setCameraError("Failed to initialize video element");
+        setIsLoading(false);
+        clearTimeout(timeout);
+        return;
+      }
+      
+      videoRef.current.srcObject = stream;
+      videoRef.current.onloadedmetadata = () => {
+        console.log("Video metadata loaded, playing video");
+        if (!videoRef.current) return;
+        
+        videoRef.current.play().catch(error => {
+          console.error("Error playing video:", error);
+          setCameraError("Failed to start video stream");
+          setIsLoading(false);
+        });
+        setIsCameraOpen(true);
+        setIsLoading(false);
+        clearTimeout(timeout);
+        console.log("Camera initialized successfully");
       };
       
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play().catch(error => {
-            console.error("Error playing video:", error);
-            setCameraError("Failed to start video stream");
-            setIsLoading(false);
-          });
-          setIsCameraOpen(true);
-          setIsLoading(false);
-        };
-        
-        // Store stream reference for cleanup
-        streamRef.current = stream;
-      }
+      // Store stream reference for cleanup
+      streamRef.current = stream;
     } catch (error: any) {
       console.error("Error accessing camera:", error);
       
@@ -83,12 +124,14 @@ const PhotoCapture = () => {
       }
       
       setIsLoading(false);
+      clearTimeout(timeout);
       toast.error("Camera access failed. Please check permissions.");
     }
   };
 
   const stopCamera = () => {
     if (streamRef.current) {
+      console.log("Stopping camera stream");
       streamRef.current.getTracks().forEach(track => {
         track.stop();
       });
@@ -176,6 +219,19 @@ const PhotoCapture = () => {
                 <div className="flex flex-col items-center gap-2">
                   <RefreshCw className="h-8 w-8 text-slate-400 animate-spin" />
                   <p className="text-slate-500">Accessing camera...</p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      if (timeoutId) clearTimeout(timeoutId);
+                      setIsLoading(false);
+                      setCameraError("Camera access canceled by user");
+                      console.log("Camera access canceled by user");
+                    }}
+                    className="mt-2"
+                  >
+                    Cancel
+                  </Button>
                 </div>
               </div>
             ) : isCameraOpen ? (
@@ -226,6 +282,7 @@ const PhotoCapture = () => {
                     size="sm" 
                     variant="default" 
                     className="rounded-full h-8 w-8 p-0 bg-green-500 hover:bg-green-600"
+                    onClick={handleContinue}
                   >
                     <Check className="h-4 w-4" />
                   </Button>
@@ -235,7 +292,7 @@ const PhotoCapture = () => {
               <div className="p-6 text-center">
                 {cameraError ? (
                   <div className="py-8 text-center">
-                    <Camera className="h-12 w-12 mx-auto mb-4 text-red-400" />
+                    <CameraOff className="h-12 w-12 mx-auto mb-4 text-red-400" />
                     <p className="text-red-500 mb-4">{cameraError}</p>
                     <div className="space-y-3">
                       <Button onClick={retryCamera} className="w-full">
@@ -253,10 +310,7 @@ const PhotoCapture = () => {
                 ) : (
                   <div className="py-12">
                     <Camera className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                    <p className="text-lg font-medium mb-6">Ready to take a photo</p>
-                    <Button onClick={startCamera} className="w-full">
-                      Open Camera
-                    </Button>
+                    <p className="text-lg font-medium mb-6">Starting camera...</p>
                   </div>
                 )}
               </div>
