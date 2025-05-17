@@ -48,21 +48,22 @@ const PhotoCapture = () => {
     navigate("/rating");
   };
 
-  // Updated back button handler that refreshes the page instead of navigating back when camera is active
+  // Improved back button handler that always resets the component state correctly
   const handleBackClick = () => {
+    console.log("Back button clicked, current state:", { 
+      capturedImage: !!capturedImage, 
+      isCameraOpen, 
+      isLoading 
+    });
+    
     // Clear the stored photo
     sessionStorage.removeItem("solePhoto");
     
     // Stop the camera and release resources
     stopCamera();
     
-    if (isCameraOpen || isLoading) {
-      // If the camera is open or loading, refresh the current page to reset the component
-      window.location.reload();
-    } else {
-      // If we're viewing a captured image or have an error, we can navigate back
-      navigate(-1);
-    }
+    // Force a page refresh to completely reset the component state
+    window.location.href = "/photo-capture";
   };
 
   // Log the current state to help with debugging

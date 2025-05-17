@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { initializeCamera, cleanupCameraResources } from "./camera/cameraInitialization";
 import { capturePhotoFromVideo, uploadImageManually } from "./camera/photoCapture";
 import { CameraState, CameraActions, CameraRefs } from "./camera/types";
+import { toast } from "@/components/ui/sonner";
 
 export const useCamera = (): CameraState & CameraActions & CameraRefs => {
   const navigate = useNavigate();
@@ -51,6 +52,7 @@ export const useCamera = (): CameraState & CameraActions & CameraRefs => {
       return;
     }
     
+    console.log("Starting camera...");
     await initializeCamera(
       videoRef,
       streamRef,
@@ -62,6 +64,7 @@ export const useCamera = (): CameraState & CameraActions & CameraRefs => {
   };
 
   const stopCamera = () => {
+    console.log("Stopping camera and cleaning up resources");
     cleanupCameraResources(streamRef);
     
     if (videoRef.current && videoRef.current.srcObject) {
@@ -69,6 +72,7 @@ export const useCamera = (): CameraState & CameraActions & CameraRefs => {
     }
     
     setIsCameraOpen(false);
+    // Don't reset other states here as it might disrupt the UI flow
   };
 
   const capturePhoto = () => {
@@ -92,19 +96,36 @@ export const useCamera = (): CameraState & CameraActions & CameraRefs => {
   };
 
   const retryCamera = () => {
+    console.log("Retrying camera - full reset");
+    // First stop camera and clean up existing resources
     stopCamera();
+    
+    // Clear timeout to prevent any pending operations
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    
+    // Reset all state variables in order
     setCameraError(null);
     setCapturedImage(null);
     setIsPhotoApproved(false);
+    setIsCameraOpen(false);
+    setIsLoading(false);
+    
+    // Also clear from session storage
     sessionStorage.removeItem("solePhoto");
     
-    // Add a small delay before restarting camera to ensure cleanup is complete
+    // Delay starting the camera to ensure cleanup is complete
+    console.log("Will start camera after delay");
     setTimeout(() => {
+      console.log("Delayed camera start executing now");
       startCamera();
-    }, 500);
+    }, 800); // Increased delay to 800ms to ensure cleanup is complete
   };
   
   const uploadPhotoManually = () => {
+    console.log("Manual photo upload initiated");
     // Stop any active camera first
     stopCamera();
     setIsLoading(false);
