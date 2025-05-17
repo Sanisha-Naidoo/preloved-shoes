@@ -2,16 +2,17 @@
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "@/components/ui/sonner";
 import { Html5Qrcode } from "html5-qrcode";
+import { QrCode, Barcode, AlertCircle } from "lucide-react";
 
 interface BarcodeScannerProps {
-  onDetected: (value: string) => void;
+  onDetected: (value: string, codeType: string) => void;
 }
 
 const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onDetected }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
   const scannerContainerRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [scanner, setScanner] = useState<Html5Qrcode | null>(null);
+  const [scanning, setScanning] = useState(true);
 
   useEffect(() => {
     let html5QrCode: Html5Qrcode | null = null;
@@ -59,19 +60,30 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onDetected }) => {
             fps: 10,
             qrbox: { width: 250, height: 150 },
             aspectRatio: 1.777778,
+            // Set to scan all code types, including barcodes and QR codes
+            formatsToSupport: [
+              // QR Code formats
+              0, 1, 2, 3, 4,
+              // Barcode formats 
+              5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
+            ]
           },
-          (decodedText) => {
-            // Successfully scanned barcode
+          (decodedText, decodedResult) => {
+            // Successfully scanned code
             if (decodedText) {
-              onBarcodeDetected(decodedText, html5QrCode);
+              // Determine if it's a QR code or barcode based on format
+              const formatName = decodedResult?.result?.format?.format || "unknown";
+              const codeType = isQRCodeFormat(formatName) ? "qrcode" : "barcode";
+              console.log(`Detected ${codeType}: ${decodedText}`);
+              onBarcodeDetected(decodedText, codeType, html5QrCode);
             }
           },
           (errorMessage) => {
-            // QR code scanning is ongoing, errors here are usually just frames without barcodes
-            // We don't need to show these to the user
+            // Scanning is ongoing, errors here are usually just frames without codes
           }
         );
 
+        setScanning(true);
         toast.success("Scanner started", {
           id: "scanner-started",
         });
@@ -88,6 +100,14 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onDetected }) => {
         
         useFallback();
       }
+    };
+
+    const isQRCodeFormat = (format: string): boolean => {
+      // QR code format names from the html5-qrcode library
+      const qrFormats = ['QR_CODE', 'AZTEC', 'DATA_MATRIX'];
+      return qrFormats.some(qrFormat => 
+        format.toUpperCase().includes(qrFormat)
+      );
     };
 
     const getCameraId = async (): Promise<string | null> => {
@@ -108,31 +128,32 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onDetected }) => {
       }
     };
 
-    const onBarcodeDetected = (decodedText: string, scanner: Html5Qrcode | null) => {
-      // Stop scanning once barcode is detected
+    const onBarcodeDetected = (decodedText: string, codeType: string, scanner: Html5Qrcode | null) => {
+      // Stop scanning once code is detected
+      setScanning(false);
       if (scanner) {
         scanner.stop().then(() => {
           console.log("Scanner stopped after detection");
-          onDetected(decodedText);
+          onDetected(decodedText, codeType);
         }).catch((err) => {
           console.error("Error stopping scanner:", err);
-          // Still pass the detected barcode even if we couldn't stop the scanner
-          onDetected(decodedText);
+          // Still pass the detected code even if we couldn't stop the scanner
+          onDetected(decodedText, codeType);
         });
       } else {
-        onDetected(decodedText);
+        onDetected(decodedText, codeType);
       }
     };
 
     const useFallback = () => {
-      toast.error("Using mock barcode scanner", {
+      toast.error("Using mock code scanner", {
         id: "mock-scanner",
       });
-      // Simulate a barcode scan after 2 seconds
+      // Simulate a code scan after 2 seconds
       setTimeout(() => {
-        // Use a fixed test barcode that matches a record in the database
+        // Use a fixed test code that matches a record in the database
         const testBarcode = "12345678901";
-        onDetected(testBarcode);
+        onDetected(testBarcode, "barcode");
       }, 2000);
     };
 
@@ -151,8 +172,9 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onDetected }) => {
       {error ? (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-800 text-white p-4 text-center">
           <div>
+            <AlertCircle className="h-8 w-8 mx-auto mb-2 text-red-400" />
             <p className="mb-2">{error}</p>
-            <p className="text-sm text-gray-300">Using mock barcode scanner...</p>
+            <p className="text-sm text-gray-300">Using mock code scanner...</p>
           </div>
         </div>
       ) : (
@@ -167,6 +189,15 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onDetected }) => {
         <div className="border-2 border-white/50 m-8 rounded"></div>
         <div className="absolute w-full h-1 bg-red-500/70 animate-pulse"></div>
       </div>
+      {scanning && (
+        <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-3 flex items-center justify-center space-x-2">
+          <QrCode className="h-4 w-4 text-white/70" />
+          <Barcode className="h-4 w-4 text-white/70" />
+          <p className="text-sm">
+            Align the code within the scanner area
+          </p>
+        </div>
+      )}
     </div>
   );
 };

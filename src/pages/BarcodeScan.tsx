@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
-import { ArrowLeft, Barcode, Camera, AlertCircle } from "lucide-react";
+import { ArrowLeft, Barcode, QrCode, Camera, AlertCircle } from "lucide-react";
 import BarcodeScanner from "@/components/BarcodeScanner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +13,7 @@ const BarcodeScan = () => {
   const navigate = useNavigate();
   const [scanning, setScanning] = useState(false);
   const [scannedValue, setScannedValue] = useState<string | null>(null);
+  const [codeType, setCodeType] = useState<string | null>(null);
   const [lookingUp, setLookingUp] = useState(false);
   const [shoeDetails, setShoeDetails] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -21,13 +22,14 @@ const BarcodeScan = () => {
 
   useEffect(() => {
     if (scannedValue) {
-      lookupBarcode(scannedValue);
+      lookupCode(scannedValue, codeType || 'barcode');
     }
   }, [scannedValue]);
 
   const startScanning = () => {
     setScanning(true);
     setScannedValue(null);
+    setCodeType(null);
     setNoMatchFound(false);
     setScanAttempts(prev => prev + 1);
   };
@@ -36,26 +38,57 @@ const BarcodeScan = () => {
     setScanning(false);
   };
 
-  const handleBarcodeDetected = (value: string) => {
-    console.log("Barcode detected:", value);
+  const handleCodeDetected = (value: string, type: string) => {
+    console.log(`${type.toUpperCase()} detected:`, value);
     setScannedValue(value);
+    setCodeType(type);
     setLookingUp(true);
     stopScanning();
-    toast.success(`Barcode detected: ${value}`, {
-      id: "barcode-detected",
+    
+    const codeTypeDisplay = type === 'qrcode' ? 'QR Code' : 'Barcode';
+    toast.success(`${codeTypeDisplay} detected!`, {
+      id: "code-detected",
       duration: 2000,
     });
   };
 
-  const lookupBarcode = async (barcode: string) => {
+  const lookupCode = async (code: string, type: string) => {
     try {
-      console.log("Looking up barcode:", barcode);
-      // Query the Supabase shoes table for the barcode
-      const { data, error } = await supabase
-        .from("shoes")
-        .select("*")
-        .eq("barcode", barcode)
-        .maybeSingle();
+      console.log(`Looking up ${type}:`, code);
+      
+      // Handle URLs in QR codes differently
+      const isUrl = code.startsWith('http');
+      let query;
+      
+      if (isUrl) {
+        console.log("Detected URL in code:", code);
+        // For URLs, we'll try to extract identifiers or query params
+        // Example: extract Nike product ID from Nike app link
+        if (code.includes('nike.app.link')) {
+          // Try to query based on partial match (better would be to extract product ID)
+          query = supabase
+            .from("shoes")
+            .select("*")
+            .ilike("model", "%nike%")
+            .maybeSingle();
+        } else {
+          // Default URL handling - just search for the full URL
+          query = supabase
+            .from("shoes")
+            .select("*")
+            .eq("barcode", code)
+            .maybeSingle();
+        }
+      } else {
+        // Regular barcode lookup
+        query = supabase
+          .from("shoes")
+          .select("*")
+          .eq("barcode", code)
+          .maybeSingle();
+      }
+
+      const { data, error } = await query;
 
       if (error && error.code !== "PGRST116") {
         throw error;
@@ -65,11 +98,11 @@ const BarcodeScan = () => {
         setShoeDetails(data);
         setDialogOpen(true);
       } else {
-        console.log("No match found for barcode:", barcode);
+        console.log(`No match found for ${type}:`, code);
         setNoMatchFound(true);
       }
     } catch (error) {
-      console.error("Error looking up barcode:", error);
+      console.error(`Error looking up ${type}:`, error);
       setNoMatchFound(true);
     } finally {
       setLookingUp(false);
@@ -91,6 +124,7 @@ const BarcodeScan = () => {
 
   const handleTryAgain = () => {
     setScannedValue(null);
+    setCodeType(null);
     setNoMatchFound(false);
     startScanning();
   };
@@ -103,16 +137,16 @@ const BarcodeScan = () => {
       </Button>
 
       <div className="max-w-md mx-auto">
-        <h1 className="text-2xl font-bold mb-6">Scan Barcode</h1>
+        <h1 className="text-2xl font-bold mb-6">Scan Code</h1>
 
         <Card className="overflow-hidden">
           <CardContent className="p-0">
             {scanning ? (
               <div className="relative">
-                <BarcodeScanner key={`scanner-${scanAttempts}`} onDetected={handleBarcodeDetected} />
+                <BarcodeScanner key={`scanner-${scanAttempts}`} onDetected={handleCodeDetected} />
                 <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-3 text-center">
                   <p className="text-sm">
-                    Align the barcode within the scanner area
+                    Align the barcode or QR code within the scanner area
                   </p>
                 </div>
               </div>
@@ -121,15 +155,25 @@ const BarcodeScan = () => {
                 {lookingUp ? (
                   <div className="py-12 px-6 text-center">
                     <div className="animate-pulse mb-4">
-                      <Barcode className="h-12 w-12 mx-auto text-gray-400" />
+                      {codeType === 'qrcode' ? (
+                        <QrCode className="h-12 w-12 mx-auto text-gray-400" />
+                      ) : (
+                        <Barcode className="h-12 w-12 mx-auto text-gray-400" />
+                      )}
                     </div>
                     <p className="text-lg font-medium">Looking up your shoe...</p>
                   </div>
                 ) : noMatchFound ? (
                   <div className="py-12 px-6 text-center">
                     <AlertCircle className="h-12 w-12 mx-auto mb-4 text-amber-500" />
-                    <p className="text-lg font-medium mb-6">
-                      Couldn't find a match for barcode: {scannedValue}
+                    <p className="text-lg font-medium mb-2">
+                      Couldn't find a match for{' '}
+                      {codeType === 'qrcode' ? 'QR code' : 'barcode'}
+                    </p>
+                    <p className="text-sm text-gray-500 mb-6">
+                      {scannedValue && scannedValue.length > 30
+                        ? `${scannedValue.substring(0, 30)}...`
+                        : scannedValue}
                     </p>
                     <div className="space-y-4">
                       <Button onClick={handleManualEntry} variant="default" className="w-full">
@@ -143,7 +187,7 @@ const BarcodeScan = () => {
                 ) : (
                   <div className="py-12 px-6 text-center">
                     <Camera className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                    <p className="text-lg font-medium mb-6">Ready to scan barcode</p>
+                    <p className="text-lg font-medium mb-6">Ready to scan code</p>
                     <Button onClick={startScanning} className="w-full">
                       Start Scanning
                     </Button>
@@ -179,8 +223,12 @@ const BarcodeScan = () => {
                   <p className="text-lg">{shoeDetails.size}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Barcode</p>
-                  <p className="text-lg">{shoeDetails.barcode || scannedValue}</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    {codeType === 'qrcode' ? 'QR Code' : 'Barcode'}
+                  </p>
+                  <p className="text-lg text-ellipsis overflow-hidden">
+                    {shoeDetails.barcode || scannedValue}
+                  </p>
                 </div>
               </div>
             </div>
