@@ -1,13 +1,71 @@
-import React from "react";
+
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+
 const Index = () => {
   const navigate = useNavigate();
-  return <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 flex flex-col">
+  
+  // Add haptic feedback for mobile devices
+  const triggerHapticFeedback = () => {
+    if (navigator.vibrate) {
+      navigator.vibrate(50); // Vibrate for 50ms
+    }
+  };
+  
+  // Show install prompt when applicable
+  useEffect(() => {
+    let deferredPrompt: any;
+    
+    const handleBeforeInstallPrompt = (e: Event) => {
+      // Prevent Chrome 67 and earlier from automatically showing the prompt
+      e.preventDefault();
+      // Stash the event so it can be triggered later
+      deferredPrompt = e;
+      
+      // Show your custom install button if needed
+      const installButton = document.getElementById('install-button');
+      if (installButton) {
+        installButton.style.display = 'block';
+        
+        installButton.addEventListener('click', () => {
+          // Show the install prompt
+          deferredPrompt.prompt();
+          
+          // Wait for the user to respond to the prompt
+          deferredPrompt.userChoice.then((choiceResult: { outcome: string }) => {
+            if (choiceResult.outcome === 'accepted') {
+              console.log('User accepted the A2HS prompt');
+            } else {
+              console.log('User dismissed the A2HS prompt');
+            }
+            deferredPrompt = null;
+            
+            // Hide the install button
+            installButton.style.display = 'none';
+          });
+        });
+      }
+    };
+    
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 flex flex-col">
       <header className="px-4 text-center py-[16px]">
         <div className="mx-auto mb-12 py-[8px]">
-          <img src="/lovable-uploads/ba6fcc1a-24b1-4e24-8750-43bdc56bb2fb.png" alt="Reboot Logo" className="h-56 w-56 mx-auto object-cover aspect-square" />
+          <img 
+            src="/lovable-uploads/ba6fcc1a-24b1-4e24-8750-43bdc56bb2fb.png" 
+            alt="Reboot Logo" 
+            className="h-56 w-56 mx-auto object-cover aspect-square"
+            loading="eager" 
+          />
         </div>
         <h1 className="font-bold mb-2 text-4xl">Reboot</h1>
         <p className="text-gray-600">Beta</p>
@@ -20,11 +78,39 @@ const Index = () => {
             <CardDescription>Choose how you'd like to register your shoes</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button onClick={() => navigate('/manual-entry')} className="w-full mb-4 h-14">Manually Enter Shoe Details</Button>
-            <Button onClick={() => navigate('/barcode-scan')} className="w-full h-14" variant="secondary">Scan Barcode or QR code</Button>
+            <Button 
+              onClick={() => {
+                triggerHapticFeedback();
+                navigate('/manual-entry');
+              }} 
+              className="w-full mb-4 h-14 text-base"
+            >
+              Manually Enter Shoe Details
+            </Button>
+            <Button 
+              onClick={() => {
+                triggerHapticFeedback();
+                navigate('/barcode-scan');
+              }} 
+              className="w-full h-14 text-base" 
+              variant="secondary"
+            >
+              Scan Barcode or QR code
+            </Button>
+            
+            {/* Install button for PWA - hidden by default */}
+            <Button 
+              id="install-button"
+              variant="outline" 
+              className="w-full h-14 text-base mt-8 hidden"
+            >
+              Install App
+            </Button>
           </CardContent>
         </Card>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Index;
