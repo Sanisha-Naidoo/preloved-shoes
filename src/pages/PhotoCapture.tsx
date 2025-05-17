@@ -48,13 +48,9 @@ const PhotoCapture = () => {
     navigate("/rating");
   };
 
-  // Improved back button handler that always resets the component state correctly
+  // Fixed back button handler that properly resets the component state
   const handleBackClick = () => {
-    console.log("Back button clicked, current state:", { 
-      capturedImage: !!capturedImage, 
-      isCameraOpen, 
-      isLoading 
-    });
+    console.log("Back button clicked, cleaning up and navigating away");
     
     // Clear the stored photo
     sessionStorage.removeItem("solePhoto");
@@ -62,8 +58,13 @@ const PhotoCapture = () => {
     // Stop the camera and release resources
     stopCamera();
     
-    // Force a page refresh to completely reset the component state
-    window.location.href = "/photo-capture";
+    // Use window.location.reload() to force a complete refresh
+    // This ensures a clean state when the user returns to this page
+    window.location.reload();
+    
+    // After reload completes, navigate to home
+    // This won't execute immediately due to the reload
+    navigate("/");
   };
 
   // Log the current state to help with debugging

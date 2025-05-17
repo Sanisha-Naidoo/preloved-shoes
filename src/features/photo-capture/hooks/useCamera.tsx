@@ -17,8 +17,9 @@ export const useCamera = (): CameraState & CameraActions & CameraRefs => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const initAttemptRef = useRef<number>(0);
 
-  // Reset all camera-related state on unmount
+  // Reset all camera-related state on mount
   useEffect(() => {
     console.log("Camera component mounted");
     
@@ -36,14 +37,36 @@ export const useCamera = (): CameraState & CameraActions & CameraRefs => {
       }, 500);
     }
     
+    // Return cleanup function
     return () => {
-      console.log("Camera component unmounted");
-      stopCamera();
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      console.log("Camera component unmounting - performing full cleanup");
+      performFullCleanup();
     };
   }, []);
+
+  // New comprehensive cleanup function
+  const performFullCleanup = () => {
+    console.log("Performing full cleanup of all camera resources");
+    
+    // Stop camera stream
+    stopCamera();
+    
+    // Clear any pending timeouts
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    
+    // Reset ref counters
+    initAttemptRef.current = 0;
+    
+    // Clear video element source if it exists
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+      videoRef.current.onloadedmetadata = null;
+      videoRef.current.onerror = null;
+    }
+  };
 
   const startCamera = async () => {
     // Don't retry if we already have an image
@@ -52,7 +75,20 @@ export const useCamera = (): CameraState & CameraActions & CameraRefs => {
       return;
     }
     
-    console.log("Starting camera...");
+    // Increment initialization attempt counter
+    initAttemptRef.current += 1;
+    console.log(`Starting camera... (attempt #${initAttemptRef.current})`);
+    
+    // Clear any existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    
+    // Make sure previous resources are cleaned up
+    cleanupCameraResources(streamRef);
+    
+    // Start camera initialization
     await initializeCamera(
       videoRef,
       streamRef,
@@ -65,17 +101,21 @@ export const useCamera = (): CameraState & CameraActions & CameraRefs => {
 
   const stopCamera = () => {
     console.log("Stopping camera and cleaning up resources");
+    
+    // Clean up media resources
     cleanupCameraResources(streamRef);
     
+    // Clear video element source
     if (videoRef.current && videoRef.current.srcObject) {
       videoRef.current.srcObject = null;
     }
     
+    // Update state to reflect camera is closed
     setIsCameraOpen(false);
-    // Don't reset other states here as it might disrupt the UI flow
   };
 
   const capturePhoto = () => {
+    console.log("Capturing photo from video");
     capturePhotoFromVideo(
       videoRef,
       canvasRef,
@@ -87,63 +127,73 @@ export const useCamera = (): CameraState & CameraActions & CameraRefs => {
   };
 
   const cancelCameraAccess = () => {
+    console.log("Camera access canceled by user");
     setIsLoading(false);
     setCameraError("Camera access canceled by user");
+    
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
+    
+    // Make sure to stop any active stream
+    stopCamera();
   };
 
   const retryCamera = () => {
-    console.log("Retrying camera - full reset");
-    // First stop camera and clean up existing resources
-    stopCamera();
+    console.log("Retrying camera - performing full reset");
     
-    // Clear timeout to prevent any pending operations
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
+    // Full cleanup first
+    performFullCleanup();
     
-    // Reset all state variables in order
+    // Reset all state variables in specific order
     setCameraError(null);
+    setIsLoading(false);
+    setIsCameraOpen(false);
     setCapturedImage(null);
     setIsPhotoApproved(false);
-    setIsCameraOpen(false);
-    setIsLoading(false);
     
-    // Also clear from session storage
+    // Clear from session storage
     sessionStorage.removeItem("solePhoto");
     
-    // Delay starting the camera to ensure cleanup is complete
+    // Reset attempt counter
+    initAttemptRef.current = 0;
+    
+    // Longer delay to ensure DOM is ready again
     console.log("Will start camera after delay");
     setTimeout(() => {
       console.log("Delayed camera start executing now");
       startCamera();
-    }, 800); // Increased delay to 800ms to ensure cleanup is complete
+    }, 1000); // Increased delay to 1000ms for more reliable restart
   };
   
   const uploadPhotoManually = () => {
     console.log("Manual photo upload initiated");
+    
     // Stop any active camera first
     stopCamera();
+    
+    // Reset states
     setIsLoading(false);
     setCameraError(null);
     
+    // Clear any pending timeouts
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
     
     uploadImageManually(setCapturedImage, stopCamera);
+    
     // Reset approval status when uploading a new photo
     setIsPhotoApproved(false);
   };
 
-  // New function to approve the captured photo
+  // Approve the captured photo
   const approvePhoto = () => {
+    console.log("Photo approved by user");
     setIsPhotoApproved(true);
+    toast.success("Photo approved! Ready to continue.");
   };
 
   // Expose the necessary functions and state
