@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -8,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormField, FormItem, FormControl, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "@/components/ui/sonner";
 import { ArrowLeft } from "lucide-react";
+
 type ShoeFormData = {
   brand: string;
   model: string;
@@ -15,6 +17,7 @@ type ShoeFormData = {
   sizeUnit: string;
   condition: string;
 };
+
 const ManualEntry = () => {
   const navigate = useNavigate();
   const form = useForm<ShoeFormData>({
@@ -26,11 +29,13 @@ const ManualEntry = () => {
       condition: "used"
     }
   });
+
   const onSubmit = (data: ShoeFormData) => {
     // Store the data in session storage to be used later
     sessionStorage.setItem("shoeDetails", JSON.stringify(data));
     navigate("/photo-capture");
   };
+
   return <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 p-4">
       <Button variant="ghost" className="mb-6" onClick={() => navigate("/")}>
         <ArrowLeft className="mr-2 h-4 w-4" />
@@ -47,7 +52,7 @@ const ManualEntry = () => {
           }) => <FormItem>
                   <FormLabel>Brand *</FormLabel>
                   <FormControl>
-                    <Input placeholder="Nike, Adidas, etc." required {...field} />
+                    <Input placeholder="On Cloud, Nike, Adidas, etc." required {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>} />
@@ -57,7 +62,7 @@ const ManualEntry = () => {
           }) => <FormItem>
                   <FormLabel>Model (Optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="Air Max, Stan Smith, etc." className="" />
+                    <Input placeholder="Air Max, Cloudrunner, Sky lifestyle etc." className="" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>} />
@@ -127,4 +132,5 @@ const ManualEntry = () => {
       </div>
     </div>;
 };
+
 export default ManualEntry;
