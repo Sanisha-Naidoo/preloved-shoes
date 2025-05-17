@@ -60,8 +60,8 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onDetected }) => {
             fps: 10,
             qrbox: { width: 250, height: 150 },
             aspectRatio: 1.777778,
-            // Changed from 'formats' to 'formatsToSupport'
-            formatsToSupport: [
+            // Using formats property instead of formatsToSupport
+            formats: [
               // QR Code formats
               'QR_CODE', 'AZTEC', 'DATA_MATRIX',
               // Barcode formats 
