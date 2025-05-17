@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
-import { Camera } from "lucide-react";
+import { Camera, Upload } from "lucide-react";
 
 // Import our components
 import { PhotoCaptureHeader } from "@/features/photo-capture/components/PhotoCaptureHeader";
@@ -57,7 +57,10 @@ const PhotoCapture = () => {
         <Card className="overflow-hidden mb-6">
           <CardContent className="p-0">
             {isLoading ? (
-              <CameraLoading onCancel={cancelCameraAccess} />
+              <CameraLoading 
+                onCancel={cancelCameraAccess} 
+                onManualCapture={uploadPhotoManually}
+              />
             ) : isCameraOpen ? (
               <CameraView videoRef={videoRef} onCapture={capturePhoto} />
             ) : capturedImage ? (
@@ -75,9 +78,17 @@ const PhotoCapture = () => {
                     onManualCapture={uploadPhotoManually}
                   />
                 ) : (
-                  <div className="py-12">
+                  <div className="py-10">
                     <Camera className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                    <p className="text-lg font-medium mb-6">Starting camera...</p>
+                    <p className="text-lg font-medium mb-4">Starting camera...</p>
+                    
+                    <Button 
+                      onClick={uploadPhotoManually}
+                      variant="default"
+                      className="mx-auto"
+                    >
+                      <Upload className="mr-2 h-4 w-4" /> Upload Photo Instead
+                    </Button>
                   </div>
                 )}
               </div>
