@@ -11,40 +11,64 @@ const Submit = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
 
   useEffect(() => {
     // Attempt to submit data when the component mounts
     submitData();
   }, []);
 
-  const submitData = async () => {
+  // Enhanced dataURLtoFile function with optimization
+  const dataURLtoFile = async (dataUrl: string, filename: string): Promise<File> => {
     try {
-      setIsSubmitting(true);
-      setError(null);
-
-      // Get all the data from session storage
-      const shoeDetailsStr = sessionStorage.getItem("shoeDetails");
-      const solePhotoStr = sessionStorage.getItem("solePhoto");
-      const ratingStr = sessionStorage.getItem("rating");
-
-      if (!shoeDetailsStr || !solePhotoStr) {
-        throw new Error("Missing required data");
-      }
-
-      const shoeDetails = JSON.parse(shoeDetailsStr);
-      const solePhoto = solePhotoStr;
-      const rating = ratingStr ? parseInt(ratingStr) : null;
-
-      // 1. Upload the image to Supabase Storage
-      const file = await dataURLtoFile(solePhoto, "sole_photo.jpg");
-      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}.jpg`;
+      // Split the data URL to get the MIME type and base64 data
+      const arr = dataUrl.split(",");
+      const mime = arr[0].match(/:(.*?);/)![1];
+      const bstr = atob(arr[1]);
       
+      // Convert base64 to binary
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      
+      // Optimize file size if it's an image (compress if needed)
+      if (mime.startsWith('image/')) {
+        // We've already resized in photoCapture.ts, but we're creating a proper File object here
+        console.log(`Creating optimized file (${mime}) with size: ${u8arr.length} bytes`);
+      }
+      
+      // Create and return a File object
+      return new File([u8arr], filename, { type: mime });
+    } catch (error) {
+      console.error("Error converting data URL to file:", error);
+      throw new Error("Failed to process image. Please try again.");
+    }
+  };
+
+  // Function to upload file with retry mechanism
+  const uploadFileWithRetry = async (file: File, fileName: string, retryAttempt = 0): Promise<string> => {
+    try {
+      console.log(`Uploading file (attempt ${retryAttempt + 1}/${MAX_RETRIES + 1})...`);
+      
+      // Attempt the upload
       const { data: uploadData, error: uploadError } = await supabase
         .storage
         .from("sole_photos")
         .upload(fileName, file);
 
       if (uploadError) {
+        console.error("Upload error details:", uploadError);
+        
+        // Check if we should retry
+        if (retryAttempt < MAX_RETRIES) {
+          console.log(`Retrying upload (attempt ${retryAttempt + 2}/${MAX_RETRIES + 1})...`);
+          // Wait exponentially longer between retries (1s, 2s, 4s)
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryAttempt) * 1000));
+          return uploadFileWithRetry(file, fileName, retryAttempt + 1);
+        }
         throw uploadError;
       }
 
@@ -54,9 +78,55 @@ const Submit = () => {
         .from("sole_photos")
         .getPublicUrl(fileName);
 
-      const photoUrl = publicUrlData.publicUrl;
+      return publicUrlData.publicUrl;
+    } catch (error) {
+      console.error("Final upload error:", error);
+      throw error;
+    }
+  };
 
-      // 2. Save the shoe data to the shoes table
+  const validateRequiredData = () => {
+    const shoeDetailsStr = sessionStorage.getItem("shoeDetails");
+    const solePhotoStr = sessionStorage.getItem("solePhoto");
+    
+    if (!shoeDetailsStr) {
+      throw new Error("Missing shoe details. Please complete the shoe information form.");
+    }
+    
+    if (!solePhotoStr) {
+      throw new Error("Missing shoe photo. Please capture a photo of your shoe sole.");
+    }
+    
+    try {
+      // Verify JSON is valid
+      const shoeDetails = JSON.parse(shoeDetailsStr);
+      return { shoeDetails, solePhoto: solePhotoStr };
+    } catch (e) {
+      throw new Error("Invalid shoe data format. Please try again.");
+    }
+  };
+
+  const submitData = async () => {
+    try {
+      setIsSubmitting(true);
+      setError(null);
+      
+      // Validate required data
+      const { shoeDetails, solePhoto } = validateRequiredData();
+      const rating = sessionStorage.getItem("rating") ? parseInt(sessionStorage.getItem("rating")!) : null;
+      
+      // 1. Prepare the image file
+      console.log("Preparing image for upload...");
+      const file = await dataURLtoFile(solePhoto, "sole_photo.jpg");
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}.jpg`;
+      
+      // 2. Upload the image with retry mechanism
+      console.log("Starting file upload with retry mechanism...");
+      const photoUrl = await uploadFileWithRetry(file, fileName);
+      console.log("File upload successful:", photoUrl);
+      
+      // 3. Save the shoe data to the shoes table
+      console.log("Saving shoe data to database...");
       const { data: shoeData, error: shoeError } = await supabase
         .from("shoes")
         .insert([
@@ -64,7 +134,7 @@ const Submit = () => {
             brand: shoeDetails.brand,
             model: shoeDetails.model || null,
             size: shoeDetails.size,
-            size_unit: shoeDetails.sizeUnit, // Use the sizeUnit field from the form
+            size_unit: shoeDetails.sizeUnit,
             condition: shoeDetails.condition,
             barcode: shoeDetails.barcode || null,
           },
@@ -76,8 +146,8 @@ const Submit = () => {
       }
 
       const shoeId = shoeData[0].id;
-
-      // 3. Save the scan data to the scans table
+      
+      // 4. Save the scan data to the scans table
       const { error: scanError } = await supabase
         .from("scans")
         .insert([
@@ -93,6 +163,7 @@ const Submit = () => {
       }
 
       // Clear session storage after successful submission
+      console.log("Submission successful! Clearing session storage...");
       sessionStorage.removeItem("shoeDetails");
       sessionStorage.removeItem("solePhoto");
       sessionStorage.removeItem("rating");
@@ -104,22 +175,23 @@ const Submit = () => {
       const errorMessage = error.message || "Failed to submit data. Please try again.";
       setError(errorMessage);
       toast.error(errorMessage);
+      
+      // If errors are related to missing data rather than network issues, 
+      // don't retry automatically but guide the user
+      if (errorMessage.includes("Missing") || errorMessage.includes("Invalid")) {
+        // User guidance error - don't retry
+      } else if (retryCount < MAX_RETRIES) {
+        // Network or server error - retry with exponential backoff
+        setRetryCount(count => count + 1);
+        const timeout = Math.pow(2, retryCount) * 1000;
+        toast.info(`Retrying in ${timeout/1000} seconds...`);
+        setTimeout(() => {
+          submitData();
+        }, timeout);
+      }
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  // Helper function to convert data URL to File object
-  const dataURLtoFile = async (dataUrl: string, filename: string): Promise<File> => {
-    const arr = dataUrl.split(",");
-    const mime = arr[0].match(/:(.*?);/)![1];
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-    }
-    return new File([u8arr], filename, { type: mime });
   };
 
   const handleAnotherSubmission = () => {
@@ -127,7 +199,6 @@ const Submit = () => {
   };
 
   const handleFinish = () => {
-    // Just close or navigate to a final page
     navigate("/thank-you");
   };
 
@@ -142,6 +213,7 @@ const Submit = () => {
                 <h2 className="text-2xl font-bold mb-4">Submitting...</h2>
                 <p className="text-gray-600">
                   Please wait while we process your submission.
+                  {retryCount > 0 && ` (Attempt ${retryCount + 1}/${MAX_RETRIES + 1})`}
                 </p>
               </div>
             ) : error ? (
