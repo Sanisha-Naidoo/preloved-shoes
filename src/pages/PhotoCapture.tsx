@@ -65,7 +65,7 @@ const PhotoCapture = () => {
                   <CameraError 
                     errorMessage={cameraError}
                     onRetry={retryCamera}
-                    onUsePlaceholder={useMockImage}
+                    onManualCapture={capturePhoto} // Changed from onUsePlaceholder={useMockImage}
                   />
                 ) : (
                   <div className="py-12">

@@ -6,13 +6,13 @@ import { CameraOff } from "lucide-react";
 interface CameraErrorProps {
   errorMessage: string;
   onRetry: () => void;
-  onUsePlaceholder: () => void;
+  onManualCapture: () => void; // Changed prop name
 }
 
 export const CameraError: React.FC<CameraErrorProps> = ({
   errorMessage,
   onRetry,
-  onUsePlaceholder,
+  onManualCapture, // Changed prop name
 }) => {
   return (
     <div className="py-8 text-center">
@@ -23,11 +23,11 @@ export const CameraError: React.FC<CameraErrorProps> = ({
           Try Again
         </Button>
         <Button 
-          onClick={onUsePlaceholder} 
+          onClick={onManualCapture} 
           variant="outline" 
           className="w-full"
         >
-          Use Placeholder Image
+          Manual Capture
         </Button>
       </div>
     </div>
