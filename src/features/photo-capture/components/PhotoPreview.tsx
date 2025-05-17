@@ -18,12 +18,6 @@ export const PhotoPreview: React.FC<PhotoPreviewProps> = ({
   onApprove,
   isApproved,
 }) => {
-  // Function to handle both approve and continue in one click
-  const handleApproveClick = () => {
-    onApprove();
-    onContinue();
-  };
-
   return (
     <div className="relative">
       <img src={capturedImage} alt="Captured sole" className="w-full h-64 object-contain" />
@@ -42,7 +36,7 @@ export const PhotoPreview: React.FC<PhotoPreviewProps> = ({
           size="sm" 
           variant="default" 
           className={`rounded-full h-8 w-8 p-0 ${isApproved ? "bg-green-700" : "bg-green-500 hover:bg-green-600"}`}
-          onClick={handleApproveClick}
+          onClick={onApprove}
         >
           <Check className="h-4 w-4" />
         </Button>

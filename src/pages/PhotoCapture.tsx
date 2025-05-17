@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -38,6 +37,13 @@ const PhotoCapture = () => {
       return;
     }
     
+    if (!isPhotoApproved) {
+      toast.error("Please approve the photo before continuing.");
+      return;
+    }
+    
+    // Now save the image to session storage only when continuing
+    sessionStorage.setItem("solePhoto", capturedImage);
     navigate("/rating");
   };
 

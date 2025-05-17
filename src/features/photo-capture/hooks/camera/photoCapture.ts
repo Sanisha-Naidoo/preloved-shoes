@@ -30,7 +30,7 @@ export const capturePhotoFromVideo = (
     const imageDataUrl = canvas.toDataURL("image/jpeg", 0.85);
     
     setCapturedImage(imageDataUrl);
-    sessionStorage.setItem("solePhoto", imageDataUrl);
+    // Removed sessionStorage.setItem here
     cleanupFn();
     
     toast.success("Photo captured successfully!");
@@ -73,7 +73,7 @@ export const uploadImageManually = (
       const imageDataUrl = e.target?.result as string;
       if (imageDataUrl) {
         setCapturedImage(imageDataUrl);
-        sessionStorage.setItem("solePhoto", imageDataUrl);
+        // Removed sessionStorage.setItem here
         toast.success('Image uploaded successfully!');
       }
     };
