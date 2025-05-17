@@ -1,5 +1,5 @@
 
-import { useState, useRef, useEffect, useLayoutEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "@/components/ui/sonner";
 import { useNavigate } from "react-router-dom";
 
@@ -9,115 +9,72 @@ export const useCamera = () => {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
-  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-  const [isVideoElementReady, setIsVideoElementReady] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const initAttemptedRef = useRef(false);
 
-  // Track component mount status
+  // Reset all camera-related state on unmount
   useEffect(() => {
-    console.log("Component mounted");
-    setIsMounted(true);
+    console.log("Camera component mounted");
+    
+    // Check for existing captured image in session storage
+    const storedImage = sessionStorage.getItem("solePhoto");
+    if (storedImage) {
+      console.log("Restored image from session storage");
+      setCapturedImage(storedImage);
+    } else {
+      // Start camera with slight delay to ensure DOM is ready
+      setTimeout(() => {
+        startCamera();
+      }, 500);
+    }
     
     return () => {
-      console.log("Component unmounted");
-      setIsMounted(false);
+      console.log("Camera component unmounted");
       stopCamera();
-      if (timeoutId) clearTimeout(timeoutId);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
     };
   }, []);
 
-  // Check if video element is ready using layout effect (runs before browser paint)
-  useLayoutEffect(() => {
-    if (isMounted && videoRef.current) {
-      console.log("Video element is ready in DOM");
-      setIsVideoElementReady(true);
-    }
-  }, [isMounted]);
-
-  // Watch for video element readiness and initialize camera
-  useEffect(() => {
-    if (isMounted && isVideoElementReady && !initAttemptedRef.current) {
-      console.log("Video element is ready and component is mounted, starting camera");
-      initAttemptedRef.current = true;
-      
-      // Recover any previously captured image from session storage
-      const storedImage = sessionStorage.getItem("solePhoto");
-      if (storedImage) {
-        console.log("Restored previous image from session storage");
-        setCapturedImage(storedImage);
-      } else if (!capturedImage) {
-        // Small delay to ensure DOM is fully ready
-        const initTimeout = setTimeout(() => {
-          startCamera();
-        }, 300);
-        return () => clearTimeout(initTimeout);
-      }
-    }
-  }, [isMounted, isVideoElementReady, capturedImage]);
-
   const startCamera = async () => {
-    // Don't try to start camera if we already have a captured image or component is unmounted
-    if (capturedImage || !isMounted) {
-      console.log("Not starting camera: already have image or component unmounted");
+    // Don't retry if we already have an image
+    if (capturedImage) {
+      console.log("Not starting camera: already have image");
       return;
     }
-
-    if (!videoRef.current) {
-      console.log("Video element isn't available yet, cannot start camera");
-      setCameraError("Camera initialization failed: Video element not ready");
-      return;
-    }
-
+    
+    // Set hard timeout to prevent getting stuck in loading state
     setIsLoading(true);
     setCameraError(null);
     
-    // Set a timeout to detect if camera is taking too long
-    const timeout = setTimeout(() => {
-      if (isLoading && isMounted) {
-        console.log("Camera access timed out after 8 seconds");
+    // Clear any existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    
+    // Set new timeout - force exit loading state after 10 seconds
+    timeoutRef.current = setTimeout(() => {
+      if (isLoading) {
+        console.log("Camera access timed out after 10 seconds");
         setCameraError("Camera access timed out. Please try uploading a photo instead.");
         setIsLoading(false);
       }
-    }, 8000);
-    
-    setTimeoutId(timeout);
+    }, 10000);
     
     try {
-      console.log("Requesting camera access with constraints");
+      console.log("Requesting camera access");
       
-      // Check if running on a secure context (https or localhost)
-      if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
-        console.log("Not on secure context, camera access requires HTTPS");
-        setCameraError("Camera access requires HTTPS. Please use a secure connection.");
-        setIsLoading(false);
-        clearTimeout(timeout);
-        return;
-      }
-      
-      // Check if mediaDevices API is supported
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        console.log("MediaDevices API not supported");
         setCameraError("Your browser doesn't support camera access");
         setIsLoading(false);
-        clearTimeout(timeout);
         return;
       }
       
-      // Verify video element exists before attempting to access camera
-      if (!videoRef.current) {
-        console.log("Video element is null before camera access attempt");
-        setCameraError("Camera initialization failed: Video element not found");
-        setIsLoading(false);
-        clearTimeout(timeout);
-        return;
-      }
-      
-      // Request camera permissions with specific constraints
+      // Request camera with environment facing mode if available
       const constraints = { 
         video: { 
           facingMode: { ideal: "environment" },
@@ -126,64 +83,56 @@ export const useCamera = () => {
         } 
       };
       
-      console.log("Calling getUserMedia...");
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      console.log("Camera access granted, stream received:", !!stream);
+      console.log("Camera stream obtained");
       
-      // Check if component is still mounted
-      if (!isMounted) {
-        console.log("Component unmounted during camera initialization, cleaning up");
-        stream.getTracks().forEach(track => track.stop());
-        clearTimeout(timeout);
-        return;
-      }
+      // Save the stream for later cleanup
+      streamRef.current = stream;
       
-      // Double check video element exists
       if (!videoRef.current) {
-        console.error("Video element reference is null AFTER getting stream - cannot initialize camera");
-        setCameraError("Could not find video element. Please try uploading a photo instead.");
+        setCameraError("Camera initialization error: Video element not found.");
+        stopCamera();
         setIsLoading(false);
-        clearTimeout(timeout);
-        
-        // Cleanup stream if we can't attach it
-        stream.getTracks().forEach(track => track.stop());
         return;
       }
       
-      console.log("Attaching stream to video element");
-      // Once we've confirmed the video element exists, attach the stream
       videoRef.current.srcObject = stream;
       
+      // Set up event handler for when video metadata is loaded
       videoRef.current.onloadedmetadata = () => {
         console.log("Video metadata loaded");
-        // Double check component is still mounted
-        if (!isMounted || !videoRef.current) {
-          console.error("Component unmounted or video element lost after metadata loaded");
-          stream.getTracks().forEach(track => track.stop());
-          setIsLoading(false);
-          return;
+        
+        if (videoRef.current) {
+          videoRef.current.play()
+            .then(() => {
+              console.log("Video playback started");
+              setIsCameraOpen(true);
+              setIsLoading(false);
+              if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+                timeoutRef.current = null;
+              }
+            })
+            .catch(error => {
+              console.error("Error playing video:", error);
+              setCameraError("Failed to start video stream");
+              stopCamera();
+              setIsLoading(false);
+            });
         }
-        
-        videoRef.current.play().catch(error => {
-          console.error("Error playing video:", error);
-          setCameraError("Failed to start video stream");
-          setIsLoading(false);
-        });
-        
-        setIsCameraOpen(true);
-        setIsLoading(false);
-        clearTimeout(timeout);
-        console.log("Camera successfully initialized and playing");
       };
       
-      // Store stream reference for cleanup
-      streamRef.current = stream;
-    } catch (error: any) {
-      if (!isMounted) return; // Don't update state if unmounted
+      videoRef.current.onerror = () => {
+        console.error("Video element error");
+        setCameraError("Error with video playback");
+        stopCamera();
+        setIsLoading(false);
+      };
       
+    } catch (error: any) {
       console.error("Error accessing camera:", error);
       
-      // Provide more specific error messages based on error type
+      // Provide more specific error messages
       if (error.name === "NotAllowedError") {
         setCameraError("Camera access denied. Please enable camera permissions in your browser settings.");
       } else if (error.name === "NotFoundError") {
@@ -195,8 +144,12 @@ export const useCamera = () => {
       }
       
       setIsLoading(false);
-      clearTimeout(timeout);
-      toast.error("Camera access failed. Please check permissions.");
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      
+      toast.error("Camera access failed. Please try the upload option instead.");
     }
   };
 
@@ -206,14 +159,18 @@ export const useCamera = () => {
         track.stop();
       });
       streamRef.current = null;
-      setIsCameraOpen(false);
     }
+    
+    if (videoRef.current && videoRef.current.srcObject) {
+      videoRef.current.srcObject = null;
+    }
+    
+    setIsCameraOpen(false);
   };
 
   const capturePhoto = () => {
     if (!videoRef.current || !canvasRef.current) {
-      console.error("Video or canvas element reference is null");
-      toast.error("Failed to capture photo. Please try again.");
+      toast.error("Failed to capture photo. Please try again or upload manually.");
       return;
     }
     
@@ -225,7 +182,6 @@ export const useCamera = () => {
       canvas.width = video.videoWidth || 640;
       canvas.height = video.videoHeight || 480;
       
-      // Draw the video frame to the canvas
       const context = canvas.getContext("2d");
       if (!context) {
         toast.error("Failed to get canvas context.");
@@ -233,58 +189,51 @@ export const useCamera = () => {
       }
       
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      
-      // Convert canvas to data URL
       const imageDataUrl = canvas.toDataURL("image/jpeg", 0.85);
-      setCapturedImage(imageDataUrl);
-      stopCamera();
       
-      // Store the image in session storage
+      setCapturedImage(imageDataUrl);
       sessionStorage.setItem("solePhoto", imageDataUrl);
+      stopCamera();
       
       toast.success("Photo captured successfully!");
     } catch (error) {
       console.error("Error capturing photo:", error);
-      toast.error("Failed to capture photo. Please try again.");
+      toast.error("Failed to capture photo. Please try again or upload manually.");
     }
-  };
-  
-  const useMockImage = () => {
-    // Use a placeholder image URL
-    const mockImageUrl = "/placeholder.svg";
-    setCapturedImage(mockImageUrl);
-    sessionStorage.setItem("solePhoto", mockImageUrl);
-    toast.success("Using placeholder image (camera unavailable)");
   };
 
   const cancelCameraAccess = () => {
-    if (timeoutId) clearTimeout(timeoutId);
     setIsLoading(false);
     setCameraError("Camera access canceled by user");
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
   };
 
   const retryCamera = () => {
     stopCamera();
     setCameraError(null);
     setCapturedImage(null);
-    
-    // Clear any stored image
     sessionStorage.removeItem("solePhoto");
     
-    // Small delay to make sure the cleanup is done
     setTimeout(() => {
       startCamera();
     }, 500);
   };
   
-  // Navigation to manual entry page
-  const navigateToManualEntry = () => {
-    navigate("/manual-entry");
-    toast.info("Redirecting to manual entry form");
-  };
-
   // Improved function to upload photo manually
   const uploadPhotoManually = () => {
+    // Stop any active camera first
+    stopCamera();
+    setIsLoading(false);
+    setCameraError(null);
+    
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    
     // Create a file input element
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
@@ -294,7 +243,6 @@ export const useCamera = () => {
     fileInput.onchange = (event) => {
       const target = event.target as HTMLInputElement;
       if (!target.files || target.files.length === 0) {
-        console.log("No file selected");
         return;
       }
       
@@ -307,29 +255,21 @@ export const useCamera = () => {
       }
       
       // Show loading indicator
-      setIsLoading(true);
+      toast.info("Processing image...");
       
       // Read the selected file
       const reader = new FileReader();
       reader.onload = (e) => {
-        // Check if component is still mounted
-        if (!isMounted) return;
-        
         const imageDataUrl = e.target?.result as string;
         if (imageDataUrl) {
           setCapturedImage(imageDataUrl);
           sessionStorage.setItem("solePhoto", imageDataUrl);
           toast.success('Image uploaded successfully!');
-          // Clear any previous camera errors
-          setCameraError(null);
-          setIsLoading(false);
         }
       };
       
       reader.onerror = () => {
-        if (!isMounted) return;
         toast.error('Failed to read the selected file');
-        setIsLoading(false);
       };
       
       reader.readAsDataURL(file);
@@ -339,6 +279,7 @@ export const useCamera = () => {
     fileInput.click();
   };
 
+  // Expose the necessary functions and state
   return {
     capturedImage,
     isCameraOpen,
@@ -347,12 +288,10 @@ export const useCamera = () => {
     videoRef,
     canvasRef,
     capturePhoto,
-    useMockImage,
     retryCamera,
     cancelCameraAccess,
     startCamera,
     stopCamera,
-    navigateToManualEntry,
     uploadPhotoManually,
   };
 };

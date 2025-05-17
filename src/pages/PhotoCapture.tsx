@@ -54,8 +54,30 @@ const PhotoCapture = () => {
       <PhotoCaptureHeader onBack={handleBackClick} />
 
       <div className="max-w-md mx-auto">
+        {/* Always show "Upload Photo Instead" button at the top for easy access */}
+        {!capturedImage && (
+          <Button 
+            onClick={uploadPhotoManually}
+            variant="outline"
+            className="mb-4 w-full flex items-center justify-center"
+          >
+            <Upload className="mr-2 h-4 w-4" /> Upload photo from device instead
+          </Button>
+        )}
+
         <Card className="overflow-hidden mb-6">
           <CardContent className="p-0">
+            {/* Always include the video element but hide it when not in use */}
+            <div className={isLoading || !isCameraOpen ? "hidden" : ""}>
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-64 object-cover bg-black"
+              />
+            </div>
+
             {isLoading ? (
               <CameraLoading 
                 onCancel={cancelCameraAccess} 
@@ -81,14 +103,6 @@ const PhotoCapture = () => {
                   <div className="py-10">
                     <Camera className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                     <p className="text-lg font-medium mb-4">Starting camera...</p>
-                    
-                    <Button 
-                      onClick={uploadPhotoManually}
-                      variant="default"
-                      className="mx-auto"
-                    >
-                      <Upload className="mr-2 h-4 w-4" /> Upload Photo Instead
-                    </Button>
                   </div>
                 )}
               </div>
@@ -97,7 +111,7 @@ const PhotoCapture = () => {
         </Card>
 
         {/* Hidden canvas for capturing images */}
-        <canvas ref={canvasRef} className="hidden"></canvas>
+        <canvas ref={canvasRef} className="hidden" width="640" height="480"></canvas>
         
         {capturedImage && (
           <Button onClick={handleContinue} className="w-full">
@@ -106,9 +120,29 @@ const PhotoCapture = () => {
         )}
         
         {cameraError && !capturedImage && (
-          <p className="text-center text-sm text-gray-500 mt-4">
-            Having trouble with the camera? Try uploading a photo instead.
-          </p>
+          <div className="text-center mt-4">
+            <p className="text-sm text-gray-500 mb-3">
+              Having trouble with the camera? Try one of these options:
+            </p>
+            
+            <div className="flex flex-col gap-2">
+              <Button 
+                onClick={uploadPhotoManually} 
+                variant="default"
+                className="flex items-center justify-center"
+              >
+                <Upload className="mr-2 h-4 w-4" /> Upload photo from device
+              </Button>
+              
+              <Button
+                onClick={retryCamera}
+                variant="outline"
+                className="flex items-center justify-center"
+              >
+                <Camera className="mr-2 h-4 w-4" /> Try camera again
+              </Button>
+            </div>
+          </div>
         )}
       </div>
     </div>

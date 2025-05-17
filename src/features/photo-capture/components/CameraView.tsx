@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Camera } from "lucide-react";
 
@@ -9,20 +9,8 @@ interface CameraViewProps {
 }
 
 export const CameraView: React.FC<CameraViewProps> = ({ videoRef, onCapture }) => {
-  // Add an effect to log when the video element is rendered
-  useEffect(() => {
-    console.log("CameraView rendered, videoRef current:", !!videoRef.current);
-  }, []);
-  
   return (
     <div className="relative">
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        muted
-        className="w-full h-64 object-cover bg-black"
-      />
       {/* Guide overlay */}
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="border-2 border-white border-dashed rounded-lg w-4/5 h-4/5 flex items-center justify-center">
