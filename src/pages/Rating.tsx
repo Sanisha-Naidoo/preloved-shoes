@@ -1,14 +1,18 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
+
 const Rating = () => {
   const navigate = useNavigate();
   const [rating, setRating] = useState<number | null>(null);
+
   const handleSkip = () => {
     handleSubmit();
   };
+
   const handleSubmit = () => {
     // Store the rating in session storage
     if (rating !== null) {
@@ -16,7 +20,9 @@ const Rating = () => {
     }
     navigate("/submit");
   };
-  return <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 p-4">
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 p-4">
       <Button variant="ghost" className="mb-6" onClick={() => navigate(-1)}>
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back
@@ -29,13 +35,18 @@ const Rating = () => {
         </p>
 
         <Card className="mb-6">
-          <CardContent className="rounded">
+          <CardContent className="p-6">
             <div className="flex flex-nowrap justify-between gap-2 w-full">
-              {Array.from({
-              length: 10
-            }, (_, i) => i + 1).map(num => <Button key={num} variant={rating === num ? "default" : "outline"} className={`h-12 w-12 min-w-[3rem] p-0 ${rating === num ? "bg-primary" : ""}`} onClick={() => setRating(num)}>
+              {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
+                <Button
+                  key={num}
+                  variant={rating === num ? "default" : "outline"}
+                  className={`h-12 w-12 min-w-[3rem] p-0 ${rating === num ? "bg-primary" : ""}`}
+                  onClick={() => setRating(num)}
+                >
                   {num}
-                </Button>)}
+                </Button>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -49,6 +60,8 @@ const Rating = () => {
           </Button>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Rating;
