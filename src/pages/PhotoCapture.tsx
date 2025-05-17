@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -47,7 +48,7 @@ const PhotoCapture = () => {
     navigate("/rating");
   };
 
-  // Updated back button handler that properly cleans up resources
+  // Updated back button handler that refreshes the page instead of navigating back when camera is active
   const handleBackClick = () => {
     // Clear the stored photo
     sessionStorage.removeItem("solePhoto");
@@ -55,8 +56,13 @@ const PhotoCapture = () => {
     // Stop the camera and release resources
     stopCamera();
     
-    // Then navigate back
-    navigate(-1);
+    if (isCameraOpen || isLoading) {
+      // If the camera is open or loading, refresh the current page to reset the component
+      window.location.reload();
+    } else {
+      // If we're viewing a captured image or have an error, we can navigate back
+      navigate(-1);
+    }
   };
 
   // Log the current state to help with debugging
