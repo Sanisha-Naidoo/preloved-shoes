@@ -1,10 +1,10 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
-import { ArrowLeft, Camera, RefreshCw, Check, AlertCircle } from "lucide-react";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { ArrowLeft, Camera, RefreshCw, Check } from "lucide-react";
 
 const PhotoCapture = () => {
   const navigate = useNavigate();
@@ -15,39 +15,23 @@ const PhotoCapture = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const timeoutRef = useRef<number | null>(null);
 
   // Clean up camera resources when component unmounts
   useEffect(() => {
     return () => {
       stopCamera();
-      // Clear any pending timeouts
-      if (timeoutRef.current) {
-        window.clearTimeout(timeoutRef.current);
-      }
     };
   }, []);
 
   const startCamera = async () => {
-    // Reset state
     setIsLoading(true);
     setCameraError(null);
-    
-    // Set a timeout to handle cases where camera initialization hangs
-    timeoutRef.current = window.setTimeout(() => {
-      if (isLoading) {
-        setCameraError("Camera access timed out. Please try again or use a different device.");
-        setIsLoading(false);
-        toast.error("Camera initialization timed out");
-      }
-    }, 10000); // 10 seconds timeout
     
     try {
       // Check if running on a secure context (https or localhost)
       if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
         setCameraError("Camera access requires HTTPS. Please use a secure connection.");
         setIsLoading(false);
-        clearTimeout();
         return;
       }
       
@@ -55,7 +39,6 @@ const PhotoCapture = () => {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         setCameraError("Your browser doesn't support camera access");
         setIsLoading(false);
-        clearTimeout();
         return;
       }
       
@@ -68,9 +51,7 @@ const PhotoCapture = () => {
         } 
       };
       
-      console.log("Requesting camera access with constraints:", constraints);
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      console.log("Camera access granted, stream received:", stream.active);
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -79,21 +60,13 @@ const PhotoCapture = () => {
             console.error("Error playing video:", error);
             setCameraError("Failed to start video stream");
             setIsLoading(false);
-            clearTimeout();
           });
           setIsCameraOpen(true);
           setIsLoading(false);
-          clearTimeout();
-          toast.success("Camera accessed successfully");
         };
         
         // Store stream reference for cleanup
         streamRef.current = stream;
-      } else {
-        console.error("Video element reference is null");
-        setCameraError("Video element not found");
-        setIsLoading(false);
-        clearTimeout();
       }
     } catch (error: any) {
       console.error("Error accessing camera:", error);
@@ -105,22 +78,12 @@ const PhotoCapture = () => {
         setCameraError("No camera found on your device.");
       } else if (error.name === "NotReadableError") {
         setCameraError("Camera is already in use by another application.");
-      } else if (error.name === "OverconstrainedError") {
-        setCameraError("Camera doesn't meet the requested constraints. Try with a different camera.");
       } else {
         setCameraError(`Camera error: ${error.message || "Unknown error"}`);
       }
       
       setIsLoading(false);
-      clearTimeout();
       toast.error("Camera access failed. Please check permissions.");
-    }
-  };
-
-  const clearTimeout = () => {
-    if (timeoutRef.current) {
-      window.clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
     }
   };
 
@@ -132,7 +95,6 @@ const PhotoCapture = () => {
       streamRef.current = null;
       setIsCameraOpen(false);
     }
-    clearTimeout();
   };
 
   const capturePhoto = () => {
@@ -207,16 +169,6 @@ const PhotoCapture = () => {
           Take a clear photo of the sole of your shoe. Hold your phone about 30cm away for best results.
         </p>
 
-        {!isCameraOpen && !isLoading && !capturedImage && !cameraError && (
-          <Alert variant="default" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Allow camera access</AlertTitle>
-            <AlertDescription>
-              When prompted, please allow camera access to take a photo of your shoe sole.
-            </AlertDescription>
-          </Alert>
-        )}
-
         <Card className="overflow-hidden mb-6">
           <CardContent className="p-0">
             {isLoading ? (
@@ -224,18 +176,6 @@ const PhotoCapture = () => {
                 <div className="flex flex-col items-center gap-2">
                   <RefreshCw className="h-8 w-8 text-slate-400 animate-spin" />
                   <p className="text-slate-500">Accessing camera...</p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => {
-                      clearTimeout();
-                      setIsLoading(false);
-                      setCameraError("Camera access cancelled by user");
-                    }}
-                    className="mt-2"
-                  >
-                    Cancel
-                  </Button>
                 </div>
               </div>
             ) : isCameraOpen ? (
