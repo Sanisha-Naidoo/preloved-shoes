@@ -49,6 +49,7 @@ export type Database = {
           created_at: string
           id: string
           model: string | null
+          rating: number | null
           size: string
           size_unit: string
         }
@@ -59,6 +60,7 @@ export type Database = {
           created_at?: string
           id?: string
           model?: string | null
+          rating?: number | null
           size: string
           size_unit?: string
         }
@@ -69,6 +71,7 @@ export type Database = {
           created_at?: string
           id?: string
           model?: string | null
+          rating?: number | null
           size?: string
           size_unit?: string
         }

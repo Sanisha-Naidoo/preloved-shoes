@@ -137,6 +137,7 @@ const Submit = () => {
             size_unit: shoeDetails.sizeUnit,
             condition: shoeDetails.condition,
             barcode: shoeDetails.barcode || null,
+            rating: rating, // Store rating in the shoes table
           },
         ])
         .select();
@@ -154,7 +155,7 @@ const Submit = () => {
           {
             shoe_id: shoeId,
             sole_photo_url: photoUrl,
-            rating: rating,
+            rating: rating, // Keep storing rating in scans for backward compatibility
           },
         ]);
 
