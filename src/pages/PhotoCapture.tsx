@@ -28,38 +28,70 @@ const PhotoCapture = () => {
     setCameraError(null);
     
     try {
-      // First check if we have the necessary permissions
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" }
-        });
-        
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.onloadedmetadata = () => {
-            videoRef.current?.play();
-            setIsCameraOpen(true);
-            setIsLoading(false);
-          };
-          streamRef.current = stream;
-        }
-      } else {
-        setCameraError("Your browser does not support camera access");
+      // Check if running on a secure context (https or localhost)
+      if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+        setCameraError("Camera access requires HTTPS. Please use a secure connection.");
         setIsLoading(false);
-        // Use mockImageCapture as fallback
-        console.warn("Camera API not available - using fallback");
+        return;
       }
-    } catch (error) {
+      
+      // Check if mediaDevices API is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setCameraError("Your browser doesn't support camera access");
+        setIsLoading(false);
+        return;
+      }
+      
+      // Request camera permissions with specific constraints
+      const constraints = { 
+        video: { 
+          facingMode: { ideal: "environment" },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        } 
+      };
+      
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play().catch(error => {
+            console.error("Error playing video:", error);
+            setCameraError("Failed to start video stream");
+            setIsLoading(false);
+          });
+          setIsCameraOpen(true);
+          setIsLoading(false);
+        };
+        
+        // Store stream reference for cleanup
+        streamRef.current = stream;
+      }
+    } catch (error: any) {
       console.error("Error accessing camera:", error);
-      setCameraError("Camera access denied. Please enable camera permissions.");
+      
+      // Provide more specific error messages based on error type
+      if (error.name === "NotAllowedError") {
+        setCameraError("Camera access denied. Please enable camera permissions in your browser settings.");
+      } else if (error.name === "NotFoundError") {
+        setCameraError("No camera found on your device.");
+      } else if (error.name === "NotReadableError") {
+        setCameraError("Camera is already in use by another application.");
+      } else {
+        setCameraError(`Camera error: ${error.message || "Unknown error"}`);
+      }
+      
       setIsLoading(false);
-      toast.error("Camera access denied. Please enable camera permissions.");
+      toast.error("Camera access failed. Please check permissions.");
     }
   };
 
   const stopCamera = () => {
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach(track => {
+        track.stop();
+      });
       streamRef.current = null;
       setIsCameraOpen(false);
     }
@@ -79,15 +111,20 @@ const PhotoCapture = () => {
       if (context) {
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         
-        // Convert canvas to data URL
-        const imageDataUrl = canvas.toDataURL("image/jpeg");
-        setCapturedImage(imageDataUrl);
-        stopCamera();
-        
-        // Store the image in session storage
-        sessionStorage.setItem("solePhoto", imageDataUrl);
-        
-        toast.success("Photo captured successfully!");
+        try {
+          // Convert canvas to data URL
+          const imageDataUrl = canvas.toDataURL("image/jpeg", 0.85);
+          setCapturedImage(imageDataUrl);
+          stopCamera();
+          
+          // Store the image in session storage
+          sessionStorage.setItem("solePhoto", imageDataUrl);
+          
+          toast.success("Photo captured successfully!");
+        } catch (error) {
+          console.error("Error capturing photo:", error);
+          toast.error("Failed to capture photo. Please try again.");
+        }
       }
     }
   };
@@ -108,6 +145,15 @@ const PhotoCapture = () => {
     }
     
     navigate("/rating");
+  };
+  
+  const retryCamera = () => {
+    stopCamera();
+    setCameraError(null);
+    setCapturedImage(null);
+    setTimeout(() => {
+      startCamera();
+    }, 500);
   };
 
   return (
@@ -138,6 +184,7 @@ const PhotoCapture = () => {
                   ref={videoRef}
                   autoPlay
                   playsInline
+                  muted
                   className="w-full h-64 object-cover bg-black"
                 />
                 {/* Guide overlay */}
@@ -191,7 +238,7 @@ const PhotoCapture = () => {
                     <Camera className="h-12 w-12 mx-auto mb-4 text-red-400" />
                     <p className="text-red-500 mb-4">{cameraError}</p>
                     <div className="space-y-3">
-                      <Button onClick={startCamera} className="w-full">
+                      <Button onClick={retryCamera} className="w-full">
                         Try Again
                       </Button>
                       <Button 
