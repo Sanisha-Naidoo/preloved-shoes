@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -39,6 +39,15 @@ const PhotoCapture = () => {
   };
 
   const handleBackClick = () => navigate(-1);
+
+  // Log the current state to help with debugging
+  console.log("PhotoCapture render state:", { 
+    capturedImage: !!capturedImage, 
+    isCameraOpen, 
+    isLoading, 
+    cameraError: !!cameraError, 
+    videoRefExists: !!videoRef.current 
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 p-4">
@@ -83,6 +92,12 @@ const PhotoCapture = () => {
           <Button onClick={handleContinue} className="w-full">
             Continue
           </Button>
+        )}
+        
+        {cameraError && !capturedImage && (
+          <p className="text-center text-sm text-gray-500 mt-4">
+            Having trouble with the camera? Try uploading a photo instead.
+          </p>
         )}
       </div>
     </div>

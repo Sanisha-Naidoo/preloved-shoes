@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Camera } from "lucide-react";
 
@@ -9,6 +9,11 @@ interface CameraViewProps {
 }
 
 export const CameraView: React.FC<CameraViewProps> = ({ videoRef, onCapture }) => {
+  // Add an effect to log when the video element is rendered
+  useEffect(() => {
+    console.log("CameraView rendered, videoRef current:", !!videoRef.current);
+  }, []);
+  
   return (
     <div className="relative">
       <video
