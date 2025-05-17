@@ -11,12 +11,14 @@ interface CameraViewProps {
 export const CameraView: React.FC<CameraViewProps> = ({ videoRef, onCapture }) => {
   return (
     <div className="relative">
-      {/* Guide overlay */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="border-2 border-white border-dashed rounded-lg w-4/5 h-4/5 flex items-center justify-center">
-          <p className="text-white bg-black/50 px-3 py-1 rounded text-sm">
-            Center the sole here
-          </p>
+      {/* Guide overlay - moved text to top */}
+      <div className="absolute inset-0 flex flex-col items-center">
+        {/* Text now positioned at top with padding */}
+        <div className="mt-4 text-white bg-black/50 px-3 py-1 rounded text-sm">
+          Center the sole here
+        </div>
+        {/* Dashed border guide remains centered */}
+        <div className="border-2 border-white border-dashed rounded-lg w-4/5 h-4/5 mt-auto mb-auto">
         </div>
       </div>
       {/* Capture button */}
