@@ -64,6 +64,7 @@ const Submit = () => {
             brand: shoeDetails.brand,
             model: shoeDetails.model || null,
             size: shoeDetails.size,
+            size_unit: shoeDetails.sizeUnit, // Use the sizeUnit field from the form
             condition: shoeDetails.condition,
             barcode: shoeDetails.barcode || null,
           },

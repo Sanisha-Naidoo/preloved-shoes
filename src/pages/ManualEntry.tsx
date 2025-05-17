@@ -14,6 +14,7 @@ type ShoeFormData = {
   brand: string;
   model: string;
   size: string;
+  sizeUnit: string;
   condition: string;
 };
 
@@ -24,6 +25,7 @@ const ManualEntry = () => {
       brand: "",
       model: "",
       size: "",
+      sizeUnit: "EU",
       condition: "used",
     },
   });
@@ -78,19 +80,52 @@ const ManualEntry = () => {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="size"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Size *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="US 9, EU 42, etc." required {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="space-y-2">
+              <Label>Size *</Label>
+              <div className="flex gap-2">
+                <div className="w-1/3">
+                  <FormField
+                    control={form.control}
+                    name="sizeUnit"
+                    render={({ field }) => (
+                      <FormItem>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Unit" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="EU">EU</SelectItem>
+                            <SelectItem value="UK">UK</SelectItem>
+                            <SelectItem value="US">US</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <div className="w-2/3">
+                  <FormField
+                    control={form.control}
+                    name="size"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input placeholder="Enter size number" required {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            </div>
 
             <FormField
               control={form.control}

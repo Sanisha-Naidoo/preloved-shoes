@@ -60,19 +60,19 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onDetected }) => {
             fps: 10,
             qrbox: { width: 250, height: 150 },
             aspectRatio: 1.777778,
-            // Set to scan all code types, including barcodes and QR codes
-            formatsToSupport: [
+            // Using formats property instead of formatsToSupport
+            formats: [
               // QR Code formats
-              0, 1, 2, 3, 4,
+              'QR_CODE', 'AZTEC', 'DATA_MATRIX',
               // Barcode formats 
-              5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
+              'CODE_39', 'CODE_93', 'CODE_128', 'EAN_8', 'EAN_13', 'UPC_A', 'UPC_E', 'ITF', 'RSS_14', 'RSS_EXPANDED'
             ]
           },
           (decodedText, decodedResult) => {
             // Successfully scanned code
             if (decodedText) {
               // Determine if it's a QR code or barcode based on format
-              const formatName = decodedResult?.result?.format?.format || "unknown";
+              const formatName = decodedResult?.result?.format?.toString() || "unknown";
               const codeType = isQRCodeFormat(formatName) ? "qrcode" : "barcode";
               console.log(`Detected ${codeType}: ${decodedText}`);
               onBarcodeDetected(decodedText, codeType, html5QrCode);

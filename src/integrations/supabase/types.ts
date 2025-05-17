@@ -50,6 +50,7 @@ export type Database = {
           id: string
           model: string | null
           size: string
+          size_unit: string
         }
         Insert: {
           barcode?: string | null
@@ -59,6 +60,7 @@ export type Database = {
           id?: string
           model?: string | null
           size: string
+          size_unit?: string
         }
         Update: {
           barcode?: string | null
@@ -68,6 +70,7 @@ export type Database = {
           id?: string
           model?: string | null
           size?: string
+          size_unit?: string
         }
         Relationships: []
       }
