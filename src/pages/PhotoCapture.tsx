@@ -54,17 +54,6 @@ const PhotoCapture = () => {
       <PhotoCaptureHeader onBack={handleBackClick} />
 
       <div className="max-w-md mx-auto">
-        {/* Always show "Upload Photo Instead" button at the top for easy access */}
-        {!capturedImage && (
-          <Button 
-            onClick={uploadPhotoManually}
-            variant="outline"
-            className="mb-4 w-full flex items-center justify-center"
-          >
-            <Upload className="mr-2 h-4 w-4" /> Upload photo from device instead
-          </Button>
-        )}
-
         <Card className="overflow-hidden mb-6">
           <CardContent className="p-0">
             {/* Always include the video element but hide it when not in use */}
@@ -109,6 +98,17 @@ const PhotoCapture = () => {
             )}
           </CardContent>
         </Card>
+        
+        {/* Moved "Upload Photo Instead" button to below the camera box */}
+        {!capturedImage && (
+          <Button 
+            onClick={uploadPhotoManually}
+            variant="outline"
+            className="mb-4 w-full flex items-center justify-center"
+          >
+            <Upload className="mr-2 h-4 w-4" /> Upload photo from device instead
+          </Button>
+        )}
 
         {/* Hidden canvas for capturing images */}
         <canvas ref={canvasRef} className="hidden" width="640" height="480"></canvas>
