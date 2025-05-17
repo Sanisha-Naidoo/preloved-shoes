@@ -57,7 +57,7 @@ const ManualEntry = () => {
           }) => <FormItem>
                   <FormLabel>Model (Optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="Air Max, Stan Smith, etc." className="On Cloud, Nike, Adidas, etc. " />
+                    <Input placeholder="Air Max, Stan Smith, etc." className="" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>} />
