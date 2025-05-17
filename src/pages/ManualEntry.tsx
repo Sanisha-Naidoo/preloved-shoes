@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -9,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormField, FormItem, FormControl, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "@/components/ui/sonner";
 import { ArrowLeft } from "lucide-react";
-
 type ShoeFormData = {
   brand: string;
   model: string;
@@ -17,7 +15,6 @@ type ShoeFormData = {
   sizeUnit: string;
   condition: string;
 };
-
 const ManualEntry = () => {
   const navigate = useNavigate();
   const form = useForm<ShoeFormData>({
@@ -26,23 +23,16 @@ const ManualEntry = () => {
       model: "",
       size: "",
       sizeUnit: "EU",
-      condition: "used",
-    },
+      condition: "used"
+    }
   });
-
   const onSubmit = (data: ShoeFormData) => {
     // Store the data in session storage to be used later
     sessionStorage.setItem("shoeDetails", JSON.stringify(data));
     navigate("/photo-capture");
   };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 p-4">
-      <Button
-        variant="ghost"
-        className="mb-6"
-        onClick={() => navigate("/")}
-      >
+  return <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 p-4">
+      <Button variant="ghost" className="mb-6" onClick={() => navigate("/")}>
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back
       </Button>
@@ -52,47 +42,34 @@ const ManualEntry = () => {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="brand"
-              render={({ field }) => (
-                <FormItem>
+            <FormField control={form.control} name="brand" render={({
+            field
+          }) => <FormItem>
                   <FormLabel>Brand *</FormLabel>
                   <FormControl>
                     <Input placeholder="Nike, Adidas, etc." required {...field} />
                   </FormControl>
                   <FormMessage />
-                </FormItem>
-              )}
-            />
+                </FormItem>} />
 
-            <FormField
-              control={form.control}
-              name="model"
-              render={({ field }) => (
-                <FormItem>
+            <FormField control={form.control} name="model" render={({
+            field
+          }) => <FormItem>
                   <FormLabel>Model (Optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="Air Max, Stan Smith, etc." {...field} />
+                    <Input placeholder="Air Max, Stan Smith, etc." className="On Cloud, Nike, Adidas, etc. " />
                   </FormControl>
                   <FormMessage />
-                </FormItem>
-              )}
-            />
+                </FormItem>} />
 
             <div className="space-y-2">
               <Label>Size *</Label>
               <div className="flex gap-2">
                 <div className="w-1/3">
-                  <FormField
-                    control={form.control}
-                    name="sizeUnit"
-                    render={({ field }) => (
-                      <FormItem>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
+                  <FormField control={form.control} name="sizeUnit" render={({
+                  field
+                }) => <FormItem>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Unit" />
@@ -105,38 +82,27 @@ const ManualEntry = () => {
                           </SelectContent>
                         </Select>
                         <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      </FormItem>} />
                 </div>
                 
                 <div className="w-2/3">
-                  <FormField
-                    control={form.control}
-                    name="size"
-                    render={({ field }) => (
-                      <FormItem>
+                  <FormField control={form.control} name="size" render={({
+                  field
+                }) => <FormItem>
                         <FormControl>
                           <Input placeholder="Enter size number" required {...field} />
                         </FormControl>
                         <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      </FormItem>} />
                 </div>
               </div>
             </div>
 
-            <FormField
-              control={form.control}
-              name="condition"
-              render={({ field }) => (
-                <FormItem>
+            <FormField control={form.control} name="condition" render={({
+            field
+          }) => <FormItem>
                   <FormLabel>Condition *</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select condition" />
@@ -151,9 +117,7 @@ const ManualEntry = () => {
                     </SelectContent>
                   </Select>
                   <FormMessage />
-                </FormItem>
-              )}
-            />
+                </FormItem>} />
 
             <Button type="submit" className="w-full">
               Continue
@@ -161,8 +125,6 @@ const ManualEntry = () => {
           </form>
         </Form>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default ManualEntry;
