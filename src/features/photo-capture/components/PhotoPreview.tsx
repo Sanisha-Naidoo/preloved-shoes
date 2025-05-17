@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 interface PhotoPreviewProps {
   capturedImage: string;
@@ -29,16 +29,6 @@ export const PhotoPreview: React.FC<PhotoPreviewProps> = ({
           onClick={onRetake}
         >
           <ArrowLeft className="h-4 w-4" />
-        </Button>
-      </div>
-      <div className="absolute bottom-2 right-2">
-        <Button 
-          size="sm" 
-          variant="default" 
-          className={`rounded-full h-8 w-8 p-0 ${isApproved ? "bg-green-700" : "bg-green-500 hover:bg-green-600"}`}
-          onClick={onApprove}
-        >
-          <Check className="h-4 w-4" />
         </Button>
       </div>
     </div>

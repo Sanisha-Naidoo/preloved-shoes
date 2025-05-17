@@ -38,12 +38,7 @@ const PhotoCapture = () => {
       return;
     }
     
-    if (!isPhotoApproved) {
-      toast.error("Please approve the photo before continuing.");
-      return;
-    }
-    
-    // Now save the image to session storage only when continuing
+    // Auto-approve photo when continuing - no manual approval needed anymore
     sessionStorage.setItem("solePhoto", capturedImage);
     navigate("/rating");
   };
@@ -147,7 +142,6 @@ const PhotoCapture = () => {
           <Button 
             onClick={handleContinue} 
             className="w-full"
-            disabled={!isPhotoApproved}
           >
             Continue
           </Button>
