@@ -36,12 +36,12 @@ const Rating = () => {
 
         <Card className="mb-6">
           <CardContent className="p-6">
-            <div className="flex overflow-x-auto justify-between gap-2">
+            <div className="flex flex-nowrap justify-between gap-2 w-full">
               {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
                 <Button
                   key={num}
                   variant={rating === num ? "default" : "outline"}
-                  className={`h-12 w-12 p-0 flex-shrink-0 ${rating === num ? "bg-primary" : ""}`}
+                  className={`h-12 w-12 min-w-[3rem] p-0 ${rating === num ? "bg-primary" : ""}`}
                   onClick={() => setRating(num)}
                 >
                   {num}
