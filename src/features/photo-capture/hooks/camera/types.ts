@@ -4,6 +4,7 @@ export type CameraState = {
   isCameraOpen: boolean;
   isLoading: boolean;
   cameraError: string | null;
+  isPhotoApproved: boolean;
 };
 
 export type CameraActions = {
@@ -13,6 +14,7 @@ export type CameraActions = {
   uploadPhotoManually: () => void;
   startCamera: () => Promise<void>;
   stopCamera: () => void;
+  approvePhoto: () => void;
 };
 
 export type CameraRefs = {

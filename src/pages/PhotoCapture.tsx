@@ -21,12 +21,14 @@ const PhotoCapture = () => {
     isCameraOpen,
     isLoading,
     cameraError,
+    isPhotoApproved,
     videoRef,
     canvasRef,
     capturePhoto,
     retryCamera,
     cancelCameraAccess,
     uploadPhotoManually,
+    approvePhoto,
   } = useCamera();
 
   const handleContinue = () => {
@@ -46,7 +48,8 @@ const PhotoCapture = () => {
     isCameraOpen, 
     isLoading, 
     cameraError: !!cameraError, 
-    videoRefExists: !!videoRef.current 
+    videoRefExists: !!videoRef.current,
+    isPhotoApproved 
   });
 
   return (
@@ -79,6 +82,8 @@ const PhotoCapture = () => {
                 capturedImage={capturedImage}
                 onRetake={retryCamera}
                 onContinue={handleContinue}
+                onApprove={approvePhoto}
+                isApproved={isPhotoApproved}
               />
             ) : (
               <div className="p-6 text-center">
@@ -114,7 +119,11 @@ const PhotoCapture = () => {
         <canvas ref={canvasRef} className="hidden" width="640" height="480"></canvas>
         
         {capturedImage && (
-          <Button onClick={handleContinue} className="w-full">
+          <Button 
+            onClick={handleContinue} 
+            className="w-full"
+            disabled={!isPhotoApproved}
+          >
             Continue
           </Button>
         )}

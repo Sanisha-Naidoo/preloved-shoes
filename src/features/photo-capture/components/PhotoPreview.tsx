@@ -7,13 +7,23 @@ interface PhotoPreviewProps {
   capturedImage: string;
   onRetake: () => void;
   onContinue: () => void;
+  onApprove: () => void;
+  isApproved: boolean;
 }
 
 export const PhotoPreview: React.FC<PhotoPreviewProps> = ({
   capturedImage,
   onRetake,
   onContinue,
+  onApprove,
+  isApproved,
 }) => {
+  // Function to handle both approve and continue in one click
+  const handleApproveClick = () => {
+    onApprove();
+    onContinue();
+  };
+
   return (
     <div className="relative">
       <img src={capturedImage} alt="Captured sole" className="w-full h-64 object-contain" />
@@ -31,8 +41,8 @@ export const PhotoPreview: React.FC<PhotoPreviewProps> = ({
         <Button 
           size="sm" 
           variant="default" 
-          className="rounded-full h-8 w-8 p-0 bg-green-500 hover:bg-green-600"
-          onClick={onContinue}
+          className={`rounded-full h-8 w-8 p-0 ${isApproved ? "bg-green-700" : "bg-green-500 hover:bg-green-600"}`}
+          onClick={handleApproveClick}
         >
           <Check className="h-4 w-4" />
         </Button>

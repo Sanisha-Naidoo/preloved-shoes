@@ -11,6 +11,7 @@ export const useCamera = (): CameraState & CameraActions & CameraRefs => {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [isPhotoApproved, setIsPhotoApproved] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -25,6 +26,8 @@ export const useCamera = (): CameraState & CameraActions & CameraRefs => {
     if (storedImage) {
       console.log("Restored image from session storage");
       setCapturedImage(storedImage);
+      // Don't automatically approve restored photos
+      setIsPhotoApproved(false);
     } else {
       // Start camera with slight delay to ensure DOM is ready
       setTimeout(() => {
@@ -75,6 +78,8 @@ export const useCamera = (): CameraState & CameraActions & CameraRefs => {
       setCapturedImage,
       stopCamera
     );
+    // Reset approval status when capturing a new photo
+    setIsPhotoApproved(false);
   };
 
   const cancelCameraAccess = () => {
@@ -90,8 +95,10 @@ export const useCamera = (): CameraState & CameraActions & CameraRefs => {
     stopCamera();
     setCameraError(null);
     setCapturedImage(null);
+    setIsPhotoApproved(false);
     sessionStorage.removeItem("solePhoto");
     
+    // Add a small delay before restarting camera to ensure cleanup is complete
     setTimeout(() => {
       startCamera();
     }, 500);
@@ -109,6 +116,13 @@ export const useCamera = (): CameraState & CameraActions & CameraRefs => {
     }
     
     uploadImageManually(setCapturedImage, stopCamera);
+    // Reset approval status when uploading a new photo
+    setIsPhotoApproved(false);
+  };
+
+  // New function to approve the captured photo
+  const approvePhoto = () => {
+    setIsPhotoApproved(true);
   };
 
   // Expose the necessary functions and state
@@ -117,6 +131,7 @@ export const useCamera = (): CameraState & CameraActions & CameraRefs => {
     isCameraOpen,
     isLoading,
     cameraError,
+    isPhotoApproved,
     videoRef,
     canvasRef,
     capturePhoto,
@@ -125,5 +140,6 @@ export const useCamera = (): CameraState & CameraActions & CameraRefs => {
     startCamera,
     stopCamera,
     uploadPhotoManually,
+    approvePhoto,
   };
 };
