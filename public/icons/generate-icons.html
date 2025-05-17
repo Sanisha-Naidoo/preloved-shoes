@@ -1,0 +1,246 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Icon Generator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            margin: 10px 0;
+        }
+        .icons-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+        }
+        .icon-preview {
+            text-align: center;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        input, button {
+            padding: 8px;
+            margin: 5px 0;
+        }
+        .instructions {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>PWA Icon Generator</h1>
+    <p>Generate placeholder icons for your Progressive Web App based on the Reboot logo.</p>
+    
+    <div class="controls">
+        <div>
+            <label for="logoInput">Upload Logo (PNG or JPEG):</label><br>
+            <input type="file" id="logoInput" accept="image/png, image/jpeg">
+        </div>
+        <div>
+            <label for="bgColor">Background Color:</label><br>
+            <input type="color" id="bgColor" value="#ffffff">
+        </div>
+        <div>
+            <label for="textColor">Text Color:</label><br>
+            <input type="color" id="textColor" value="#3b82f6">
+        </div>
+        <div>
+            <button id="generateBtn">Generate All Icons</button>
+            <button id="downloadAllBtn">Download All Icons</button>
+        </div>
+    </div>
+
+    <div class="instructions">
+        <h3>Instructions:</h3>
+        <ol>
+            <li>Upload your logo image (recommended: square, transparent PNG)</li>
+            <li>Choose background color and text color if needed</li>
+            <li>Click "Generate All Icons" to preview all icon sizes</li>
+            <li>Click "Download All Icons" to download a zip with all icons</li>
+            <li>Extract the zip and place the icons in your project's <code>/public/icons/</code> directory</li>
+        </ol>
+    </div>
+
+    <h2>Icon Previews:</h2>
+    <div class="icons-container" id="iconsContainer"></div>
+
+    <script>
+        // Required icon sizes from manifest.json
+        const ICON_SIZES = [72, 96, 128, 144, 152, 167, 180, 192, 384, 512];
+        let userLogo = null;
+
+        // Set up event listeners
+        document.getElementById('logoInput').addEventListener('change', handleLogoUpload);
+        document.getElementById('generateBtn').addEventListener('click', generateAllIcons);
+        document.getElementById('downloadAllBtn').addEventListener('click', downloadAllIcons);
+        document.getElementById('bgColor').addEventListener('change', () => {
+            if (userLogo) generateAllIcons();
+        });
+        document.getElementById('textColor').addEventListener('change', () => {
+            if (userLogo) generateAllIcons();
+        });
+
+        // Handle logo upload
+        function handleLogoUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    userLogo = img;
+                    generateAllIcons();
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Generate all icon sizes
+        function generateAllIcons() {
+            const container = document.getElementById('iconsContainer');
+            container.innerHTML = '';
+            
+            // Create regular icons
+            ICON_SIZES.forEach(size => {
+                const canvas = generateIcon(size, size, false);
+                const name = `icon-${size}x${size}.png`;
+                addIconPreview(canvas, name, container);
+            });
+            
+            // Create maskable icon with padding
+            const maskableCanvas = generateIcon(512, 512, true);
+            addIconPreview(maskableCanvas, 'maskable_icon.png', container);
+        }
+
+        // Generate a single icon
+        function generateIcon(width, height, isMaskable) {
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            
+            // Draw background
+            ctx.fillStyle = document.getElementById('bgColor').value;
+            ctx.fillRect(0, 0, width, height);
+            
+            // Calculate logo size (with padding for maskable icon)
+            const padding = isMaskable ? width * 0.12 : width * 0.05; // 12% padding for maskable icons
+            const logoSize = width - (padding * 2);
+            
+            if (userLogo) {
+                // Draw user-uploaded logo
+                ctx.drawImage(userLogo, padding, padding, logoSize, logoSize);
+            } else {
+                // Draw placeholder text
+                ctx.fillStyle = document.getElementById('textColor').value;
+                ctx.font = `bold ${width * 0.2}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('REBOOT', width/2, height/2);
+            }
+            
+            return canvas;
+        }
+
+        // Add icon preview to container
+        function addIconPreview(canvas, name, container) {
+            const div = document.createElement('div');
+            div.className = 'icon-preview';
+            
+            // Clone canvas for display
+            const displayCanvas = document.createElement('canvas');
+            displayCanvas.width = canvas.width;
+            displayCanvas.height = canvas.height;
+            displayCanvas.getContext('2d').drawImage(canvas, 0, 0);
+            
+            // Create download link for individual icon
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = name;
+            link.appendChild(displayCanvas);
+            
+            // Size label
+            const label = document.createElement('div');
+            label.textContent = name;
+            
+            div.appendChild(link);
+            div.appendChild(label);
+            container.appendChild(div);
+        }
+
+        // Download all icons as zip
+        async function downloadAllIcons() {
+            // Check if JSZip is loaded, if not dynamically load it
+            if (typeof JSZip === 'undefined') {
+                await loadJSZip();
+            }
+            
+            const zip = new JSZip();
+            
+            // Add regular icons to zip
+            ICON_SIZES.forEach(size => {
+                const canvas = generateIcon(size, size, false);
+                const dataUrl = canvas.toDataURL('image/png');
+                const base64Data = dataUrl.split(',')[1];
+                zip.file(`icon-${size}x${size}.png`, base64Data, {base64: true});
+            });
+            
+            // Add maskable icon to zip
+            const maskableCanvas = generateIcon(512, 512, true);
+            const maskableDataUrl = maskableCanvas.toDataURL('image/png');
+            const maskableBase64Data = maskableDataUrl.split(',')[1];
+            zip.file('maskable_icon.png', maskableBase64Data, {base64: true});
+            
+            // Generate and download zip
+            zip.generateAsync({type:'blob'}).then(function(content) {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = 'pwa-icons.zip';
+                link.click();
+            });
+        }
+
+        // Load JSZip library dynamically
+        async function loadJSZip() {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        // Initialize with default icons
+        window.onload = function() {
+            // Try to pre-load the Reboot logo if available
+            const defaultLogo = new Image();
+            defaultLogo.onload = function() {
+                userLogo = defaultLogo;
+                generateAllIcons();
+            };
+            defaultLogo.onerror = function() {
+                // Just generate text-based icons if logo loading fails
+                generateAllIcons();
+            };
+            defaultLogo.src = '/lovable-uploads/ba6fcc1a-24b1-4e24-8750-43bdc56bb2fb.png';
+        };
+    </script>
+    <!-- Add JSZip for downloading all icons as a zip file -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
+</body>
+</html>
