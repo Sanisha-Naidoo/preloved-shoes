@@ -29,6 +29,7 @@ const PhotoCapture = () => {
     cancelCameraAccess,
     uploadPhotoManually,
     approvePhoto,
+    stopCamera,
   } = useCamera();
 
   const handleContinue = () => {
@@ -40,7 +41,17 @@ const PhotoCapture = () => {
     navigate("/rating");
   };
 
-  const handleBackClick = () => navigate(-1);
+  // Updated back button handler that properly cleans up resources
+  const handleBackClick = () => {
+    // Clear the stored photo
+    sessionStorage.removeItem("solePhoto");
+    
+    // Stop the camera and release resources
+    stopCamera();
+    
+    // Then navigate back
+    navigate(-1);
+  };
 
   // Log the current state to help with debugging
   console.log("PhotoCapture render state:", { 
