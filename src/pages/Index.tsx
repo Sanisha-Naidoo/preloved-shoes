@@ -7,7 +7,7 @@ const Index = () => {
   return <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 flex flex-col">
       <header className="py-6 px-4 text-center">
         <div className="mx-auto mb-6 py-[40px]">
-          <img src="/lovable-uploads/ba6fcc1a-24b1-4e24-8750-43bdc56bb2fb.png" alt="Reboot Logo" className="h-28 mx-auto object-contain" />
+          <img src="/lovable-uploads/ba6fcc1a-24b1-4e24-8750-43bdc56bb2fb.png" alt="Reboot Logo" className="h-28 mx-auto object-fill" />
         </div>
         <h1 className="font-bold mb-2 text-4xl">Reboot</h1>
         <p className="text-gray-600">Beta</p>
