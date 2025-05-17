@@ -1,6 +1,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "@/components/ui/sonner";
+import { Html5Qrcode } from "html5-qrcode";
 
 interface BarcodeScannerProps {
   onDetected: (value: string) => void;
@@ -8,51 +9,74 @@ interface BarcodeScannerProps {
 
 const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onDetected }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const scannerContainerRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
+  const [scanner, setScanner] = useState<Html5Qrcode | null>(null);
 
   useEffect(() => {
-    let stream: MediaStream | null = null;
+    let html5QrCode: Html5Qrcode | null = null;
+    const scannerId = "html5-qrcode-scanner";
 
-    const startCamera = async () => {
+    const startScanner = async () => {
       try {
         // Check if running on HTTPS
         if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
           setError("Camera access requires HTTPS. Please use a secure connection.");
-          simulateBarcodeDetection();
+          useFallback();
           return;
         }
 
-        // Check if mediaDevices API is supported
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          setError("Your browser doesn't support camera access");
-          simulateBarcodeDetection();
+        if (!scannerContainerRef.current) {
+          setError("Scanner container not found");
+          useFallback();
           return;
         }
 
-        // Request camera with specific constraints for barcode scanning
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { 
-            facingMode: "environment",
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
+        // Create scanner container if it doesn't exist
+        let container = document.getElementById(scannerId);
+        if (!container) {
+          container = document.createElement("div");
+          container.id = scannerId;
+          container.style.width = "100%";
+          container.style.height = "100%";
+          scannerContainerRef.current.appendChild(container);
+        }
+
+        // Initialize HTML5 QR code scanner
+        html5QrCode = new Html5Qrcode(scannerId);
+        setScanner(html5QrCode);
+
+        const cameraId = await getCameraId();
+        if (!cameraId) {
+          setError("No camera found on your device.");
+          useFallback();
+          return;
+        }
+
+        await html5QrCode.start(
+          cameraId,
+          {
+            fps: 10,
+            qrbox: { width: 250, height: 150 },
+            aspectRatio: 1.777778,
+          },
+          (decodedText) => {
+            // Successfully scanned barcode
+            if (decodedText) {
+              onBarcodeDetected(decodedText, html5QrCode);
+            }
+          },
+          (errorMessage) => {
+            // QR code scanning is ongoing, errors here are usually just frames without barcodes
+            // We don't need to show these to the user
           }
-        });
+        );
 
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.onloadedmetadata = () => {
-            videoRef.current?.play().catch(e => {
-              console.error("Error playing video:", e);
-              simulateBarcodeDetection();
-            });
-          };
-          
-          // Mock barcode detection for demonstration purposes
-          // In a real app, you would integrate with a proper barcode scanning library
-          simulateBarcodeDetection();
-        }
+        toast.success("Scanner started", {
+          id: "scanner-started",
+        });
       } catch (error: any) {
-        console.error("Error accessing camera:", error);
+        console.error("Error starting scanner:", error);
         
         if (error.name === "NotAllowedError") {
           setError("Camera access denied. Please enable permissions.");
@@ -62,25 +86,62 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onDetected }) => {
           setError(`Camera error: ${error.message || "Unknown error"}`);
         }
         
-        toast.error("Camera access failed. Using mock barcode.");
-        simulateBarcodeDetection();
+        useFallback();
       }
     };
 
-    const simulateBarcodeDetection = () => {
-      // Simulate a barcode scan after 3 seconds
-      setTimeout(() => {
-        const mockBarcodeValue = "123456789012";
-        onDetected(mockBarcodeValue);
-      }, 3000);
+    const getCameraId = async (): Promise<string | null> => {
+      try {
+        const devices = await Html5Qrcode.getCameras();
+        if (devices && devices.length) {
+          // Prefer back camera if available
+          const backCamera = devices.find(device => 
+            device.label.toLowerCase().includes('back') || 
+            device.label.toLowerCase().includes('rear')
+          );
+          return backCamera ? backCamera.id : devices[0].id;
+        }
+        return null;
+      } catch (error) {
+        console.error("Error getting cameras:", error);
+        return null;
+      }
     };
 
-    startCamera();
+    const onBarcodeDetected = (decodedText: string, scanner: Html5Qrcode | null) => {
+      // Stop scanning once barcode is detected
+      if (scanner) {
+        scanner.stop().then(() => {
+          console.log("Scanner stopped after detection");
+          onDetected(decodedText);
+        }).catch((err) => {
+          console.error("Error stopping scanner:", err);
+          // Still pass the detected barcode even if we couldn't stop the scanner
+          onDetected(decodedText);
+        });
+      } else {
+        onDetected(decodedText);
+      }
+    };
+
+    const useFallback = () => {
+      toast.error("Using mock barcode scanner", {
+        id: "mock-scanner",
+      });
+      // Simulate a barcode scan after 2 seconds
+      setTimeout(() => {
+        // Use a fixed test barcode that matches a record in the database
+        const testBarcode = "12345678901";
+        onDetected(testBarcode);
+      }, 2000);
+    };
+
+    startScanner();
 
     // Clean up when component unmounts
     return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+      if (html5QrCode && html5QrCode.isScanning) {
+        html5QrCode.stop().catch(err => console.error("Error stopping scanner on unmount:", err));
       }
     };
   }, [onDetected]);
@@ -95,13 +156,12 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onDetected }) => {
           </div>
         </div>
       ) : (
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted
-          className="w-full h-full object-cover"
-        />
+        <div 
+          ref={scannerContainerRef} 
+          className="w-full h-full"
+        >
+          {/* Html5QrCode will render the scanner here */}
+        </div>
       )}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div className="border-2 border-white/50 m-8 rounded"></div>
