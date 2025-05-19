@@ -16,9 +16,13 @@ Icon sizes included:
 - icon-512x512.png (512×512)
 - maskable_icon.png (512×512) - with padding for adaptive icons on Android
 
-In a production environment, replace these placeholder icons with your actual branded icons in the specified sizes.
+All icons are generated from the Reboot logo (/lovable-uploads/ba6fcc1a-24b1-4e24-8750-43bdc56bb2fb.png).
 
-To generate your own icons from a source image:
-1. Use tools like RealFaviconGenerator (https://realfavicongenerator.net/)
-2. Or PWABuilder (https://www.pwabuilder.com/)
-3. Or manually resize your icon using image editing software
+To regenerate these icons or create your own custom icons:
+1. Open the generate-icons.html file in your browser
+2. Upload your own logo or use the default Reboot logo
+3. Click "Generate All Icons" to preview them
+4. Click "Download All Icons" to download a zip with all the icons
+5. Extract and replace the icons in this directory
+
+For production, ensure all icon sizes are properly optimized and updated if the logo changes.

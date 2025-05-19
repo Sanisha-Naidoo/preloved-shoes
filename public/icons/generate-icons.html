@@ -227,7 +227,7 @@
 
         // Initialize with default icons
         window.onload = function() {
-            // Try to pre-load the Reboot logo if available
+            // Try to pre-load the Reboot logo 
             const defaultLogo = new Image();
             defaultLogo.onload = function() {
                 userLogo = defaultLogo;
@@ -237,6 +237,7 @@
                 // Just generate text-based icons if logo loading fails
                 generateAllIcons();
             };
+            // Use the Reboot logo for generating icons
             defaultLogo.src = '/lovable-uploads/ba6fcc1a-24b1-4e24-8750-43bdc56bb2fb.png';
         };
     </script>
