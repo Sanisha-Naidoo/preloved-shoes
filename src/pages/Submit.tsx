@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -138,6 +137,7 @@ const Submit = () => {
             condition: shoeDetails.condition,
             barcode: shoeDetails.barcode || null,
             rating: rating, // Store rating in the shoes table
+            photo_url: photoUrl, // Store photo URL directly in the shoes table
           },
         ])
         .select();
