@@ -38,31 +38,9 @@
   </head>
 
   <body>
-    <!-- Add a splash screen that shows while the app is loading -->
-    <div id="splash-screen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.5s ease-out;">
-      <img src="/lovable-uploads/ba6fcc1a-24b1-4e24-8750-43bdc56bb2fb.png" alt="Reboot Logo" style="width: 200px; height: 200px; margin-bottom: 24px;">
-      <h1 style="font-size: 28px; font-weight: bold; margin: 0 0 8px 0;">Reboot</h1>
-      <p style="font-size: 16px; color: #666;">Beta</p>
-    </div>
-
     <div id="root"></div>
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
-    
-    <!-- Hide splash screen after app loads -->
-    <script>
-      window.addEventListener('load', function() {
-        setTimeout(function() {
-          const splashScreen = document.getElementById('splash-screen');
-          if (splashScreen) {
-            splashScreen.style.opacity = '0';
-            setTimeout(function() {
-              splashScreen.style.display = 'none';
-            }, 500);
-          }
-        }, 1000); // Show splash for 1 second minimum
-      });
-    </script>
   </body>
 </html>
