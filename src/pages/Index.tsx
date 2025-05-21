@@ -80,7 +80,7 @@ const Index = () => {
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Get Started</CardTitle>
-            <CardDescription>Choose how you'd like to register your shoes</CardDescription>
+            <CardDescription>Enter your shoe details to continue</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Button 
@@ -90,17 +90,7 @@ const Index = () => {
               }} 
               className="w-full mb-4 h-14 text-base"
             >
-              Manually Enter Shoe Details
-            </Button>
-            <Button 
-              onClick={() => {
-                triggerHapticFeedback();
-                navigate('/barcode-scan');
-              }} 
-              className="w-full h-14 text-base" 
-              variant="secondary"
-            >
-              Scan Barcode or QR code
+              Enter Shoe Details
             </Button>
             
             {/* Install button for PWA - hidden by default */}

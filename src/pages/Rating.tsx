@@ -18,7 +18,7 @@ const Rating = () => {
     if (rating !== null) {
       sessionStorage.setItem("rating", rating.toString());
     }
-    navigate("/submit");
+    navigate("/optional-barcode-scan");
   };
 
   return <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 p-4">
@@ -50,7 +50,7 @@ const Rating = () => {
             Skip
           </Button>
           <Button onClick={handleSubmit}>
-            Submit
+            Continue
           </Button>
         </div>
       </div>
