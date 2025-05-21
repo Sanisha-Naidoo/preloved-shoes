@@ -36,11 +36,16 @@ const Rating = () => {
         <Card className="mb-6">
           <CardContent className="p-4">
             <div className="grid grid-cols-10 gap-1">
-              {Array.from({
-              length: 10
-            }, (_, i) => i + 1).map(num => <Button key={num} variant={rating === num ? "default" : "outline"} onClick={() => setRating(num)} className="w-full aspect-square flex items-center justify-center p-0">
+              {Array.from({length: 10}, (_, i) => i + 1).map(num => (
+                <Button 
+                  key={num} 
+                  variant={rating === num ? "default" : "outline"} 
+                  onClick={() => setRating(num)} 
+                  className="w-full aspect-square flex items-center justify-center p-0"
+                >
                   {num}
-                </Button>)}
+                </Button>
+              ))}
             </div>
           </CardContent>
         </Card>
