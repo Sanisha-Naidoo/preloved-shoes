@@ -54,5 +54,23 @@
       "type": "image/png",
       "purpose": "maskable"
     }
-  ]
+  ],
+  "screenshots": [
+    {
+      "src": "icons/widget-preview.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Reboot App"
+    },
+    {
+      "src": "icons/widget-preview.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Reboot App"
+    }
+  ],
+  "description": "Reboot - Shoe recycling app",
+  "categories": ["utilities", "lifestyle"]
 }

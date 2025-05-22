@@ -4,9 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { useToast } from "@/components/ui/use-toast";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   // Add haptic feedback for mobile devices
   const triggerHapticFeedback = () => {
@@ -38,6 +40,10 @@ const Index = () => {
           deferredPrompt.userChoice.then((choiceResult: { outcome: string }) => {
             if (choiceResult.outcome === 'accepted') {
               console.log('User accepted the A2HS prompt');
+              toast({
+                title: "App installed successfully!",
+                description: "You can now access Reboot from your home screen."
+              });
             } else {
               console.log('User dismissed the A2HS prompt');
             }
@@ -55,7 +61,7 @@ const Index = () => {
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
-  }, []);
+  }, [toast]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 flex flex-col">
