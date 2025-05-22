@@ -71,9 +71,7 @@ export const uploadFileWithRetry = async (
 
     if (uploadError) {
       console.error("Upload error details:", uploadError);
-      console.error("Error code:", uploadError.code);
       console.error("Error message:", uploadError.message);
-      console.error("Error status:", uploadError.status);
       
       // Check if we should retry
       if (retryAttempt < MAX_RETRIES) {
@@ -85,7 +83,7 @@ export const uploadFileWithRetry = async (
         return uploadFileWithRetry(file, fileName, bucketName, retryAttempt + 1);
       }
       
-      // Determine a more user-friendly error message based on the error code/message
+      // Determine a more user-friendly error message based on the error message
       if (uploadError.message.includes("permission") || uploadError.message.includes("not authorized")) {
         throw new Error("Permission denied: You don't have access to upload files. Please try again or contact support.");
       } else if (uploadError.message.includes("network")) {
