@@ -26,11 +26,9 @@ export const uploadFileWithRetry = async (
       throw new Error("No file name provided for upload");
     }
     
-    console.log(`Uploading file "${fileName}" (${file.size} bytes) to bucket "${bucketName}" (attempt ${retryAttempt + 1}/${MAX_RETRIES + 1})...`);
+    console.log(`Upload attempt ${retryAttempt + 1}/${MAX_RETRIES + 1} for file "${fileName}" (${file.size} bytes)`);
     
-    // Removed bucket creation attempts since they require admin privileges
-    // Just attempt the upload directly to the pre-existing bucket
-    console.log(`Starting upload of "${fileName}" to bucket "${bucketName}"...`);
+    // Direct upload to the existing bucket
     const { data: uploadData, error: uploadError } = await supabase
       .storage
       .from(bucketName)
@@ -40,38 +38,54 @@ export const uploadFileWithRetry = async (
       });
 
     if (uploadError) {
-      console.error("Upload error details:", uploadError);
-      console.error("Error message:", uploadError.message);
+      console.error(`Upload error on attempt ${retryAttempt + 1}:`, uploadError);
       
-      // Check if we should retry - only for network/server errors, not permission issues
-      const isPermissionError = uploadError.message.includes("permission") || 
-                               uploadError.message.includes("not authorized") ||
-                               uploadError.message.includes("not found");
+      // Classify errors - determine if we should retry
+      const errorMessage = uploadError.message.toLowerCase();
+      const isRetryableError = 
+        errorMessage.includes("network") ||
+        errorMessage.includes("timeout") ||
+        errorMessage.includes("connection") ||
+        errorMessage.includes("502") ||
+        errorMessage.includes("503") ||
+        errorMessage.includes("504");
       
-      if (retryAttempt < MAX_RETRIES && !isPermissionError) {
-        console.log(`Retrying upload (attempt ${retryAttempt + 2}/${MAX_RETRIES + 1})...`);
-        // Wait exponentially longer between retries (1s, 2s, 4s)
+      const isPermissionError = 
+        errorMessage.includes("permission") ||
+        errorMessage.includes("not authorized") ||
+        errorMessage.includes("forbidden") ||
+        errorMessage.includes("access denied");
+      
+      const isBucketError = 
+        errorMessage.includes("bucket") && 
+        errorMessage.includes("not found");
+      
+      // Only retry for network/server errors, not permission or configuration issues
+      if (isRetryableError && retryAttempt < MAX_RETRIES) {
         const backoffTime = Math.pow(2, retryAttempt) * 1000;
-        console.log(`Waiting ${backoffTime/1000} seconds before retry...`);
+        console.log(`Retrying upload in ${backoffTime/1000} seconds...`);
         await new Promise(resolve => setTimeout(resolve, backoffTime));
-        return uploadFileWithRetry(file, fileName, bucketName, retryAttempt + 1);
+        
+        // NON-RECURSIVE retry - return the result of a new call
+        return await uploadFileWithRetry(file, fileName, bucketName, retryAttempt + 1);
       }
       
-      // Determine a more user-friendly error message based on the error message
-      if (uploadError.message.includes("permission") || uploadError.message.includes("not authorized")) {
-        throw new Error("Permission denied: You don't have access to upload files. Please try again or contact support.");
-      } else if (uploadError.message.includes("bucket") && uploadError.message.includes("not found")) {
+      // Provide user-friendly error messages based on error type
+      if (isPermissionError) {
+        throw new Error("Permission denied: Unable to upload files. Please contact support.");
+      } else if (isBucketError) {
         throw new Error(`Storage bucket "${bucketName}" not found. Please contact support.`);
-      } else if (uploadError.message.includes("network")) {
-        throw new Error("Network error: Please check your internet connection and try again.");
-      } else if (uploadError.message.includes("size") || (file.size > 50 * 1024 * 1024)) {
+      } else if (file.size > 50 * 1024 * 1024) {
         throw new Error("File too large: The maximum file size is 50MB.");
+      } else if (errorMessage.includes("invalid") && errorMessage.includes("type")) {
+        throw new Error("Invalid file type: Only image files are supported.");
       } else {
         throw new Error(`Upload failed: ${uploadError.message}`);
       }
     }
 
     console.log("Upload successful, getting public URL...");
+    
     // Get the public URL for the uploaded image
     const { data: publicUrlData } = supabase
       .storage
@@ -84,12 +98,15 @@ export const uploadFileWithRetry = async (
     
     console.log("File upload complete. Public URL:", publicUrlData.publicUrl);
     return publicUrlData.publicUrl;
+    
   } catch (error: any) {
-    console.error("Final upload error:", error);
-    // If it's already an Error with a message, throw it directly
-    if (error.message) {
+    console.error(`Final upload error (attempt ${retryAttempt + 1}):`, error);
+    
+    // If it's already a structured Error, throw it directly
+    if (error instanceof Error) {
       throw error;
     }
+    
     // Otherwise, create a new Error
     throw new Error(`File upload failed: ${error}`);
   }

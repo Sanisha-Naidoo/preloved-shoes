@@ -8,7 +8,7 @@ import { SubmissionError } from "@/components/submit/SubmissionError";
 import { SubmissionSuccess } from "@/components/submit/SubmissionSuccess";
 import { toast } from "@/components/ui/sonner";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { ExclamationTriangleIcon } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 
 const Submit = () => {
   const navigate = useNavigate();
@@ -46,15 +46,13 @@ const Submit = () => {
       missingData = true;
     }
     
-    // Only attempt submission if we have the required data
-    if (!missingData) {
+    // Only attempt submission if we have the required data and haven't submitted yet
+    if (!missingData && !isSubmitted && !isSubmitting) {
       console.log("Attempting to submit data...");
-      // Only call submitData once, not on every re-render
       submitData();
     }
-    // DO NOT include submitData in the dependency array!
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  
+  }, []); // Remove submitData from dependencies to prevent loops
+
   const handleRetry = () => {
     console.log("Manual retry requested");
     manualRetry();
@@ -78,7 +76,7 @@ const Submit = () => {
           <CardContent className="p-8 text-center">
             {hasMissingCriticalData && (
               <Alert variant="destructive" className="mb-6">
-                <ExclamationTriangleIcon className="h-4 w-4" />
+                <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>Missing Required Data</AlertTitle>
                 <AlertDescription>
                   Some required information is missing. Please go back and complete all steps.

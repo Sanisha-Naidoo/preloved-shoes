@@ -19,19 +19,19 @@ export const useSubmitShoe = (options: UseSubmitShoeOptions = {}) => {
   const [submissionId, setSubmissionId] = useState<string | null>(null);
   const MAX_RETRIES = options.maxRetries || 3;
   
-  // Use this ref to prevent submitting multiple times
+  // Refs to prevent concurrent submissions and track component state
   const isSubmittingRef = useRef(false);
-  // Use this ref to track if component is mounted
   const isMounted = useRef(true);
-  // Use this ref to store timeout for retries
   const retryTimeoutRef = useRef<number | null>(null);
+  const hasAttemptedSubmission = useRef(false);
 
-  // Clear retries and set mounted state
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       isMounted.current = false;
       if (retryTimeoutRef.current) {
         clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = null;
       }
     };
   }, []);
@@ -46,39 +46,16 @@ export const useSubmitShoe = (options: UseSubmitShoeOptions = {}) => {
     }
   };
 
-  // Schedule a retry with exponential backoff
-  const scheduleRetry = useCallback(() => {
-    if (!isMounted.current || retryCount >= MAX_RETRIES) {
-      return;
-    }
-    
-    const newRetryCount = retryCount + 1;
-    setRetryCount(newRetryCount);
-    const timeout = Math.pow(2, retryCount) * 1000;
-    
-    logStep(`Scheduling retry ${newRetryCount} in ${timeout/1000} seconds...`);
-    toast.info(`Retrying in ${timeout/1000} seconds...`);
-    
-    // Clear any existing timeout
-    if (retryTimeoutRef.current) {
-      clearTimeout(retryTimeoutRef.current);
-    }
-    
-    // Set new timeout
-    retryTimeoutRef.current = window.setTimeout(() => {
-      if (isMounted.current) {
-        logStep(`Executing scheduled retry ${newRetryCount}...`);
-        submitData();
-      }
-    }, timeout) as unknown as number;
-  }, [retryCount, MAX_RETRIES]);
-
+  // Main submission function
   const submitData = useCallback(async () => {
-    // Guard against multiple submissions
-    if (isSubmittingRef.current || isSubmitted) {
+    // Prevent multiple concurrent submissions
+    if (isSubmittingRef.current || isSubmitted || hasAttemptedSubmission.current) {
       console.log("Submission already in progress or completed, skipping");
       return;
     }
+    
+    // Mark that we've attempted submission to prevent re-triggers
+    hasAttemptedSubmission.current = true;
     
     try {
       setIsSubmitting(true);
@@ -100,84 +77,76 @@ export const useSubmitShoe = (options: UseSubmitShoeOptions = {}) => {
       
       // 2. Validate image before processing
       logStep("Validating image");
-      try {
-        validateImage(solePhoto);
-      } catch (imageError: any) {
-        throw imageError;
-      }
+      validateImage(solePhoto);
       
       // 3. Prepare the image file
       logStep("Preparing image for upload");
-      try {
-        const file = await dataURLtoFile(solePhoto, "sole_photo.jpg");
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}.jpg`;
-        
-        // 4. Upload the image with retry mechanism
-        logStep("Starting file upload with retry mechanism");
-        const photoUrl = await uploadFileWithRetry(file, fileName);
-        logStep("File upload successful", { photoUrl });
-        
-        // 5. Save the shoe data to the shoes table
-        logStep("Saving shoe data to database");
-        const { data: shoeData, error: shoeError } = await supabase
-          .from("shoes")
-          .insert([
-            {
-              brand: shoeDetails.brand,
-              model: shoeDetails.model || null,
-              size: shoeDetails.size,
-              size_unit: shoeDetails.sizeUnit,
-              condition: shoeDetails.condition,
-              barcode: shoeDetails.barcode || null,
-              rating: rating, // Store rating in the shoes table
-              photo_url: photoUrl, // Store photo URL directly in the shoes table
-            },
-          ])
-          .select();
+      const file = await dataURLtoFile(solePhoto, "sole_photo.jpg");
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}.jpg`;
+      
+      // 4. Upload the image with retry mechanism
+      logStep("Starting file upload");
+      const photoUrl = await uploadFileWithRetry(file, fileName);
+      logStep("File upload successful", { photoUrl });
+      
+      // 5. Save the shoe data to the shoes table
+      logStep("Saving shoe data to database");
+      const { data: shoeData, error: shoeError } = await supabase
+        .from("shoes")
+        .insert([
+          {
+            brand: shoeDetails.brand,
+            model: shoeDetails.model || null,
+            size: shoeDetails.size,
+            size_unit: shoeDetails.sizeUnit,
+            condition: shoeDetails.condition,
+            barcode: shoeDetails.barcode || null,
+            rating: rating,
+            photo_url: photoUrl,
+          },
+        ])
+        .select();
 
-        if (shoeError) {
-          logStep("Error saving shoe data", shoeError);
-          throw shoeError;
-        }
-
-        logStep("Shoe data saved successfully", { shoeId: shoeData[0].id });
-        const shoeId = shoeData[0].id;
-        setSubmissionId(shoeId);
-        
-        // 6. Save the scan data to the scans table
-        logStep("Saving scan data");
-        const { error: scanError } = await supabase
-          .from("scans")
-          .insert([
-            {
-              shoe_id: shoeId,
-              sole_photo_url: photoUrl,
-              rating: rating,
-            },
-          ]);
-
-        if (scanError) {
-          logStep("Error saving scan data", scanError);
-          throw scanError;
-        }
-
-        logStep("Submission completed successfully");
-        
-        // Clear session storage after successful submission
-        sessionStorage.removeItem("shoeDetails");
-        sessionStorage.removeItem("solePhoto");
-        sessionStorage.removeItem("rating");
-
-        setIsSubmitted(true);
-        toast.success("Submission successful!");
-        
-        if (options.onSuccess && isMounted.current) {
-          options.onSuccess();
-        }
-      } catch (conversionError: any) {
-        logStep("Image conversion error", conversionError);
-        throw new Error(`Failed to process image: ${conversionError.message}`);
+      if (shoeError) {
+        logStep("Error saving shoe data", shoeError);
+        throw shoeError;
       }
+
+      logStep("Shoe data saved successfully", { shoeId: shoeData[0].id });
+      const shoeId = shoeData[0].id;
+      setSubmissionId(shoeId);
+      
+      // 6. Save the scan data to the scans table
+      logStep("Saving scan data");
+      const { error: scanError } = await supabase
+        .from("scans")
+        .insert([
+          {
+            shoe_id: shoeId,
+            sole_photo_url: photoUrl,
+            rating: rating,
+          },
+        ]);
+
+      if (scanError) {
+        logStep("Error saving scan data", scanError);
+        throw scanError;
+      }
+
+      logStep("Submission completed successfully");
+      
+      // Clear session storage after successful submission
+      sessionStorage.removeItem("shoeDetails");
+      sessionStorage.removeItem("solePhoto");
+      sessionStorage.removeItem("rating");
+
+      setIsSubmitted(true);
+      toast.success("Submission successful!");
+      
+      if (options.onSuccess && isMounted.current) {
+        options.onSuccess();
+      }
+      
     } catch (error: any) {
       logStep("Error submitting data", error);
       const errorMessage = error.message || "Failed to submit data. Please try again.";
@@ -187,22 +156,42 @@ export const useSubmitShoe = (options: UseSubmitShoeOptions = {}) => {
         toast.error(errorMessage);
       }
       
-      // If errors are related to missing data rather than network issues, 
-      // don't retry automatically but guide the user
+      // Check if this is a user data error vs a retryable error
       const isUserDataError = 
         errorMessage.includes("Missing") || 
         errorMessage.includes("Invalid") || 
         errorMessage.includes("too large") ||
+        errorMessage.includes("Permission denied") ||
         errorMessage.includes("bucket") ||
-        errorMessage.includes("Permission denied");
+        errorMessage.includes("file type");
         
+      // For user data errors, don't retry automatically
       if (isUserDataError) {
-        // User guidance error - don't retry
-        logStep("User data error - not retrying", { errorMessage });
+        logStep("User data error - manual intervention required", { errorMessage });
       } else if (retryCount < MAX_RETRIES && isMounted.current) {
-        // Network or server error - retry with exponential backoff
-        logStep(`Auto-retry scheduled (${retryCount + 1}/${MAX_RETRIES})`);
-        scheduleRetry();
+        // For network/server errors, schedule a retry
+        const newRetryCount = retryCount + 1;
+        setRetryCount(newRetryCount);
+        const timeout = Math.pow(2, retryCount) * 1000;
+        
+        logStep(`Scheduling retry ${newRetryCount}/${MAX_RETRIES} in ${timeout/1000} seconds`);
+        toast.info(`Retrying in ${timeout/1000} seconds...`);
+        
+        // Clear any existing timeout
+        if (retryTimeoutRef.current) {
+          clearTimeout(retryTimeoutRef.current);
+        }
+        
+        // Reset submission state for retry
+        hasAttemptedSubmission.current = false;
+        
+        // Schedule retry
+        retryTimeoutRef.current = window.setTimeout(() => {
+          if (isMounted.current) {
+            logStep(`Executing scheduled retry ${newRetryCount}...`);
+            submitData();
+          }
+        }, timeout) as unknown as number;
       } else {
         logStep("Maximum retry attempts reached or component unmounted");
       }
@@ -212,17 +201,23 @@ export const useSubmitShoe = (options: UseSubmitShoeOptions = {}) => {
       }
       isSubmittingRef.current = false;
     }
-  }, [options, MAX_RETRIES, isSubmitted, scheduleRetry]);
+  }, [options, MAX_RETRIES, isSubmitted, retryCount]);
 
-  // This function allows manual retries triggered by the user clicking a button
+  // Manual retry function triggered by user action
   const manualRetry = useCallback(() => {
-    // Reset retry count for manual retries
-    setRetryCount(0);
+    logStep("Manual retry initiated");
+    
     // Clear any pending automatic retries
     if (retryTimeoutRef.current) {
       clearTimeout(retryTimeoutRef.current);
       retryTimeoutRef.current = null;
     }
+    
+    // Reset state for manual retry
+    setRetryCount(0);
+    setError(null);
+    hasAttemptedSubmission.current = false;
+    
     // Start submission process again
     submitData();
   }, [submitData]);
