@@ -28,38 +28,8 @@ export const uploadFileWithRetry = async (
     
     console.log(`Uploading file "${fileName}" (${file.size} bytes) to bucket "${bucketName}" (attempt ${retryAttempt + 1}/${MAX_RETRIES + 1})...`);
     
-    // Check if the bucket exists first
-    const { data: bucketData, error: bucketError } = await supabase
-      .storage
-      .getBucket(bucketName);
-      
-    if (bucketError) {
-      console.error("Bucket access error:", bucketError);
-      
-      // For the first attempt, try creating the bucket if it doesn't exist (only on first try)
-      if (retryAttempt === 0 && bucketError.message.includes("not found")) {
-        console.log(`Bucket "${bucketName}" not found, attempting to create...`);
-        try {
-          const { data: newBucket, error: createError } = await supabase
-            .storage
-            .createBucket(bucketName, { public: true });
-          
-          if (createError) {
-            throw new Error(`Failed to create bucket: ${createError.message}`);
-          }
-          console.log(`Created bucket "${bucketName}" successfully`);
-        } catch (createErr) {
-          console.error("Error creating bucket:", createErr);
-          throw new Error(`Failed to access or create storage bucket: ${createErr}`);
-        }
-      } else if (bucketError.message.includes("not found")) {
-        throw new Error(`Storage bucket "${bucketName}" not found. Please ensure it exists.`);
-      } else {
-        throw new Error(`Storage access error: ${bucketError.message}`);
-      }
-    }
-    
-    // Attempt the upload
+    // Removed bucket creation attempts since they require admin privileges
+    // Just attempt the upload directly to the pre-existing bucket
     console.log(`Starting upload of "${fileName}" to bucket "${bucketName}"...`);
     const { data: uploadData, error: uploadError } = await supabase
       .storage
@@ -73,8 +43,12 @@ export const uploadFileWithRetry = async (
       console.error("Upload error details:", uploadError);
       console.error("Error message:", uploadError.message);
       
-      // Check if we should retry
-      if (retryAttempt < MAX_RETRIES) {
+      // Check if we should retry - only for network/server errors, not permission issues
+      const isPermissionError = uploadError.message.includes("permission") || 
+                               uploadError.message.includes("not authorized") ||
+                               uploadError.message.includes("not found");
+      
+      if (retryAttempt < MAX_RETRIES && !isPermissionError) {
         console.log(`Retrying upload (attempt ${retryAttempt + 2}/${MAX_RETRIES + 1})...`);
         // Wait exponentially longer between retries (1s, 2s, 4s)
         const backoffTime = Math.pow(2, retryAttempt) * 1000;
@@ -86,6 +60,8 @@ export const uploadFileWithRetry = async (
       // Determine a more user-friendly error message based on the error message
       if (uploadError.message.includes("permission") || uploadError.message.includes("not authorized")) {
         throw new Error("Permission denied: You don't have access to upload files. Please try again or contact support.");
+      } else if (uploadError.message.includes("bucket") && uploadError.message.includes("not found")) {
+        throw new Error(`Storage bucket "${bucketName}" not found. Please contact support.`);
       } else if (uploadError.message.includes("network")) {
         throw new Error("Network error: Please check your internet connection and try again.");
       } else if (uploadError.message.includes("size") || (file.size > 50 * 1024 * 1024)) {

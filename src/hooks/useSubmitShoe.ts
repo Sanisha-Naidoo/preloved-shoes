@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { validateRequiredData } from "@/utils/validationUtils";
 import { dataURLtoFile, validateImage } from "@/utils/imageUtils";
@@ -18,22 +18,22 @@ export const useSubmitShoe = (options: UseSubmitShoeOptions = {}) => {
   const [retryCount, setRetryCount] = useState(0);
   const [submissionId, setSubmissionId] = useState<string | null>(null);
   const MAX_RETRIES = options.maxRetries || 3;
+  
+  // Use this ref to prevent submitting multiple times
+  const isSubmittingRef = useRef(false);
+  // Use this ref to track if component is mounted
+  const isMounted = useRef(true);
+  // Use this ref to store timeout for retries
+  const retryTimeoutRef = useRef<number | null>(null);
 
-  // Check for service worker updates on component mount
+  // Clear retries and set mounted state
   useEffect(() => {
-    // Clear cache when mounting component
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      const messageChannel = new MessageChannel();
-      messageChannel.port1.onmessage = event => {
-        if (event.data && event.data.success) {
-          console.log('Cache cleared successfully');
-        }
-      };
-      
-      navigator.serviceWorker.controller.postMessage({
-        type: 'CLEAR_CACHE'
-      }, [messageChannel.port2]);
-    }
+    return () => {
+      isMounted.current = false;
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+    };
   }, []);
 
   // Function to log steps with timestamps
@@ -46,14 +46,43 @@ export const useSubmitShoe = (options: UseSubmitShoeOptions = {}) => {
     }
   };
 
+  // Schedule a retry with exponential backoff
+  const scheduleRetry = useCallback(() => {
+    if (!isMounted.current || retryCount >= MAX_RETRIES) {
+      return;
+    }
+    
+    const newRetryCount = retryCount + 1;
+    setRetryCount(newRetryCount);
+    const timeout = Math.pow(2, retryCount) * 1000;
+    
+    logStep(`Scheduling retry ${newRetryCount} in ${timeout/1000} seconds...`);
+    toast.info(`Retrying in ${timeout/1000} seconds...`);
+    
+    // Clear any existing timeout
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+    }
+    
+    // Set new timeout
+    retryTimeoutRef.current = window.setTimeout(() => {
+      if (isMounted.current) {
+        logStep(`Executing scheduled retry ${newRetryCount}...`);
+        submitData();
+      }
+    }, timeout) as unknown as number;
+  }, [retryCount, MAX_RETRIES]);
+
   const submitData = useCallback(async () => {
-    if (isSubmitted) {
-      console.log("Submission already completed successfully, no need to resubmit");
+    // Guard against multiple submissions
+    if (isSubmittingRef.current || isSubmitted) {
+      console.log("Submission already in progress or completed, skipping");
       return;
     }
     
     try {
       setIsSubmitting(true);
+      isSubmittingRef.current = true;
       setError(null);
       
       logStep("Starting submission process");
@@ -142,7 +171,7 @@ export const useSubmitShoe = (options: UseSubmitShoeOptions = {}) => {
         setIsSubmitted(true);
         toast.success("Submission successful!");
         
-        if (options.onSuccess) {
+        if (options.onSuccess && isMounted.current) {
           options.onSuccess();
         }
       } catch (conversionError: any) {
@@ -152,35 +181,51 @@ export const useSubmitShoe = (options: UseSubmitShoeOptions = {}) => {
     } catch (error: any) {
       logStep("Error submitting data", error);
       const errorMessage = error.message || "Failed to submit data. Please try again.";
-      setError(errorMessage);
-      toast.error(errorMessage);
+      
+      if (isMounted.current) {
+        setError(errorMessage);
+        toast.error(errorMessage);
+      }
       
       // If errors are related to missing data rather than network issues, 
       // don't retry automatically but guide the user
       const isUserDataError = 
         errorMessage.includes("Missing") || 
         errorMessage.includes("Invalid") || 
-        errorMessage.includes("too large");
+        errorMessage.includes("too large") ||
+        errorMessage.includes("bucket") ||
+        errorMessage.includes("Permission denied");
         
       if (isUserDataError) {
         // User guidance error - don't retry
         logStep("User data error - not retrying", { errorMessage });
-      } else if (retryCount < MAX_RETRIES) {
+      } else if (retryCount < MAX_RETRIES && isMounted.current) {
         // Network or server error - retry with exponential backoff
-        setRetryCount(count => count + 1);
-        const timeout = Math.pow(2, retryCount) * 1000;
-        logStep(`Retrying in ${timeout/1000} seconds...`);
-        toast.info(`Retrying in ${timeout/1000} seconds...`);
-        setTimeout(() => {
-          submitData();
-        }, timeout);
+        logStep(`Auto-retry scheduled (${retryCount + 1}/${MAX_RETRIES})`);
+        scheduleRetry();
       } else {
-        logStep("Maximum retry attempts reached");
+        logStep("Maximum retry attempts reached or component unmounted");
       }
     } finally {
-      setIsSubmitting(false);
+      if (isMounted.current) {
+        setIsSubmitting(false);
+      }
+      isSubmittingRef.current = false;
     }
-  }, [retryCount, MAX_RETRIES, options, isSubmitted]);
+  }, [options, MAX_RETRIES, isSubmitted, scheduleRetry]);
+
+  // This function allows manual retries triggered by the user clicking a button
+  const manualRetry = useCallback(() => {
+    // Reset retry count for manual retries
+    setRetryCount(0);
+    // Clear any pending automatic retries
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
+    }
+    // Start submission process again
+    submitData();
+  }, [submitData]);
 
   return {
     isSubmitting,
@@ -191,5 +236,6 @@ export const useSubmitShoe = (options: UseSubmitShoeOptions = {}) => {
     submitData,
     setIsSubmitted,
     submissionId,
+    manualRetry,
   };
 };

@@ -7,6 +7,8 @@ import { SubmissionLoading } from "@/components/submit/SubmissionLoading";
 import { SubmissionError } from "@/components/submit/SubmissionError";
 import { SubmissionSuccess } from "@/components/submit/SubmissionSuccess";
 import { toast } from "@/components/ui/sonner";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { ExclamationTriangleIcon } from "lucide-react";
 
 const Submit = () => {
   const navigate = useNavigate();
@@ -17,7 +19,8 @@ const Submit = () => {
     retryCount, 
     MAX_RETRIES, 
     submitData,
-    submissionId
+    submissionId,
+    manualRetry
   } = useSubmitShoe({
     onSuccess: () => {
       console.log("Submission was successful!");
@@ -33,21 +36,28 @@ const Submit = () => {
       hasRating: !!sessionStorage.getItem("rating")
     });
     
-    // Display warning if any required data is missing
+    // Check for missing data
+    let missingData = false;
     if (!sessionStorage.getItem("shoeDetails")) {
       toast.error("Missing shoe details. Please go back and complete the form.");
+      missingData = true;
     } else if (!sessionStorage.getItem("solePhoto")) {
       toast.error("Missing shoe photo. Please go back and take a photo.");
+      missingData = true;
     }
     
-    // Attempt to submit data when the component mounts
-    console.log("Attempting to submit data...");
-    submitData();
-  }, [submitData]);
+    // Only attempt submission if we have the required data
+    if (!missingData) {
+      console.log("Attempting to submit data...");
+      // Only call submitData once, not on every re-render
+      submitData();
+    }
+    // DO NOT include submitData in the dependency array!
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   
   const handleRetry = () => {
     console.log("Manual retry requested");
-    submitData();
+    manualRetry();
   };
 
   const handleAnotherSubmission = () => {
@@ -58,11 +68,24 @@ const Submit = () => {
     navigate("/thank-you");
   };
 
+  // Check if we have critical missing data that would prevent submission
+  const hasMissingCriticalData = !sessionStorage.getItem("shoeDetails") || !sessionStorage.getItem("solePhoto");
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 p-4 flex flex-col">
       <div className="flex-grow flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center">
+            {hasMissingCriticalData && (
+              <Alert variant="destructive" className="mb-6">
+                <ExclamationTriangleIcon className="h-4 w-4" />
+                <AlertTitle>Missing Required Data</AlertTitle>
+                <AlertDescription>
+                  Some required information is missing. Please go back and complete all steps.
+                </AlertDescription>
+              </Alert>
+            )}
+            
             {isSubmitting ? (
               <SubmissionLoading 
                 retryCount={retryCount} 
@@ -75,13 +98,26 @@ const Submit = () => {
                 maxRetries={MAX_RETRIES} 
                 onRetry={handleRetry}
               />
-            ) : (
+            ) : isSubmitted ? (
               <SubmissionSuccess
                 onSubmitAnother={handleAnotherSubmission}
                 onFinish={handleFinish}
                 submissionId={submissionId}
               />
-            )}
+            ) : hasMissingCriticalData ? (
+              <div className="text-center">
+                <h2 className="text-2xl font-bold mb-4">Cannot Submit</h2>
+                <p className="text-gray-600 mb-6">
+                  Please go back and complete all required steps.
+                </p>
+                <button 
+                  onClick={() => navigate("/")} 
+                  className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+                >
+                  Go Back
+                </button>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
       </div>
