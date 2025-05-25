@@ -4,12 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { CheckCircle, Circle, Camera, FileText } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [hasShoeDetails, setHasShoeDetails] = useState(false);
   const [hasSolePhoto, setHasSolePhoto] = useState(false);
   
@@ -67,10 +66,7 @@ const Index = () => {
           deferredPrompt.userChoice.then((choiceResult: { outcome: string }) => {
             if (choiceResult.outcome === 'accepted') {
               console.log('User accepted the A2HS prompt');
-              toast({
-                title: "App installed successfully!",
-                description: "You can now access Reboot from your home screen."
-              });
+              toast.success("App installed successfully! You can now access Reboot from your home screen.");
             } else {
               console.log('User dismissed the A2HS prompt');
             }
@@ -88,22 +84,14 @@ const Index = () => {
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
-  }, [toast]);
+  }, []);
 
   const handleSubmit = () => {
     if (!hasShoeDetails || !hasSolePhoto) {
       if (!hasShoeDetails) {
-        toast({
-          title: "Missing shoe details",
-          description: "Please enter your shoe details first.",
-          variant: "destructive"
-        });
+        toast.error("Missing shoe details. Please enter your shoe details first.");
       } else if (!hasSolePhoto) {
-        toast({
-          title: "Missing photo",
-          description: "Please take a photo of your shoe sole first.",
-          variant: "destructive"
-        });
+        toast.error("Missing photo. Please take a photo of your shoe sole first.");
       }
       return;
     }
