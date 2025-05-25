@@ -1,14 +1,17 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { useToast } from "@/components/ui/use-toast";
+import { CheckCircle, Circle, Camera, FileText } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [hasShoeDetails, setHasShoeDetails] = useState(false);
+  const [hasSolePhoto, setHasSolePhoto] = useState(false);
   
   // Add haptic feedback for mobile devices
   const triggerHapticFeedback = () => {
@@ -16,6 +19,30 @@ const Index = () => {
       navigator.vibrate(50); // Vibrate for 50ms
     }
   };
+
+  // Check completion status on mount and when returning to page
+  useEffect(() => {
+    const checkCompletionStatus = () => {
+      const shoeDetails = sessionStorage.getItem("shoeDetails");
+      const solePhoto = sessionStorage.getItem("solePhoto");
+      
+      setHasShoeDetails(!!shoeDetails);
+      setHasSolePhoto(!!solePhoto);
+      
+      console.log("Completion status:", {
+        hasShoeDetails: !!shoeDetails,
+        hasSolePhoto: !!solePhoto
+      });
+    };
+
+    checkCompletionStatus();
+    
+    // Check status when user returns to the page (in case they used browser back button)
+    const handleFocus = () => checkCompletionStatus();
+    window.addEventListener('focus', handleFocus);
+    
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
   
   // Show install prompt when applicable
   useEffect(() => {
@@ -63,6 +90,30 @@ const Index = () => {
     };
   }, [toast]);
 
+  const handleSubmit = () => {
+    if (!hasShoeDetails || !hasSolePhoto) {
+      if (!hasShoeDetails) {
+        toast({
+          title: "Missing shoe details",
+          description: "Please enter your shoe details first.",
+          variant: "destructive"
+        });
+      } else if (!hasSolePhoto) {
+        toast({
+          title: "Missing photo",
+          description: "Please take a photo of your shoe sole first.",
+          variant: "destructive"
+        });
+      }
+      return;
+    }
+    
+    triggerHapticFeedback();
+    navigate('/submit');
+  };
+
+  const canSubmit = hasShoeDetails && hasSolePhoto;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 flex flex-col">
       <header className="px-4 text-center py-[16px]">
@@ -86,18 +137,76 @@ const Index = () => {
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Get Started</CardTitle>
-            <CardDescription>Enter your shoe details to continue</CardDescription>
+            <CardDescription>Complete the steps below to submit your shoe</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Progress indicators */}
+            <div className="space-y-3 mb-6">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
+                {hasShoeDetails ? (
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                ) : (
+                  <Circle className="h-5 w-5 text-gray-400" />
+                )}
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-gray-600" />
+                  <span className={`text-sm ${hasShoeDetails ? 'text-green-700 font-medium' : 'text-gray-600'}`}>
+                    Shoe Details {hasShoeDetails ? 'Complete' : 'Required'}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
+                {hasSolePhoto ? (
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                ) : (
+                  <Circle className="h-5 w-5 text-gray-400" />
+                )}
+                <div className="flex items-center gap-2">
+                  <Camera className="h-4 w-4 text-gray-600" />
+                  <span className={`text-sm ${hasSolePhoto ? 'text-green-700 font-medium' : 'text-gray-600'}`}>
+                    Sole Photo {hasSolePhoto ? 'Complete' : 'Required'}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Action buttons */}
             <Button 
               onClick={() => {
                 triggerHapticFeedback();
                 navigate('/manual-entry');
               }} 
+              variant={hasShoeDetails ? "outline" : "default"}
               className="w-full mb-4 h-14 text-base"
             >
-              Enter Shoe Details
+              {hasShoeDetails ? 'Edit' : 'Enter'} Shoe Details
             </Button>
+
+            {hasShoeDetails && (
+              <Button 
+                onClick={() => {
+                  triggerHapticFeedback();
+                  navigate('/photo-capture');
+                }} 
+                variant={hasSolePhoto ? "outline" : "default"}
+                className="w-full mb-4 h-14 text-base"
+              >
+                {hasSolePhoto ? 'Retake' : 'Take'} Sole Photo
+              </Button>
+            )}
+            
+            {/* Submit button - only show when at least one step is complete */}
+            {(hasShoeDetails || hasSolePhoto) && (
+              <Button 
+                onClick={handleSubmit}
+                disabled={!canSubmit}
+                className="w-full h-14 text-base font-semibold"
+                variant={canSubmit ? "default" : "secondary"}
+              >
+                {canSubmit ? 'Submit for Review' : 'Complete All Steps to Submit'}
+              </Button>
+            )}
             
             {/* Install button for PWA - hidden by default */}
             <Button 
