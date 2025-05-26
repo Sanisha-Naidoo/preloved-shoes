@@ -11,27 +11,45 @@ export const useProgressTracking = () => {
       const shoeDetails = sessionStorage.getItem("shoeDetails");
       const solePhoto = sessionStorage.getItem("solePhoto");
       
-      setHasShoeDetails(!!shoeDetails);
-      setHasSolePhoto(!!solePhoto);
+      console.log("Raw session storage data:", { shoeDetails, solePhoto });
       
-      console.log("Completion status:", {
-        hasShoeDetails: !!shoeDetails,
-        hasSolePhoto: !!solePhoto
+      const hasDetails = !!shoeDetails;
+      const hasPhoto = !!solePhoto;
+      
+      setHasShoeDetails(hasDetails);
+      setHasSolePhoto(hasPhoto);
+      
+      console.log("Progress tracking status updated:", {
+        hasShoeDetails: hasDetails,
+        hasSolePhoto: hasPhoto,
+        canSubmit: hasDetails && hasPhoto
       });
     };
 
     checkCompletionStatus();
     
     // Check status when user returns to the page (in case they used browser back button)
-    const handleFocus = () => checkCompletionStatus();
+    const handleFocus = () => {
+      console.log("Window focus event - rechecking completion status");
+      checkCompletionStatus();
+    };
+    
     window.addEventListener('focus', handleFocus);
     
     return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
+  const canSubmit = hasShoeDetails && hasSolePhoto;
+  
+  console.log("useProgressTracking returning:", {
+    hasShoeDetails,
+    hasSolePhoto,
+    canSubmit
+  });
+
   return {
     hasShoeDetails,
     hasSolePhoto,
-    canSubmit: hasShoeDetails && hasSolePhoto
+    canSubmit
   };
 };

@@ -2,7 +2,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/sonner";
 
 interface ActionButtonsProps {
   hasShoeDetails: boolean;
@@ -17,6 +17,8 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
 }) => {
   const navigate = useNavigate();
   
+  console.log("ActionButtons render:", { hasShoeDetails, hasSolePhoto, canSubmit });
+  
   // Add haptic feedback for mobile devices
   const triggerHapticFeedback = () => {
     if (navigator.vibrate) {
@@ -25,15 +27,20 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
   };
 
   const handleSubmit = () => {
+    console.log("Submit button clicked", { hasShoeDetails, hasSolePhoto, canSubmit });
+    
     if (!hasShoeDetails || !hasSolePhoto) {
       if (!hasShoeDetails) {
+        console.log("Missing shoe details");
         toast.error("Missing shoe details. Please enter your shoe details first.");
       } else if (!hasSolePhoto) {
+        console.log("Missing photo");
         toast.error("Missing photo. Please take a photo of your shoe sole first.");
       }
       return;
     }
     
+    console.log("Navigating to submit page");
     triggerHapticFeedback();
     navigate('/submit');
   };
@@ -43,6 +50,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
       {/* Action buttons */}
       <Button 
         onClick={() => {
+          console.log("Shoe details button clicked");
           triggerHapticFeedback();
           navigate('/manual-entry');
         }} 
@@ -55,6 +63,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
       {hasShoeDetails && (
         <Button 
           onClick={() => {
+            console.log("Photo capture button clicked");
             triggerHapticFeedback();
             navigate('/photo-capture');
           }} 

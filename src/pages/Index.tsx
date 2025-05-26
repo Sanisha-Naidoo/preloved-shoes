@@ -11,6 +11,8 @@ const Index = () => {
   const { hasShoeDetails, hasSolePhoto, canSubmit } = useProgressTracking();
   usePWAInstall();
 
+  console.log("Index page render:", { hasShoeDetails, hasSolePhoto, canSubmit });
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 flex flex-col">
       <AppHeader />
