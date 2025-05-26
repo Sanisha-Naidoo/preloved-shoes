@@ -12,6 +12,9 @@ import { AlertTriangle } from "lucide-react";
 
 const Submit = () => {
   const navigate = useNavigate();
+  
+  console.log("Submit component rendering");
+  
   const { 
     isSubmitting, 
     isSubmitted, 
@@ -28,7 +31,6 @@ const Submit = () => {
   });
 
   useEffect(() => {
-    // Log key information when component mounts
     console.log("Submit component mounted");
     console.log("Session storage contains:", {
       hasShoeDetails: !!sessionStorage.getItem("shoeDetails"),
@@ -68,6 +70,13 @@ const Submit = () => {
 
   // Check if we have critical missing data that would prevent submission
   const hasMissingCriticalData = !sessionStorage.getItem("shoeDetails") || !sessionStorage.getItem("solePhoto");
+
+  console.log("Submit component state:", {
+    isSubmitting,
+    isSubmitted,
+    error,
+    hasMissingCriticalData
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 p-4 flex flex-col">
