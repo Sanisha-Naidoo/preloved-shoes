@@ -1,7 +1,7 @@
 
 import { useState, useEffect, RefObject } from 'react';
 import { Html5Qrcode } from "html5-qrcode";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import { getCameraId, getScannerConfig, isQRCodeFormat } from './utils';
 
 interface UseBarcodeScanner {

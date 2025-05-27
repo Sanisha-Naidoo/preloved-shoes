@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormField, FormItem, FormControl, FormLabel, FormMessage } from "@/components/ui/form";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
+
 type ShoeFormData = {
   brand: string;
   model: string;

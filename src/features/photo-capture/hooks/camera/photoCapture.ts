@@ -1,5 +1,4 @@
-
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 // Helper function to resize image to prevent upload issues
 const resizeImage = (dataUrl: string, maxWidth = 800, maxHeight = 800, quality = 0.85): Promise<string> => {

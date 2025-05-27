@@ -1,10 +1,9 @@
-
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { initializeCamera, cleanupCameraResources } from "./camera/cameraInitialization";
 import { capturePhotoFromVideo, uploadImageManually } from "./camera/photoCapture";
 import { CameraState, CameraActions, CameraRefs } from "./camera/types";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 export const useCamera = (): CameraState & CameraActions & CameraRefs => {
   const navigate = useNavigate();

@@ -1,5 +1,4 @@
-
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 export const initializeCamera = async (
   videoRef: React.RefObject<HTMLVideoElement>,
