@@ -6,7 +6,7 @@ import { useSubmitShoe } from "@/hooks/useSubmitShoe";
 import { SubmissionLoading } from "@/components/submit/SubmissionLoading";
 import { SubmissionError } from "@/components/submit/SubmissionError";
 import { SubmissionSuccess } from "@/components/submit/SubmissionSuccess";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 

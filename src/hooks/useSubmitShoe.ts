@@ -1,10 +1,9 @@
-
 import { useState, useCallback, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { validateRequiredData } from "@/utils/validationUtils";
 import { dataURLtoFile, validateImage } from "@/utils/imageUtils";
 import { uploadFileWithRetry } from "@/utils/uploadUtils";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 interface UseSubmitShoeOptions {
   maxRetries?: number;
