@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useProgressTracking } from "@/hooks/useProgressTracking";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { AppHeader } from "@/components/index/AppHeader";
-import { ProgressIndicators } from "@/components/index/ProgressIndicators";
 import { ActionButtons } from "@/components/index/ActionButtons";
 
 const Index = () => {
@@ -24,11 +23,6 @@ const Index = () => {
             <CardDescription>Complete the steps below to submit your shoe</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <ProgressIndicators 
-              hasShoeDetails={hasShoeDetails}
-              hasSolePhoto={hasSolePhoto}
-            />
-            
             <ActionButtons 
               hasShoeDetails={hasShoeDetails}
               hasSolePhoto={hasSolePhoto}
