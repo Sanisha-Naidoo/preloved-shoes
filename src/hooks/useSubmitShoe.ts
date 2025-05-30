@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { validateRequiredData } from "@/utils/validationUtils";
@@ -88,7 +89,7 @@ export const useSubmitShoe = (options: UseSubmitShoeOptions = {}) => {
       const photoUrl = await uploadFileWithRetry(file, fileName);
       logStep("File upload successful", { photoUrl });
       
-      // 5. Save the shoe data to the shoes table
+      // 5. Save the shoe data to the shoes table (now includes sole_photo_url)
       logStep("Saving shoe data to database");
       const { data: shoeData, error: shoeError } = await supabase
         .from("shoes")
@@ -102,6 +103,7 @@ export const useSubmitShoe = (options: UseSubmitShoeOptions = {}) => {
             barcode: shoeDetails.barcode || null,
             rating: rating,
             photo_url: photoUrl,
+            sole_photo_url: photoUrl,
           },
         ])
         .select();
@@ -114,23 +116,6 @@ export const useSubmitShoe = (options: UseSubmitShoeOptions = {}) => {
       logStep("Shoe data saved successfully", { shoeId: shoeData[0].id });
       const shoeId = shoeData[0].id;
       setSubmissionId(shoeId);
-      
-      // 6. Save the scan data to the scans table
-      logStep("Saving scan data");
-      const { error: scanError } = await supabase
-        .from("scans")
-        .insert([
-          {
-            shoe_id: shoeId,
-            sole_photo_url: photoUrl,
-            rating: rating,
-          },
-        ]);
-
-      if (scanError) {
-        logStep("Error saving scan data", scanError);
-        throw scanError;
-      }
 
       logStep("Submission completed successfully");
       
