@@ -1,8 +1,8 @@
 
 import { useState, useRef } from "react";
-import { CameraState, CameraRefs } from "./types";
+import { CameraState, CameraStateSetters, CameraRefs } from "./types";
 
-export const useCameraState = (): CameraState & CameraRefs & {
+export const useCameraState = (): CameraState & CameraStateSetters & CameraRefs & {
   streamRef: React.MutableRefObject<MediaStream | null>;
   timeoutRef: React.MutableRefObject<NodeJS.Timeout | null>;
   initAttemptRef: React.MutableRefObject<number>;

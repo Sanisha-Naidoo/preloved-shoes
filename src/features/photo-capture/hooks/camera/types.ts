@@ -7,6 +7,14 @@ export type CameraState = {
   isPhotoApproved: boolean;
 };
 
+export type CameraStateSetters = {
+  setCapturedImage: (image: string | null) => void;
+  setIsCameraOpen: (open: boolean) => void;
+  setIsLoading: (loading: boolean) => void;
+  setCameraError: (error: string | null) => void;
+  setIsPhotoApproved: (approved: boolean) => void;
+};
+
 export type CameraActions = {
   capturePhoto: () => void;
   retryCamera: () => void;
