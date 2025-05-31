@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { initializeCamera, cleanupCameraResources } from "./camera/cameraInitialization";
@@ -27,8 +28,8 @@ export const useCamera = (): CameraState & CameraActions & CameraRefs => {
     if (storedImage) {
       console.log("Restored image from session storage");
       setCapturedImage(storedImage);
-      // Don't automatically approve restored photos
-      setIsPhotoApproved(false);
+      // Auto-approve restored photos since they were previously saved
+      setIsPhotoApproved(true);
     } else {
       // Start camera with slight delay to ensure DOM is ready
       setTimeout(() => {
@@ -121,7 +122,7 @@ export const useCamera = (): CameraState & CameraActions & CameraRefs => {
       setCapturedImage,
       stopCamera
     );
-    // Reset approval status when capturing a new photo
+    // Reset approval status when capturing a new photo - requires manual approval
     setIsPhotoApproved(false);
   };
 
@@ -166,6 +167,7 @@ export const useCamera = (): CameraState & CameraActions & CameraRefs => {
     }, 1000); // Increased delay to 1000ms for more reliable restart
   };
   
+  // Modified uploadPhotoManually to auto-approve manual uploads
   const uploadPhotoManually = () => {
     console.log("Manual photo upload initiated");
     
@@ -182,13 +184,21 @@ export const useCamera = (): CameraState & CameraActions & CameraRefs => {
       timeoutRef.current = null;
     }
     
-    uploadImageManually(setCapturedImage, stopCamera);
+    // Custom upload handler that auto-approves
+    const autoApproveUpload = (image: string | null) => {
+      setCapturedImage(image);
+      if (image) {
+        // Auto-approve manual uploads since user explicitly selected them
+        setIsPhotoApproved(true);
+        console.log("Manual upload auto-approved");
+        toast.success("Photo uploaded and ready to continue!");
+      }
+    };
     
-    // Reset approval status when uploading a new photo
-    setIsPhotoApproved(false);
+    uploadImageManually(autoApproveUpload, stopCamera);
   };
 
-  // Approve the captured photo
+  // Approve the captured photo (mainly for camera captures now)
   const approvePhoto = () => {
     console.log("Photo approved by user");
     setIsPhotoApproved(true);
