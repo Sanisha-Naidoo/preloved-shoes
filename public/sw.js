@@ -1,26 +1,42 @@
 
-// Version number to help with cache busting
-const CACHE_VERSION = '1.0.0';
+// Version number to help with cache busting - increment to force refresh
+const CACHE_VERSION = '2.0.0'; // Updated version to force cache refresh
 const CACHE_NAME = `reboot-v${CACHE_VERSION}`;
 
-// Core assets to cache
+// Core assets to cache - updated with proper icon paths
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/icons/icon-72x72.png',
+  '/icons/icon-96x96.png',
+  '/icons/icon-128x128.png',
+  '/icons/icon-144x144.png',
+  '/icons/icon-152x152.png',
+  '/icons/icon-167x167.png',
+  '/icons/icon-180x180.png',
+  '/icons/icon-192x192.png',
+  '/icons/icon-384x384.png',
+  '/icons/icon-512x512.png',
+  '/icons/maskable_icon.png',
   '/lovable-uploads/ba6fcc1a-24b1-4e24-8750-43bdc56bb2fb.png',
-  '/favicon.ico',
-  '/icons/widget-preview.png'
+  '/favicon.ico'
 ];
 
 // Install a service worker
 self.addEventListener('install', event => {
   console.log('Service Worker: Installing version', CACHE_VERSION);
+  // Force immediate activation to clear old caches
+  self.skipWaiting();
+  
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Service Worker: Opened cache');
         return cache.addAll(urlsToCache);
+      })
+      .catch(error => {
+        console.error('Service Worker: Failed to cache resources', error);
       })
   );
 });
@@ -30,6 +46,30 @@ self.addEventListener('fetch', event => {
   // Skip cache for submission-related API requests
   if (event.request.url.includes('supabase.co')) {
     console.log('Service Worker: Bypassing cache for API request', event.request.url);
+    return;
+  }
+
+  // Force fresh fetch for icon files to ensure latest versions
+  if (event.request.url.includes('/icons/') || event.request.url.includes('icon')) {
+    console.log('Service Worker: Force fetching fresh icon', event.request.url);
+    event.respondWith(
+      fetch(event.request)
+        .then(networkResponse => {
+          if (networkResponse && networkResponse.status === 200) {
+            // Update cache with fresh icon
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME)
+              .then(cache => {
+                cache.put(event.request, responseToCache);
+              });
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          // Fallback to cache if network fails
+          return caches.match(event.request);
+        })
+    );
     return;
   }
 
@@ -78,9 +118,12 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// Update a service worker
+// Update a service worker - force immediate activation
 self.addEventListener('activate', event => {
   console.log('Service Worker: Activating new version', CACHE_VERSION);
+  // Take control immediately
+  self.clients.claim();
+  
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then(cacheNames => {
@@ -93,6 +136,14 @@ self.addEventListener('activate', event => {
           return null;
         })
       );
+    }).then(() => {
+      console.log('Service Worker: Cache cleanup complete, reloading all clients');
+      // Force reload all tabs to use new cache
+      return self.clients.matchAll().then(clients => {
+        clients.forEach(client => {
+          client.postMessage({ type: 'CACHE_UPDATED' });
+        });
+      });
     })
   );
 });
@@ -110,6 +161,11 @@ self.addEventListener('message', event => {
         event.ports[0].postMessage({ success: true });
       }
     });
+  }
+  
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('Service Worker: Skip waiting requested');
+    self.skipWaiting();
   }
 });
 
