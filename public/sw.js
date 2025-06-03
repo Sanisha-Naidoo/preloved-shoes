@@ -1,9 +1,9 @@
 
 // Version number to help with cache busting - increment to force refresh
-const CACHE_VERSION = '2.0.0'; // Updated version to force cache refresh
+const CACHE_VERSION = '3.0.0'; // Updated version to force cache refresh for new 180x180 icon
 const CACHE_NAME = `reboot-v${CACHE_VERSION}`;
 
-// Core assets to cache - updated with proper icon paths
+// Core assets to cache - updated with proper icon paths including 180x180
 const urlsToCache = [
   '/',
   '/index.html',
