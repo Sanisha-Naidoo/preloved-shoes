@@ -25,7 +25,7 @@ export const ShoeCounter = () => {
     return (
       <div className="bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-3xl p-8 text-center shadow-lg">
         <Zap className="h-12 w-12 text-red-400 mx-auto mb-4" />
-        <p className="text-red-600 font-medium">Unable to load shoe count</p>
+        <p className="text-red-600 font-medium">Unable to load pair count</p>
       </div>
     );
   }
@@ -78,7 +78,7 @@ export const ShoeCounter = () => {
         {/* Description */}
         <div className="space-y-2">
           <div className="text-2xl font-bold text-green-800">
-            {displayCount !== 1 ? 'Shoes' : 'Shoe'} Captured
+            {displayCount !== 1 ? 'Pairs' : 'Pair'} Captured
           </div>
           <div className="text-green-600 font-medium text-lg">
             Join the community effort!
@@ -90,11 +90,11 @@ export const ShoeCounter = () => {
           <div className="bg-green-200 rounded-full h-3 overflow-hidden">
             <div 
               className="bg-gradient-to-r from-green-500 to-emerald-500 h-full rounded-full transition-all duration-1000 ease-out"
-              style={{ width: `${Math.min((displayCount / 100) * 100, 100)}%` }}
+              style={{ width: `${Math.min((displayCount / 6000) * 100, 100)}%` }}
             />
           </div>
           <p className="text-sm text-green-600 mt-2 font-medium">
-            {displayCount < 100 ? `${100 - displayCount} more to reach 100!` : 'Amazing progress! 🎉'}
+            {displayCount < 6000 ? `${6000 - displayCount} more to reach 6000!` : 'Amazing progress! 🎉'}
           </p>
         </div>
 
