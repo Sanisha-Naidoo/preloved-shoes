@@ -4,6 +4,8 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { ShoeCounter } from "./ShoeCounter";
 
 export const AppHeader = () => {
+  console.log('AppHeader rendering...');
+  
   return (
     <header className="px-4 text-center py-8">
       {/* Integrated Hero Section with Logo and Counter */}
@@ -30,7 +32,9 @@ export const AppHeader = () => {
           </div>
 
           {/* Integrated Counter Section */}
-          <ShoeCounter />
+          <div className="w-full">
+            <ShoeCounter />
+          </div>
         </div>
 
         {/* Glow effect for the entire hero */}

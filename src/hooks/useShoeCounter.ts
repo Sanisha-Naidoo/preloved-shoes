@@ -7,10 +7,15 @@ export const useShoeCounter = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  console.log('useShoeCounter hook state:', { count, isLoading, error });
+
   useEffect(() => {
+    console.log('useShoeCounter effect starting...');
+    
     // Fetch initial count
     const fetchInitialCount = async () => {
       try {
+        console.log('Fetching initial shoe count...');
         const { count: shoeCount, error } = await supabase
           .from('shoes')
           .select('*', { count: 'exact', head: true });
@@ -19,6 +24,7 @@ export const useShoeCounter = () => {
           console.error('Error fetching shoe count:', error);
           setError('Failed to load shoe count');
         } else {
+          console.log('Initial shoe count fetched:', shoeCount);
           setCount(shoeCount || 0);
         }
       } catch (err) {
@@ -32,6 +38,7 @@ export const useShoeCounter = () => {
     fetchInitialCount();
 
     // Set up real-time subscription for new shoe insertions
+    console.log('Setting up real-time subscription...');
     const channel = supabase
       .channel('shoe-count-changes')
       .on(
@@ -50,6 +57,7 @@ export const useShoeCounter = () => {
 
     // Cleanup subscription on unmount
     return () => {
+      console.log('Cleaning up shoe counter subscription...');
       supabase.removeChannel(channel);
     };
   }, []);

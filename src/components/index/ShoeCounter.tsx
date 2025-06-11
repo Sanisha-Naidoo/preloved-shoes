@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Sparkles, Zap } from 'lucide-react';
 import { useShoeCounter } from '@/hooks/useShoeCounter';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -8,6 +8,8 @@ export const ShoeCounter = () => {
   const { count, isLoading, error } = useShoeCounter();
   const [displayCount, setDisplayCount] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+
+  console.log('ShoeCounter render:', { count, isLoading, error, displayCount });
 
   // Animate count changes
   useEffect(() => {
@@ -22,6 +24,7 @@ export const ShoeCounter = () => {
   }, [count, displayCount, isLoading]);
 
   if (error) {
+    console.error('ShoeCounter error:', error);
     return (
       <div className="text-center">
         <Zap className="h-8 w-8 text-red-400 mx-auto mb-2" />
@@ -31,6 +34,7 @@ export const ShoeCounter = () => {
   }
 
   if (isLoading) {
+    console.log('ShoeCounter loading...');
     return (
       <div className="text-center">
         <Sparkles className="h-12 w-12 text-slate-400 animate-pulse mx-auto mb-4" />
@@ -39,6 +43,8 @@ export const ShoeCounter = () => {
       </div>
     );
   }
+
+  console.log('ShoeCounter rendering counter with count:', displayCount);
 
   return (
     <div className="relative text-center">
