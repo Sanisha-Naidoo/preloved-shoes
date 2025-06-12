@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { Sparkles, Zap } from 'lucide-react';
+import { Sparkles, Zap, TrendingUp } from 'lucide-react';
 import { useShoeCounter } from '@/hooks/useShoeCounter';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -11,14 +11,14 @@ export const ShoeCounter = () => {
 
   console.log('ShoeCounter render:', { count, isLoading, error, displayCount });
 
-  // Animate count changes
+  // Smooth count animation with easing
   useEffect(() => {
     if (!isLoading && count !== displayCount) {
       setIsAnimating(true);
       const timer = setTimeout(() => {
         setDisplayCount(count);
         setIsAnimating(false);
-      }, 200);
+      }, 300);
       return () => clearTimeout(timer);
     }
   }, [count, displayCount, isLoading]);
@@ -26,9 +26,11 @@ export const ShoeCounter = () => {
   if (error) {
     console.error('ShoeCounter error:', error);
     return (
-      <div className="text-center">
-        <Zap className="h-8 w-8 text-red-400 mx-auto mb-2" />
-        <p className="text-red-600 font-medium text-sm">Unable to load pair count</p>
+      <div className="text-center py-6">
+        <div className="bg-red-50/80 backdrop-blur-sm border border-red-100 rounded-2xl p-6 transition-all duration-300">
+          <Zap className="h-8 w-8 text-red-400 mx-auto mb-3" />
+          <p className="text-red-600 font-medium text-sm">Unable to load pair count</p>
+        </div>
       </div>
     );
   }
@@ -36,73 +38,86 @@ export const ShoeCounter = () => {
   if (isLoading) {
     console.log('ShoeCounter loading...');
     return (
-      <div className="text-center">
-        <Sparkles className="h-12 w-12 text-slate-400 animate-pulse mx-auto mb-4" />
-        <Skeleton className="h-12 w-24 mx-auto mb-2" />
-        <Skeleton className="h-4 w-32 mx-auto" />
+      <div className="text-center py-6">
+        <div className="space-y-4">
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 mx-auto w-20 h-20 flex items-center justify-center border border-green-100/50">
+            <Sparkles className="h-8 w-8 text-green-400 animate-pulse" />
+          </div>
+          <div className="space-y-3">
+            <Skeleton className="h-12 w-24 mx-auto rounded-xl bg-gray-100/80" />
+            <Skeleton className="h-4 w-32 mx-auto rounded-lg bg-gray-100/60" />
+          </div>
+        </div>
       </div>
     );
   }
 
   console.log('ShoeCounter rendering counter with count:', displayCount);
 
+  const progressPercentage = Math.min((displayCount / 6000) * 100, 100);
+
   return (
-    <div className="relative text-center">
-      {/* Decorative Icons */}
-      <div className="absolute -top-2 -left-2 opacity-60">
-        <Sparkles className="h-4 w-4 text-green-400 animate-pulse" />
+    <div className="relative text-center py-2">
+      {/* Floating Micro-interaction Elements */}
+      <div className="absolute -top-1 -left-1 opacity-40 animate-float">
+        <div className="w-1.5 h-1.5 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full"></div>
       </div>
-      <div className="absolute -top-2 -right-2 opacity-60">
-        <Zap className="h-4 w-4 text-emerald-400 animate-pulse" style={{ animationDelay: '0.5s' }} />
-      </div>
-      <div className="absolute -bottom-2 -left-2 opacity-40">
-        <Sparkles className="h-3 w-3 text-teal-400 animate-pulse" style={{ animationDelay: '1s' }} />
-      </div>
-      <div className="absolute -bottom-2 -right-2 opacity-40">
-        <Zap className="h-3 w-3 text-green-400 animate-pulse" style={{ animationDelay: '1.5s' }} />
+      <div className="absolute -top-1 -right-1 opacity-30 animate-float" style={{ animationDelay: '0.5s' }}>
+        <div className="w-1 h-1 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full"></div>
       </div>
 
-      {/* Central Counter Icon */}
-      <div className="mb-4">
-        <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-full p-4 mx-auto w-16 h-16 flex items-center justify-center shadow-lg">
-          <Sparkles className="h-8 w-8 text-white animate-pulse" />
+      {/* Central Counter Icon with Premium Styling */}
+      <div className="mb-6">
+        <div className="group relative bg-gradient-to-br from-green-500 via-emerald-500 to-green-600 rounded-2xl p-4 mx-auto w-16 h-16 flex items-center justify-center shadow-xl shadow-green-500/30 transition-all duration-500 ease-out hover:scale-110 hover:shadow-2xl hover:shadow-green-500/40 border border-green-400/30">
+          <TrendingUp className="h-7 w-7 text-white transition-all duration-300 group-hover:scale-110" />
+          
+          {/* Subtle Inner Glow */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
         </div>
       </div>
 
-      {/* Count Display */}
-      <div className="mb-4">
-        <div className={`text-5xl font-black bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent transition-all duration-300 ${isAnimating ? 'scale-110' : 'scale-100'}`}>
-          {displayCount}
+      {/* Count Display with Apple-style Typography */}
+      <div className="mb-6">
+        <div className={`font-black text-6xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent transition-all duration-500 ease-out ${isAnimating ? 'scale-110 blur-[1px]' : 'scale-100 blur-0'}`}>
+          {displayCount.toLocaleString()}
         </div>
       </div>
 
-      {/* Description */}
-      <div className="space-y-2 mb-4">
-        <div className="text-xl font-bold text-green-800">
+      {/* Description with Refined Spacing */}
+      <div className="space-y-3 mb-6">
+        <div className="text-xl font-bold text-gray-800 tracking-tight">
           {displayCount !== 1 ? 'Pairs' : 'Pair'} Captured
         </div>
-        <div className="text-green-600 font-medium">
+        <div className="text-green-600 font-medium text-sm">
           Join the community effort!
         </div>
       </div>
 
-      {/* Progress Indicator */}
-      <div>
-        <div className="bg-green-200 rounded-full h-2 overflow-hidden">
+      {/* Progress Bar with Frosted Glass Design */}
+      <div className="space-y-3">
+        <div className="bg-gray-100/60 backdrop-blur-sm rounded-full h-3 overflow-hidden border border-gray-200/40 shadow-inner">
           <div 
-            className="bg-gradient-to-r from-green-500 to-emerald-500 h-full rounded-full transition-all duration-1000 ease-out"
-            style={{ width: `${Math.min((displayCount / 6000) * 100, 100)}%` }}
-          />
+            className="bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 h-full rounded-full transition-all duration-1000 ease-out shadow-lg relative overflow-hidden"
+            style={{ width: `${progressPercentage}%` }}
+          >
+            {/* Animated Shimmer Effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
+          </div>
         </div>
-        <p className="text-xs text-green-600 mt-2 font-medium">
-          {displayCount < 6000 ? `${6000 - displayCount} more to reach 6000!` : 'Amazing progress! 🎉'}
+        <p className="text-xs text-gray-600 font-medium tracking-wide">
+          {displayCount < 6000 ? `${(6000 - displayCount).toLocaleString()} more to reach 6,000!` : 'Amazing progress! 🎉'}
         </p>
       </div>
 
-      {/* Real-time indicator */}
-      <div className="absolute -top-4 -right-4">
-        <div className="bg-red-500 rounded-full p-1 shadow-lg animate-pulse">
-          <div className="w-2 h-2 bg-white rounded-full"></div>
+      {/* Real-time Live Indicator */}
+      <div className="absolute -top-2 -right-2">
+        <div className="relative">
+          <div className="bg-red-500 rounded-full p-1.5 shadow-lg shadow-red-500/30 border-2 border-white animate-pulse">
+            <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+          </div>
+          {/* Pulse Rings */}
+          <div className="absolute inset-0 bg-red-400 rounded-full animate-ping opacity-20"></div>
+          <div className="absolute inset-0 bg-red-400 rounded-full animate-ping opacity-10" style={{ animationDelay: '0.5s' }}></div>
         </div>
       </div>
     </div>

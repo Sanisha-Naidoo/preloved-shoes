@@ -91,5 +91,118 @@
 
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "cv11", "ss01";
+    font-variation-settings: "opsz" 32;
+    scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+  /* Apple-style animations and micro-interactions */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-4px);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.6s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.4s ease-out;
+  }
+
+  /* Smooth scroll for the entire page */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Custom scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(34, 197, 94, 0.3);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(34, 197, 94, 0.5);
+  }
+
+  /* Enhanced focus states for accessibility */
+  .focus-visible:focus-visible {
+    outline: 2px solid rgb(34, 197, 94);
+    outline-offset: 2px;
+  }
+
+  /* Improved text rendering */
+  .text-rendering-optimized {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Additional component-specific styles */
+@layer components {
+  .card-premium {
+    @apply bg-white/80 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl transition-all duration-500 ease-out;
+  }
+
+  .button-premium {
+    @apply transition-all duration-300 ease-out hover:scale-[1.02] active:scale-[0.98] font-semibold tracking-tight;
+  }
+
+  .glass-effect {
+    @apply bg-white/70 backdrop-blur-xl border border-white/30;
   }
 }
