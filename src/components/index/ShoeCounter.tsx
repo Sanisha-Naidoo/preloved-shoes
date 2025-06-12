@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Sparkles, Zap, TrendingUp } from 'lucide-react';
 import { useShoeCounter } from '@/hooks/useShoeCounter';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -26,8 +26,8 @@ export const ShoeCounter = () => {
   if (error) {
     console.error('ShoeCounter error:', error);
     return (
-      <div className="text-center py-6">
-        <div className="bg-red-50/80 backdrop-blur-sm border border-red-100 rounded-2xl p-6 transition-all duration-300">
+      <div className="text-center py-6 animate-fade-in-up">
+        <div className="glass-effect border border-red-100/60 rounded-2xl p-6 transition-all duration-300">
           <Zap className="h-8 w-8 text-red-400 mx-auto mb-3" />
           <p className="text-red-600 font-medium text-sm">Unable to load pair count</p>
         </div>
@@ -38,7 +38,7 @@ export const ShoeCounter = () => {
   if (isLoading) {
     console.log('ShoeCounter loading...');
     return (
-      <div className="text-center py-6">
+      <div className="text-center py-6 animate-fade-in-up">
         <div className="space-y-4">
           <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 mx-auto w-20 h-20 flex items-center justify-center border border-green-100/50">
             <Sparkles className="h-8 w-8 text-green-400 animate-pulse" />
@@ -57,7 +57,7 @@ export const ShoeCounter = () => {
   const progressPercentage = Math.min((displayCount / 6000) * 100, 100);
 
   return (
-    <div className="relative text-center py-2">
+    <div className="relative text-center py-2 animate-scale-in">
       {/* Floating Micro-interaction Elements */}
       <div className="absolute -top-1 -left-1 opacity-40 animate-float">
         <div className="w-1.5 h-1.5 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full"></div>
@@ -78,14 +78,14 @@ export const ShoeCounter = () => {
 
       {/* Count Display with Apple-style Typography */}
       <div className="mb-6">
-        <div className={`font-black text-6xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent transition-all duration-500 ease-out ${isAnimating ? 'scale-110 blur-[1px]' : 'scale-100 blur-0'}`}>
+        <div className={`font-black text-6xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent transition-all duration-500 ease-out text-rendering-optimized ${isAnimating ? 'scale-110 blur-[1px]' : 'scale-100 blur-0'}`}>
           {displayCount.toLocaleString()}
         </div>
       </div>
 
       {/* Description with Refined Spacing */}
       <div className="space-y-3 mb-6">
-        <div className="text-xl font-bold text-gray-800 tracking-tight">
+        <div className="text-xl font-bold text-gray-800 tracking-tight text-rendering-optimized">
           {displayCount !== 1 ? 'Pairs' : 'Pair'} Captured
         </div>
         <div className="text-green-600 font-medium text-sm">

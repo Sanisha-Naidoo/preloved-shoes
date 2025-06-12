@@ -23,7 +23,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
   // Enhanced haptic feedback for premium feel
   const triggerHapticFeedback = () => {
     if (navigator.vibrate) {
-      navigator.vibrate([10, 5, 10]); // More sophisticated vibration pattern
+      navigator.vibrate([10, 5, 10]);
     }
   };
 
@@ -47,7 +47,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-fade-in-up">
       {/* Primary Action Button - Shoe Details */}
       <Button 
         onClick={() => {
@@ -56,11 +56,11 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
           navigate('/manual-entry');
         }} 
         variant={hasShoeDetails ? "outline" : "default"}
-        className={`group w-full h-14 text-base font-semibold transition-all duration-300 ease-out ${
+        className={`group w-full h-14 text-base font-semibold transition-all duration-500 ease-out button-premium ${
           hasShoeDetails 
-            ? 'bg-white/80 backdrop-blur-sm border-gray-200/60 text-gray-700 hover:bg-white hover:border-gray-300 hover:shadow-lg hover:shadow-gray-500/10' 
+            ? 'glass-effect text-gray-700 hover:bg-white/90 hover:border-gray-300 hover:shadow-xl hover:shadow-gray-500/10' 
             : 'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600 hover:shadow-xl hover:shadow-green-500/30 border-0'
-        } rounded-2xl hover:scale-[1.02] active:scale-[0.98]`}
+        } rounded-2xl`}
       >
         <div className="flex items-center justify-center gap-3">
           <div className={`transition-all duration-300 ${hasShoeDetails ? 'text-green-600' : 'text-white'}`}>
@@ -84,11 +84,11 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
             navigate('/photo-capture');
           }} 
           variant={hasSolePhoto ? "outline" : "default"}
-          className={`group w-full h-14 text-base font-semibold transition-all duration-300 ease-out ${
+          className={`group w-full h-14 text-base font-semibold transition-all duration-500 ease-out button-premium animate-scale-in ${
             hasSolePhoto 
-              ? 'bg-white/80 backdrop-blur-sm border-gray-200/60 text-gray-700 hover:bg-white hover:border-gray-300 hover:shadow-lg hover:shadow-gray-500/10' 
+              ? 'glass-effect text-gray-700 hover:bg-white/90 hover:border-gray-300 hover:shadow-xl hover:shadow-gray-500/10' 
               : 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 hover:shadow-xl hover:shadow-blue-500/30 border-0'
-          } rounded-2xl hover:scale-[1.02] active:scale-[0.98]`}
+          } rounded-2xl`}
         >
           <div className="flex items-center justify-center gap-3">
             <div className={`transition-all duration-300 ${hasSolePhoto ? 'text-blue-600' : 'text-white'}`}>
@@ -106,14 +106,14 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
       
       {/* Submit Button - Premium CTA */}
       {(hasShoeDetails || hasSolePhoto) && (
-        <div className="pt-4">
+        <div className="pt-4 animate-scale-in">
           <Button 
             onClick={handleSubmit}
             disabled={!canSubmit}
-            className={`group w-full h-16 text-lg font-bold transition-all duration-500 ease-out rounded-2xl ${
+            className={`group w-full h-16 text-lg font-bold transition-all duration-500 ease-out rounded-2xl button-premium ${
               canSubmit 
                 ? 'bg-gradient-to-r from-green-600 via-emerald-600 to-green-700 text-white hover:from-green-700 hover:via-emerald-700 hover:to-green-800 hover:shadow-2xl hover:shadow-green-500/40 border-0 hover:scale-[1.02] active:scale-[0.98]' 
-                : 'bg-gray-100/80 backdrop-blur-sm text-gray-400 border border-gray-200/40 cursor-not-allowed'
+                : 'glass-effect text-gray-400 border border-gray-200/40 cursor-not-allowed'
             }`}
           >
             <div className="flex items-center justify-center gap-4">
@@ -144,7 +144,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
       <Button 
         id="install-button"
         variant="outline" 
-        className="w-full h-14 text-base mt-8 hidden bg-white/60 backdrop-blur-sm border-gray-200/60 text-gray-700 hover:bg-white hover:border-gray-300 hover:shadow-lg hover:shadow-gray-500/10 rounded-2xl transition-all duration-300 ease-out hover:scale-[1.02]"
+        className="w-full h-14 text-base mt-8 hidden glass-effect text-gray-700 hover:bg-white/90 hover:border-gray-300 hover:shadow-xl hover:shadow-gray-500/10 rounded-2xl button-premium"
       >
         <div className="flex items-center justify-center gap-3">
           <Download className="h-5 w-5" />

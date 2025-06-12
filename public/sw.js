@@ -1,9 +1,9 @@
 
 // Version number to help with cache busting - increment to force refresh
-const CACHE_VERSION = '3.0.0'; // Updated version to force cache refresh for new 180x180 icon
+const CACHE_VERSION = '4.0.0'; // Updated to fix React context issues
 const CACHE_NAME = `reboot-v${CACHE_VERSION}`;
 
-// Core assets to cache - updated with proper icon paths including 180x180
+// Core assets to cache - excluding React modules to prevent context issues
 const urlsToCache = [
   '/',
   '/index.html',
@@ -26,8 +26,7 @@ const urlsToCache = [
 // Install a service worker
 self.addEventListener('install', event => {
   console.log('Service Worker: Installing version', CACHE_VERSION);
-  // Force immediate activation to clear old caches
-  self.skipWaiting();
+  // Don't force immediate activation to prevent React context issues
   
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -46,6 +45,12 @@ self.addEventListener('fetch', event => {
   // Skip cache for submission-related API requests
   if (event.request.url.includes('supabase.co')) {
     console.log('Service Worker: Bypassing cache for API request', event.request.url);
+    return;
+  }
+
+  // Skip cache for JS modules to prevent React context issues
+  if (event.request.url.includes('.js') || event.request.url.includes('.tsx') || event.request.url.includes('.ts')) {
+    console.log('Service Worker: Bypassing cache for JS module', event.request.url);
     return;
   }
 
@@ -78,8 +83,7 @@ self.addEventListener('fetch', event => {
       .then(response => {
         // Cache hit - return response
         if (response) {
-          // For HTML files, we'll only use cache if network request fails
-          // This ensures users always get fresh content
+          // For HTML files, always try network first to prevent stale React context
           if (event.request.url.endsWith('.html') || event.request.url === '/' || !event.request.url.includes('.')) {
             return fetch(event.request)
               .then(networkResponse => {
@@ -105,8 +109,8 @@ self.addEventListener('fetch', event => {
 
             caches.open(CACHE_NAME)
               .then(cache => {
-                // Don't cache API responses
-                if (!event.request.url.includes('supabase.co')) {
+                // Don't cache API responses or JS modules
+                if (!event.request.url.includes('supabase.co') && !event.request.url.includes('.js') && !event.request.url.includes('.tsx') && !event.request.url.includes('.ts')) {
                   cache.put(event.request, responseToCache);
                 }
               });
@@ -118,11 +122,9 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// Update a service worker - force immediate activation
+// Update a service worker - prevent aggressive reloading
 self.addEventListener('activate', event => {
   console.log('Service Worker: Activating new version', CACHE_VERSION);
-  // Take control immediately
-  self.clients.claim();
   
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
@@ -137,13 +139,9 @@ self.addEventListener('activate', event => {
         })
       );
     }).then(() => {
-      console.log('Service Worker: Cache cleanup complete, reloading all clients');
-      // Force reload all tabs to use new cache
-      return self.clients.matchAll().then(clients => {
-        clients.forEach(client => {
-          client.postMessage({ type: 'CACHE_UPDATED' });
-        });
-      });
+      console.log('Service Worker: Cache cleanup complete');
+      // Don't force reload to prevent React context loss
+      return self.clients.claim();
     })
   );
 });
