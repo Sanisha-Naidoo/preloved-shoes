@@ -2,13 +2,20 @@ import React, { useEffect, useState } from 'react';
 import { Sparkles, Zap, Footprints } from 'lucide-react';
 import { useShoeCounter } from '@/hooks/useShoeCounter';
 import { Skeleton } from '@/components/ui/skeleton';
-
 export const ShoeCounter = () => {
-  const { count, isLoading, error } = useShoeCounter();
+  const {
+    count,
+    isLoading,
+    error
+  } = useShoeCounter();
   const [displayCount, setDisplayCount] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
-
-  console.log('ShoeCounter render:', { count, isLoading, error, displayCount });
+  console.log('ShoeCounter render:', {
+    count,
+    isLoading,
+    error,
+    displayCount
+  });
 
   // Smooth count animation with easing
   useEffect(() => {
@@ -21,23 +28,18 @@ export const ShoeCounter = () => {
       return () => clearTimeout(timer);
     }
   }, [count, displayCount, isLoading]);
-
   if (error) {
     console.error('ShoeCounter error:', error);
-    return (
-      <div className="text-center py-6 animate-fade-in-up">
+    return <div className="text-center py-6 animate-fade-in-up">
         <div className="glass-effect border border-red-100/60 rounded-2xl p-6 transition-all duration-300">
           <Zap className="h-8 w-8 text-red-400 mx-auto mb-3" />
           <p className="text-red-600 font-medium text-sm">Unable to load pair count</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (isLoading) {
     console.log('ShoeCounter loading...');
-    return (
-      <div className="text-center py-6 animate-fade-in-up">
+    return <div className="text-center py-6 animate-fade-in-up">
         <div className="space-y-4">
           <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 mx-auto w-20 h-20 flex items-center justify-center border border-green-100/50">
             <Sparkles className="h-8 w-8 text-green-400 animate-pulse" />
@@ -47,21 +49,18 @@ export const ShoeCounter = () => {
             <Skeleton className="h-4 w-32 mx-auto rounded-lg bg-gray-100/60" />
           </div>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   console.log('ShoeCounter rendering counter with count:', displayCount);
-
-  const progressPercentage = Math.min((displayCount / 6000) * 100, 100);
-
-  return (
-    <div className="relative text-center py-2 animate-scale-in">
+  const progressPercentage = Math.min(displayCount / 6000 * 100, 100);
+  return <div className="relative text-center py-2 animate-scale-in">
       {/* Floating Micro-interaction Elements */}
       <div className="absolute -top-1 -left-1 opacity-40 animate-float">
         <div className="w-1.5 h-1.5 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full"></div>
       </div>
-      <div className="absolute -top-1 -right-1 opacity-30 animate-float" style={{ animationDelay: '0.5s' }}>
+      <div className="absolute -top-1 -right-1 opacity-30 animate-float" style={{
+      animationDelay: '0.5s'
+    }}>
         <div className="w-1 h-1 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full"></div>
       </div>
 
@@ -95,18 +94,16 @@ export const ShoeCounter = () => {
       {/* Progress Bar with Frosted Glass Design */}
       <div className="space-y-3">
         <div className="bg-gray-100/60 backdrop-blur-sm rounded-full h-3 overflow-hidden border border-gray-200/40 shadow-inner">
-          <div 
-            className="bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 h-full rounded-full transition-all duration-1000 ease-out shadow-lg relative overflow-hidden"
-            style={{ width: `${progressPercentage}%` }}
-          >
+          <div className="bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 h-full rounded-full transition-all duration-1000 ease-out shadow-lg relative overflow-hidden" style={{
+          width: `${progressPercentage}%`
+        }}>
             {/* Animated Shimmer Effect */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
           </div>
         </div>
-        <p className="text-xs text-gray-600 font-medium tracking-wide">
+        <p className="text-gray-600 font-medium tracking-wide text-2xl">
           {displayCount < 6000 ? `${(6000 - displayCount).toLocaleString()} more to reach 6,000!` : 'Amazing progress! 🎉'}
         </p>
       </div>
-    </div>
-  );
+    </div>;
 };
