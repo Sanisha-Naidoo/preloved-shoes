@@ -14,11 +14,11 @@ export const AppHeader = () => {
           {/* Subtle Grid Pattern Background */}
           <div className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(circle_at_1px_1px,_rgba(0,0,0,0.5)_1px,_transparent_0)] bg-[length:24px_24px] rounded-3xl"></div>
           
-          {/* Logo Section with Premium Styling */}
+          {/* Logo Section with Premium Styling - Static Version */}
           <div className="relative z-10 mb-8">
-            <div className="group/logo bg-gradient-to-br from-white to-gray-50/50 backdrop-blur-sm rounded-2xl shadow-lg shadow-black/5 p-6 mx-auto w-28 h-28 flex items-center justify-center mb-6 transition-all duration-500 ease-out hover:scale-105 hover:shadow-xl hover:shadow-gray-500/10 border border-white/40 px-[8px] py-[8px]">
+            <div className="bg-gradient-to-br from-white to-gray-50/50 backdrop-blur-sm rounded-2xl shadow-lg shadow-black/5 p-6 mx-auto w-28 h-28 flex items-center justify-center mb-6 border border-white/40 px-[8px] py-[8px]">
               <AspectRatio ratio={1 / 1} className="w-full h-full">
-                <img src="/lovable-uploads/ba6fcc1a-24b1-4e24-8750-43bdc56bb2fb.png" alt="Reboot Logo" loading="eager" className="h-full w-full transition-all duration-300 group-hover/logo:scale-110 object-contain" />
+                <img src="/lovable-uploads/ba6fcc1a-24b1-4e24-8750-43bdc56bb2fb.png" alt="Reboot Logo" loading="eager" className="h-full w-full object-contain" />
               </AspectRatio>
             </div>
             

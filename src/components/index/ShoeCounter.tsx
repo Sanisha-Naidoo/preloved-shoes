@@ -66,10 +66,10 @@ export const ShoeCounter = () => {
         <div className="w-1 h-1 bg-gradient-to-r from-gray-600 to-gray-800 rounded-full"></div>
       </div>
 
-      {/* Central Counter Icon with Premium Styling */}
+      {/* Central Counter Icon with Premium Styling - Static Version */}
       <div className="mb-6">
-        <div className="group relative bg-gradient-to-br from-black via-gray-800 to-black rounded-2xl p-4 mx-auto w-16 h-16 flex items-center justify-center shadow-xl shadow-black/30 transition-all duration-500 ease-out hover:scale-110 hover:shadow-2xl hover:shadow-black/40 border border-gray-400/30">
-          <Footprints className="h-7 w-7 text-white transition-all duration-300 group-hover:scale-110" />
+        <div className="bg-gradient-to-br from-black via-gray-800 to-black rounded-2xl p-4 mx-auto w-16 h-16 flex items-center justify-center shadow-xl shadow-black/30 border border-gray-400/30">
+          <Footprints className="h-7 w-7 text-white" />
           
           {/* Subtle Inner Glow */}
           <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
@@ -88,7 +88,7 @@ export const ShoeCounter = () => {
         <div className="text-xl font-bold text-gray-800 tracking-tight text-rendering-optimized">
           {displayCount !== 1 ? 'Pairs' : 'Pair'} Captured
         </div>
-        <div className="text-gray-600 font-medium text-sm">
+        <div className="text-gray-600 font-medium text-lg animate-pulse">
           Join the community effort!
         </div>
       </div>
