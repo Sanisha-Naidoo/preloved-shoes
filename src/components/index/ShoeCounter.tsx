@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Sparkles, Zap, Footprints } from 'lucide-react';
 import { useShoeCounter } from '@/hooks/useShoeCounter';
 import { Skeleton } from '@/components/ui/skeleton';
+
 export const ShoeCounter = () => {
   const {
     count,
@@ -10,6 +11,7 @@ export const ShoeCounter = () => {
   } = useShoeCounter();
   const [displayCount, setDisplayCount] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+
   console.log('ShoeCounter render:', {
     count,
     isLoading,
@@ -41,8 +43,8 @@ export const ShoeCounter = () => {
     console.log('ShoeCounter loading...');
     return <div className="text-center py-6 animate-fade-in-up">
         <div className="space-y-4">
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 mx-auto w-20 h-20 flex items-center justify-center border border-green-100/50">
-            <Sparkles className="h-8 w-8 text-green-400 animate-pulse" />
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-4 mx-auto w-20 h-20 flex items-center justify-center border border-gray-100/50">
+            <Sparkles className="h-8 w-8 text-gray-400 animate-pulse" />
           </div>
           <div className="space-y-3">
             <Skeleton className="h-12 w-24 mx-auto rounded-xl bg-gray-100/80" />
@@ -56,17 +58,17 @@ export const ShoeCounter = () => {
   return <div className="relative text-center py-2 animate-scale-in">
       {/* Floating Micro-interaction Elements */}
       <div className="absolute -top-1 -left-1 opacity-40 animate-float">
-        <div className="w-1.5 h-1.5 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full"></div>
+        <div className="w-1.5 h-1.5 bg-gradient-to-r from-gray-400 to-gray-600 rounded-full"></div>
       </div>
       <div className="absolute -top-1 -right-1 opacity-30 animate-float" style={{
       animationDelay: '0.5s'
     }}>
-        <div className="w-1 h-1 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full"></div>
+        <div className="w-1 h-1 bg-gradient-to-r from-gray-600 to-gray-800 rounded-full"></div>
       </div>
 
       {/* Central Counter Icon with Premium Styling */}
       <div className="mb-6">
-        <div className="group relative bg-gradient-to-br from-green-500 via-emerald-500 to-green-600 rounded-2xl p-4 mx-auto w-16 h-16 flex items-center justify-center shadow-xl shadow-green-500/30 transition-all duration-500 ease-out hover:scale-110 hover:shadow-2xl hover:shadow-green-500/40 border border-green-400/30">
+        <div className="group relative bg-gradient-to-br from-black via-gray-800 to-black rounded-2xl p-4 mx-auto w-16 h-16 flex items-center justify-center shadow-xl shadow-black/30 transition-all duration-500 ease-out hover:scale-110 hover:shadow-2xl hover:shadow-black/40 border border-gray-400/30">
           <Footprints className="h-7 w-7 text-white transition-all duration-300 group-hover:scale-110" />
           
           {/* Subtle Inner Glow */}
@@ -86,7 +88,7 @@ export const ShoeCounter = () => {
         <div className="text-xl font-bold text-gray-800 tracking-tight text-rendering-optimized">
           {displayCount !== 1 ? 'Pairs' : 'Pair'} Captured
         </div>
-        <div className="text-green-600 font-medium text-sm">
+        <div className="text-gray-600 font-medium text-sm">
           Join the community effort!
         </div>
       </div>
@@ -94,7 +96,7 @@ export const ShoeCounter = () => {
       {/* Progress Bar with Frosted Glass Design */}
       <div className="space-y-3">
         <div className="bg-gray-100/60 backdrop-blur-sm rounded-full h-3 overflow-hidden border border-gray-200/40 shadow-inner">
-          <div className="bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 h-full rounded-full transition-all duration-1000 ease-out shadow-lg relative overflow-hidden" style={{
+          <div className="bg-gradient-to-r from-black via-gray-800 to-black h-full rounded-full transition-all duration-1000 ease-out shadow-lg relative overflow-hidden" style={{
           width: `${progressPercentage}%`
         }}>
             {/* Animated Shimmer Effect */}
