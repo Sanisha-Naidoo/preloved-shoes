@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState } from 'react';
-import { Sparkles, Zap, TrendingUp } from 'lucide-react';
+import { Sparkles, Zap, Footprints } from 'lucide-react';
 import { useShoeCounter } from '@/hooks/useShoeCounter';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -69,7 +68,7 @@ export const ShoeCounter = () => {
       {/* Central Counter Icon with Premium Styling */}
       <div className="mb-6">
         <div className="group relative bg-gradient-to-br from-green-500 via-emerald-500 to-green-600 rounded-2xl p-4 mx-auto w-16 h-16 flex items-center justify-center shadow-xl shadow-green-500/30 transition-all duration-500 ease-out hover:scale-110 hover:shadow-2xl hover:shadow-green-500/40 border border-green-400/30">
-          <TrendingUp className="h-7 w-7 text-white transition-all duration-300 group-hover:scale-110" />
+          <Footprints className="h-7 w-7 text-white transition-all duration-300 group-hover:scale-110" />
           
           {/* Subtle Inner Glow */}
           <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
@@ -107,18 +106,6 @@ export const ShoeCounter = () => {
         <p className="text-xs text-gray-600 font-medium tracking-wide">
           {displayCount < 6000 ? `${(6000 - displayCount).toLocaleString()} more to reach 6,000!` : 'Amazing progress! 🎉'}
         </p>
-      </div>
-
-      {/* Real-time Live Indicator */}
-      <div className="absolute -top-2 -right-2">
-        <div className="relative">
-          <div className="bg-red-500 rounded-full p-1.5 shadow-lg shadow-red-500/30 border-2 border-white animate-pulse">
-            <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-          </div>
-          {/* Pulse Rings */}
-          <div className="absolute inset-0 bg-red-400 rounded-full animate-ping opacity-20"></div>
-          <div className="absolute inset-0 bg-red-400 rounded-full animate-ping opacity-10" style={{ animationDelay: '0.5s' }}></div>
-        </div>
       </div>
     </div>
   );
