@@ -52,8 +52,13 @@ export const executeSubmission = async (
     
     setState.setSubmissionId(shoeId);
 
-    // 4. Generate and save QR code
-    await generateAndSaveQRCode(shoeId, setState);
+    // 4. Generate and save QR code (non-blocking)
+    try {
+      await generateAndSaveQRCode(shoeId, setState);
+    } catch (qrError) {
+      console.error("QR code generation failed, but continuing submission:", qrError);
+      // Don't fail the entire submission for QR code issues
+    }
 
     logStep("Submission completed successfully");
     
