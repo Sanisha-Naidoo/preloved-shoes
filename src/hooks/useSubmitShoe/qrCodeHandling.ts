@@ -43,24 +43,34 @@ export const generateAndSaveQRCode = async (
       throw new Error("QR code generation returned invalid result");
     }
     
-    // Step 3: Update UI state immediately
+    // Step 3: Update UI state immediately (don't wait for database save)
     console.log("🎨 Step 3: Updating UI state...");
     if (setState?.setQrCodeUrl) {
       setState.setQrCodeUrl(qrCodeDataURL);
       console.log("✅ UI state updated with QR code");
     }
     
-    // Step 4: Save to database
+    // Step 4: Save to database (but don't fail if this fails)
     console.log("🗄️ Step 4: Saving QR code to database...");
-    const saveResult = await updateShoeWithQRCode(shoeId, qrCodeDataURL);
-    console.log("✅ Database save result:", { saveResult });
-    
-    if (!saveResult) {
-      console.warn("⚠️ Database save returned false, but no error thrown");
-      toast.warning("QR code generated but may not have saved properly");
-    } else {
-      console.log("🎉 QR code generation and save completed successfully");
-      toast.success("QR code generated and saved!");
+    try {
+      const saveResult = await updateShoeWithQRCode(shoeId, qrCodeDataURL);
+      console.log("✅ Database save result:", { saveResult });
+      
+      if (saveResult) {
+        console.log("🎉 QR code saved to database successfully");
+        toast.success("QR code generated and saved!");
+      } else {
+        console.warn("⚠️ Database save returned false, but QR code is still available");
+        toast.success("QR code generated! (Database save may have failed)");
+      }
+    } catch (dbError: any) {
+      console.error("❌ Database save failed, but QR code is still available:", {
+        error: dbError.message,
+        stack: dbError.stack
+      });
+      
+      // Don't clear the QR code from UI if database save fails
+      toast.success("QR code generated! (Database save failed)");
     }
     
     return qrCodeDataURL;
@@ -73,13 +83,13 @@ export const generateAndSaveQRCode = async (
       step: "QR generation process"
     });
     
-    // Clear any partial UI state
-    if (setState?.setQrCodeUrl) {
+    // Only clear UI state if QR generation itself failed (not database save)
+    if (setState?.setQrCodeUrl && !error.message.includes("Database")) {
       setState.setQrCodeUrl(null);
     }
     
     // Show user-friendly error message
-    toast.error("QR code generation failed. Please try again.");
+    toast.error(`QR code generation failed: ${error.message}`);
     throw error;
   }
 };

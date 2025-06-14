@@ -49,13 +49,12 @@ export const generateShoeQRData = (shoeId: string): string => {
     throw new Error("Shoe ID is required for QR data generation");
   }
   
-  // Create a URL or identifier that can be used to look up the shoe
-  const baseUrl = window.location.origin;
-  const qrData = `${baseUrl}/shoe/${shoeId}`;
+  // Create a simple identifier that can be used to look up the shoe
+  // Using a simpler format that's more reliable
+  const qrData = `SHOE:${shoeId}`;
   
   console.log("✅ Generated QR data:", {
     shoeId,
-    baseUrl,
     qrData,
     qrDataLength: qrData.length
   });
