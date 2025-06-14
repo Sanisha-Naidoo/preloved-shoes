@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSimpleSubmit } from "@/hooks/useSimpleSubmit";
@@ -13,6 +13,7 @@ import { toast } from "sonner";
 const Submit = () => {
   const navigate = useNavigate();
   const { steps, currentStep } = useStepperProgress();
+  const hasAttemptedSubmission = useRef(false);
   
   const {
     isSubmitting,
@@ -24,25 +25,34 @@ const Submit = () => {
   } = useSimpleSubmit();
 
   useEffect(() => {
-    // Check for missing data
-    if (!isSubmitted && !isSubmitting) {
-      let missingData = false;
-      if (!sessionStorage.getItem("shoeDetails")) {
-        toast.error("Missing shoe details. Please go back and complete the form.");
-        missingData = true;
-      } else if (!sessionStorage.getItem("solePhoto")) {
-        toast.error("Missing shoe photo. Please go back and take a photo.");
-        missingData = true;
-      }
-
-      // Only attempt submission if we have the required data
-      if (!missingData) {
-        submitData();
-      }
+    // Prevent multiple submission attempts
+    if (hasAttemptedSubmission.current || isSubmitted || isSubmitting) {
+      return;
     }
-  }, [isSubmitted, isSubmitting, submitData]);
+
+    // Check for missing data
+    const shoeDetailsStr = sessionStorage.getItem("shoeDetails");
+    const solePhotoStr = sessionStorage.getItem("solePhoto");
+    
+    if (!shoeDetailsStr) {
+      toast.error("Missing shoe details. Please go back and complete the form.");
+      return;
+    }
+    
+    if (!solePhotoStr) {
+      toast.error("Missing shoe photo. Please go back and take a photo.");
+      return;
+    }
+
+    // Mark that we've attempted submission to prevent duplicates
+    hasAttemptedSubmission.current = true;
+    
+    // Submit the data
+    submitData();
+  }, []); // Empty dependency array to run only once
 
   const handleRetry = () => {
+    hasAttemptedSubmission.current = false;
     setIsSubmitted(false);
     submitData();
   };
