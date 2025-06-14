@@ -70,7 +70,7 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
       .from("shoes")
       .select("id, qr_code")
       .eq("id", shoeId)
-      .single();
+      .maybeSingle();
 
     if (checkError) {
       console.error("❌ Shoe verification failed:", checkError);
@@ -88,46 +88,32 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
 
     // Step 2: Perform the update
     console.log("🎯 Step 2: Executing QR update...");
-    const { error: updateError } = await supabase
+    const { data: updateData, error: updateError } = await supabase
       .from("shoes")
       .update({ qr_code: qrCodeDataURL })
-      .eq("id", shoeId);
+      .eq("id", shoeId)
+      .select("qr_code");
 
     if (updateError) {
       console.error("❌ Update failed:", updateError);
       throw new Error(`Update failed: ${updateError.message}`);
     }
 
-    console.log("📊 Update executed successfully");
-
-    // Step 3: Verify the update was successful
-    console.log("🔍 Step 3: Verifying update was successful...");
-    const { data: verifyData, error: verifyError } = await supabase
-      .from("shoes")
-      .select("qr_code")
-      .eq("id", shoeId)
-      .single();
-
-    if (verifyError) {
-      console.error("❌ Verification failed:", verifyError);
-      throw new Error(`Update verification failed: ${verifyError.message}`);
+    if (!updateData || updateData.length === 0) {
+      console.error("❌ No data returned from update");
+      throw new Error("Update executed but no data returned");
     }
 
-    if (!verifyData?.qr_code) {
-      console.error("❌ QR code not found after update");
-      throw new Error("QR code was not saved properly - verification failed");
-    }
-
-    // Step 4: Validate the saved QR code matches what we sent
-    const qrCodeMatches = verifyData.qr_code === qrCodeDataURL;
-    console.log("✅ QR code update verified successfully:", {
-      hasQrCode: !!verifyData.qr_code,
-      qrCodeLength: verifyData.qr_code?.length,
-      dataMatches: qrCodeMatches
+    console.log("✅ Update completed with data:", {
+      hasQrCode: !!updateData[0]?.qr_code,
+      qrCodeLength: updateData[0]?.qr_code?.length,
+      updateDataLength: updateData.length
     });
 
-    if (!qrCodeMatches) {
-      console.warn("⚠️ Saved QR code doesn't match sent data");
+    // Validate that the QR code was actually saved
+    if (!updateData[0]?.qr_code) {
+      console.error("❌ QR code field is empty after update");
+      throw new Error("QR code was not saved - field is empty after update");
     }
 
     console.log("🎉 QR code update completed successfully");
