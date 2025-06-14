@@ -6,24 +6,18 @@ import { AlertTriangle, RotateCcw, Home, ArrowLeft } from "lucide-react";
 
 interface SubmissionErrorProps {
   error: string;
-  retryCount?: number;
-  maxRetries?: number;
   onRetry?: () => void;
 }
 
 export const SubmissionError: React.FC<SubmissionErrorProps> = ({ 
   error,
-  retryCount = 0,
-  maxRetries = 3,
   onRetry
 }) => {
   const navigate = useNavigate();
   
   // Determine error category to provide appropriate guidance
-  const isPermissionError = error.includes("Permission denied") || error.includes("bucket");
-  const isMissingDataError = error.includes("Missing") || error.includes("required");
   const isImageError = error.includes("photo") || error.includes("image") || error.includes("too large");
-  const isNetworkError = error.includes("network") || error.includes("connection");
+  const isMissingDataError = error.includes("Missing") || error.includes("required");
   
   // Determine where to navigate if user needs to go back
   const getBackNavigationPath = () => {
@@ -31,9 +25,6 @@ export const SubmissionError: React.FC<SubmissionErrorProps> = ({
     if (isMissingDataError) return "/manual-entry";
     return "/";
   };
-  
-  // Check if retry is possible/recommended
-  const canRetry = onRetry && !isPermissionError && !isMissingDataError && retryCount < maxRetries;
   
   return (
     <div>
@@ -44,33 +35,21 @@ export const SubmissionError: React.FC<SubmissionErrorProps> = ({
       <p className="text-gray-600 mb-4">{error}</p>
       
       {/* Specific guidance based on error type */}
-      {isPermissionError && (
-        <p className="text-sm text-amber-600 mb-6">
-          This appears to be a permission issue with the storage system. Please try again later or contact support.
-        </p>
-      )}
-      
       {isImageError && (
         <p className="text-sm text-amber-600 mb-6">
           There was a problem with your shoe image. Please go back and try taking a new photo.
         </p>
       )}
       
-      {isNetworkError && (
-        <p className="text-sm text-amber-600 mb-6">
-          Please check your internet connection and try again.
-        </p>
-      )}
-      
       <div className="space-y-4">
-        {canRetry && (
+        {onRetry && (
           <Button 
             onClick={onRetry} 
             className="w-full flex items-center justify-center"
             variant="default"
           >
             <RotateCcw className="mr-2 h-4 w-4" />
-            Retry Submission
+            Try Again
           </Button>
         )}
         
@@ -78,7 +57,7 @@ export const SubmissionError: React.FC<SubmissionErrorProps> = ({
           <Button 
             onClick={() => navigate(getBackNavigationPath())} 
             className="w-full flex items-center justify-center"
-            variant={canRetry ? "outline" : "default"}
+            variant={onRetry ? "outline" : "default"}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Go Back and Fix

@@ -2,7 +2,8 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
-import { useSubmitShoe } from "@/hooks/useSubmitShoe";
+import { useSimpleSubmit } from "@/hooks/useSimpleSubmit";
+import { useQRGeneration } from "@/hooks/useQRGeneration";
 import { useStepperProgress } from "@/hooks/useStepperProgress";
 import { Stepper } from "@/components/ui/stepper";
 import { SubmissionLoading } from "@/components/submit/SubmissionLoading";
@@ -13,33 +14,24 @@ import { toast } from "sonner";
 const Submit = () => {
   const navigate = useNavigate();
   const { steps, currentStep } = useStepperProgress();
-  console.log("Submit component rendering");
   
   const {
     isSubmitting,
     isSubmitted,
-    error,
-    retryCount,
-    MAX_RETRIES,
-    submitData,
     submissionId,
+    error,
+    submitData,
+    setIsSubmitted
+  } = useSimpleSubmit();
+
+  const {
+    isGenerating,
     qrCodeUrl,
-    manualRetry
-  } = useSubmitShoe({
-    onSuccess: () => {
-      console.log("Submission was successful!");
-    }
-  });
+    generateQR
+  } = useQRGeneration();
 
   useEffect(() => {
-    console.log("Submit component mounted");
-    console.log("Session storage contains:", {
-      hasShoeDetails: !!sessionStorage.getItem("shoeDetails"),
-      hasSolePhoto: !!sessionStorage.getItem("solePhoto"),
-      hasRating: !!sessionStorage.getItem("rating")
-    });
-
-    // Check for missing data only if we haven't submitted yet
+    // Check for missing data
     if (!isSubmitted && !isSubmitting) {
       let missingData = false;
       if (!sessionStorage.getItem("shoeDetails")) {
@@ -52,15 +44,20 @@ const Submit = () => {
 
       // Only attempt submission if we have the required data
       if (!missingData) {
-        console.log("Attempting to submit data...");
         submitData();
       }
     }
   }, [isSubmitted, isSubmitting, submitData]);
 
   const handleRetry = () => {
-    console.log("Manual retry requested");
-    manualRetry();
+    setIsSubmitted(false);
+    submitData();
+  };
+
+  const handleGenerateQR = () => {
+    if (submissionId) {
+      generateQR(submissionId);
+    }
   };
 
   const handleAnotherSubmission = () => {
@@ -73,18 +70,10 @@ const Submit = () => {
 
   // Check if we have critical missing data AND haven't submitted yet
   const hasMissingCriticalData = !isSubmitted && (!sessionStorage.getItem("shoeDetails") || !sessionStorage.getItem("solePhoto"));
-  
-  console.log("Submit component state:", {
-    isSubmitting,
-    isSubmitted,
-    error,
-    hasMissingCriticalData
-  });
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 p-4 flex flex-col">
       <div className="max-w-md mx-auto mb-6">
-        {/* Progress Stepper */}
         <Stepper steps={steps} currentStep={currentStep} />
       </div>
 
@@ -97,12 +86,12 @@ const Submit = () => {
                 onFinish={handleFinish} 
                 submissionId={submissionId} 
                 qrCodeUrl={qrCodeUrl}
+                onGenerateQR={handleGenerateQR}
+                isGeneratingQR={isGenerating}
               />
             ) : error ? (
               <SubmissionError 
                 error={error} 
-                retryCount={retryCount} 
-                maxRetries={MAX_RETRIES} 
                 onRetry={handleRetry} 
               />
             ) : isSubmitting ? (

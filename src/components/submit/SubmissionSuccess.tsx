@@ -1,20 +1,24 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, PlusCircle, ArrowRight, QrCode } from "lucide-react";
+import { CheckCircle, PlusCircle, ArrowRight, QrCode, RefreshCw } from "lucide-react";
 
 interface SubmissionSuccessProps {
   onSubmitAnother: () => void;
   onFinish: () => void;
   submissionId?: string | null;
   qrCodeUrl?: string | null;
+  onGenerateQR?: () => void;
+  isGeneratingQR?: boolean;
 }
 
 export const SubmissionSuccess: React.FC<SubmissionSuccessProps> = ({ 
   onSubmitAnother,
   onFinish,
   submissionId,
-  qrCodeUrl
+  qrCodeUrl,
+  onGenerateQR,
+  isGeneratingQR = false
 }) => {
   return (
     <div>
@@ -34,36 +38,52 @@ export const SubmissionSuccess: React.FC<SubmissionSuccessProps> = ({
       )}
 
       {/* QR Code Section */}
-      {qrCodeUrl ? (
-        <div className="mb-6">
-          <div className="flex items-center justify-center mb-3">
-            <QrCode className="h-5 w-5 text-gray-600 mr-2" />
-            <span className="text-sm text-gray-600 font-medium">Your Shoe QR Code</span>
-          </div>
+      <div className="mb-6">
+        <div className="flex items-center justify-center mb-3">
+          <QrCode className="h-5 w-5 text-gray-600 mr-2" />
+          <span className="text-sm text-gray-600 font-medium">Your Shoe QR Code</span>
+        </div>
+        
+        {qrCodeUrl ? (
           <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
             <img 
               src={qrCodeUrl} 
               alt="Shoe QR Code" 
               className="w-48 h-48 mx-auto"
             />
-          </div>
-          <p className="text-xs text-gray-500 mt-2 text-center">
-            Scan this code to access your shoe information
-          </p>
-        </div>
-      ) : (
-        <div className="mb-6">
-          <div className="flex items-center justify-center mb-3">
-            <QrCode className="h-5 w-5 text-gray-400 mr-2" />
-            <span className="text-sm text-gray-500 font-medium">QR Code</span>
-          </div>
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-center">
-            <p className="text-sm text-gray-500">
-              QR code generation in progress...
+            <p className="text-xs text-gray-500 mt-2 text-center">
+              Scan this code to access your shoe information
             </p>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-500 mb-3">
+              Generate a QR code for easy access to your shoe record
+            </p>
+            {onGenerateQR && (
+              <Button 
+                onClick={onGenerateQR}
+                disabled={isGeneratingQR}
+                variant="outline"
+                size="sm"
+                className="flex items-center justify-center"
+              >
+                {isGeneratingQR ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <QrCode className="mr-2 h-4 w-4" />
+                    Generate QR Code
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
 
       <div className="grid grid-cols-2 gap-4">
         <Button 
