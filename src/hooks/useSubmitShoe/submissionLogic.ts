@@ -7,6 +7,7 @@ import { processAndUploadImage } from "./imageProcessing";
 import { createShoeRecord } from "./databaseOperations";
 import { handleSubmissionError } from "./errorHandling";
 import { clearSessionData } from "./sessionCleanup";
+import { generateAndSaveQRCode } from "./qrCodeHandling";
 
 export const executeSubmission = async (
   state: SubmissionState,
@@ -42,7 +43,7 @@ export const executeSubmission = async (
     const photoUrl = await processAndUploadImage(solePhoto);
     console.log("✅ Image upload successful:", photoUrl);
     
-    // 3. Save the shoe data to the database (without QR code for now)
+    // 3. Save the shoe data to the database
     console.log("💾 Step 3: Creating shoe record...");
     const { shoeId } = await createShoeRecord({
       brand: shoeDetails.brand,
@@ -58,15 +59,27 @@ export const executeSubmission = async (
     
     setState.setSubmissionId(shoeId);
 
-    console.log("🧹 Step 4: Cleaning up session data...");
-    logStep("Submission completed successfully - QR code will be generated when user clicks action buttons");
+    // 4. Generate and save QR code automatically
+    console.log("🔄 Step 4: Generating QR code...");
+    try {
+      const qrCodeDataURL = await generateAndSaveQRCode(shoeId, setState);
+      setState.setQrCodeUrl(qrCodeDataURL);
+      console.log("✅ QR code generated and saved successfully");
+    } catch (qrError: any) {
+      console.error("⚠️ QR code generation failed, but submission succeeded:", qrError);
+      // Don't fail the entire submission if QR code generation fails
+      toast.warning("Submission successful, but QR code generation failed. You can try generating it manually.");
+    }
+
+    console.log("🧹 Step 5: Cleaning up session data...");
+    logStep("Submission completed successfully with QR code");
     
     // Clear session storage after successful submission
     clearSessionData();
 
     setState.setIsSubmitted(true);
     console.log("🎉 SUBMISSION PROCESS COMPLETED SUCCESSFULLY");
-    toast.success("Submission successful! Click 'Generate QR Code' to create your unique QR code.");
+    toast.success("Submission successful! Your QR code has been generated.");
     
     if (options.onSuccess && refs.isMounted.current) {
       options.onSuccess();
