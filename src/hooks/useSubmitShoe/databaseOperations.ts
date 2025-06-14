@@ -64,11 +64,11 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
   }
   
   try {
-    // Step 1: Verify the shoe exists first
+    // Step 1: Verify the shoe exists and get current state
     console.log("🔍 Step 1: Verifying shoe exists...");
     const { data: existingShoe, error: checkError } = await supabase
       .from("shoes")
-      .select("id")
+      .select("id, qr_code")
       .eq("id", shoeId)
       .single();
 
@@ -78,14 +78,17 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
     }
 
     if (!existingShoe) {
-      throw new Error("Shoe not found in database");
+      throw new Error(`Shoe with ID ${shoeId} not found in database`);
     }
 
-    console.log("✅ Shoe verified:", existingShoe.id);
+    console.log("✅ Shoe verified:", { 
+      id: existingShoe.id, 
+      hasExistingQR: !!existingShoe.qr_code 
+    });
 
     // Step 2: Perform the QR code update
     console.log("🎯 Step 2: Updating QR code...");
-    const { error: updateError } = await supabase
+    const { error: updateError, count } = await supabase
       .from("shoes")
       .update({ qr_code: qrCodeDataURL })
       .eq("id", shoeId);
@@ -95,7 +98,13 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
       throw new Error(`QR code update failed: ${updateError.message}`);
     }
 
-    console.log("✅ QR code update completed");
+    // Check if any rows were affected
+    if (count === 0) {
+      console.error("❌ No rows were updated");
+      throw new Error("Update executed but no rows affected - shoe may not exist");
+    }
+
+    console.log("✅ QR code update completed, rows affected:", count);
 
     // Step 3: Verify the update was successful
     console.log("🔍 Step 3: Verifying QR code was saved...");
