@@ -76,53 +76,40 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
       hasQr: !!existingShoe.qr_code
     });
 
-    // Perform the update with explicit column reference
+    // Perform the update
     console.log("🎯 Executing QR update...");
-    const { data: updateResult, error: updateError } = await supabase
+    const { error: updateError } = await supabase
       .from("shoes")
       .update({ qr_code: qrCodeDataURL })
-      .eq("id", shoeId)
-      .select("id, qr_code");
+      .eq("id", shoeId);
 
     if (updateError) {
       console.error("❌ Update failed:", updateError);
       throw new Error(`Update failed: ${updateError.message}`);
     }
 
-    console.log("📊 Update result:", {
-      success: !!updateResult,
-      rowsUpdated: updateResult?.length || 0,
-      updatedId: updateResult?.[0]?.id,
-      hasQrCode: !!updateResult?.[0]?.qr_code
-    });
+    // Verify the update was successful
+    console.log("🔍 Verifying update was successful...");
+    const { data: verifyData, error: verifyError } = await supabase
+      .from("shoes")
+      .select("qr_code")
+      .eq("id", shoeId)
+      .single();
 
-    if (!updateResult || updateResult.length === 0) {
-      // Try alternative update approach
-      console.log("🔄 Attempting alternative update...");
-      const { error: altError } = await supabase
-        .from("shoes")
-        .update({ qr_code: qrCodeDataURL })
-        .match({ id: shoeId });
-
-      if (altError) {
-        console.error("❌ Alternative update failed:", altError);
-        throw new Error(`Both update attempts failed: ${altError.message}`);
-      }
-
-      // Verify the alternative update worked
-      const { data: verifyData } = await supabase
-        .from("shoes")
-        .select("qr_code")
-        .eq("id", shoeId)
-        .single();
-
-      if (verifyData?.qr_code === qrCodeDataURL) {
-        console.log("✅ Alternative update successful");
-        return true;
-      } else {
-        throw new Error("Update verification failed");
-      }
+    if (verifyError) {
+      console.error("❌ Verification failed:", verifyError);
+      throw new Error(`Update verification failed: ${verifyError.message}`);
     }
+
+    if (!verifyData?.qr_code) {
+      console.error("❌ QR code not found after update");
+      throw new Error("QR code was not saved properly");
+    }
+
+    console.log("✅ QR code update verified successfully:", {
+      hasQrCode: !!verifyData.qr_code,
+      qrCodeLength: verifyData.qr_code?.length
+    });
 
     console.log("🎉 QR code update completed successfully");
     return true;
