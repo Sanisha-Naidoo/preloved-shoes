@@ -8,7 +8,6 @@ import Index from "./pages/Index";
 import ManualEntry from "./pages/ManualEntry";
 import PhotoCapture from "./pages/PhotoCapture";
 import Rating from "./pages/Rating";
-import OptionalBarcodeScan from "./pages/OptionalBarcodeScan";
 import Submit from "./pages/Submit";
 import ThankYou from "./pages/ThankYou";
 import NotFound from "./pages/NotFound";
@@ -37,7 +36,6 @@ const App = () => {
                 <Route path="/manual-entry" element={<ManualEntry />} />
                 <Route path="/photo-capture" element={<PhotoCapture />} />
                 <Route path="/rating" element={<Rating />} />
-                <Route path="/optional-barcode-scan" element={<OptionalBarcodeScan />} />
                 <Route path="/submit" element={<Submit />} />
                 <Route path="/thank-you" element={<ThankYou />} />
                 <Route path="*" element={<NotFound />} />

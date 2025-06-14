@@ -18,7 +18,8 @@ const Rating = () => {
     if (rating !== null) {
       sessionStorage.setItem("rating", rating.toString());
     }
-    navigate("/optional-barcode-scan");
+    // Navigate directly to submit instead of barcode scan
+    navigate("/submit");
   };
 
   return <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 p-4">
