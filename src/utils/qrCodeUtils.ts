@@ -3,40 +3,61 @@ import QRCode from 'qrcode';
 
 export const generateQRCode = async (data: string): Promise<string> => {
   try {
-    console.log("Generating QR code for data:", data);
+    console.log("🔍 Starting QR code generation for data:", data);
     
-    // Generate QR code as data URL
+    if (!data || data.trim().length === 0) {
+      throw new Error("QR code data cannot be empty");
+    }
+    
+    // Generate QR code as data URL with higher quality settings
     const qrCodeDataURL = await QRCode.toDataURL(data, {
-      width: 300,
+      width: 400,
       margin: 2,
       color: {
         dark: '#000000',
         light: '#FFFFFF'
-      }
+      },
+      errorCorrectionLevel: 'M'
     });
     
-    console.log("QR code generated successfully:", {
+    // Validate the generated QR code
+    if (!qrCodeDataURL || !qrCodeDataURL.startsWith('data:image/')) {
+      throw new Error("Invalid QR code data URL generated");
+    }
+    
+    console.log("✅ QR code generated successfully:", {
       dataLength: qrCodeDataURL.length,
-      dataPreview: qrCodeDataURL.substring(0, 50) + "...",
+      isValidDataUrl: qrCodeDataURL.startsWith('data:image/'),
       originalData: data
     });
     
     return qrCodeDataURL;
-  } catch (error) {
-    console.error('Error generating QR code:', error);
-    throw new Error('Failed to generate QR code');
+  } catch (error: any) {
+    console.error('❌ Error generating QR code:', {
+      error: error.message,
+      stack: error.stack,
+      inputData: data
+    });
+    throw new Error(`Failed to generate QR code: ${error.message}`);
   }
 };
 
 export const generateShoeQRData = (shoeId: string): string => {
+  console.log("📝 Generating QR data for shoe ID:", shoeId);
+  
+  if (!shoeId || shoeId.trim().length === 0) {
+    throw new Error("Shoe ID is required for QR data generation");
+  }
+  
   // Create a URL or identifier that can be used to look up the shoe
   const baseUrl = window.location.origin;
   const qrData = `${baseUrl}/shoe/${shoeId}`;
   
-  console.log("Generated QR data:", {
+  console.log("✅ Generated QR data:", {
     shoeId,
     baseUrl,
-    qrData
+    qrData,
+    qrDataLength: qrData.length
   });
   
   return qrData;

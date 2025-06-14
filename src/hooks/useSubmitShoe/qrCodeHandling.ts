@@ -10,50 +10,76 @@ export const generateAndSaveQRCode = async (
 ): Promise<string> => {
   console.log("🚀 QR GENERATION START", { 
     shoeId, 
-    timestamp: new Date().toISOString() 
+    timestamp: new Date().toISOString(),
+    shoeIdType: typeof shoeId,
+    shoeIdValid: !!shoeId?.trim()
   });
   
   if (!shoeId?.trim()) {
-    throw new Error("Valid shoe ID required for QR generation");
+    const error = new Error("Valid shoe ID required for QR generation");
+    console.error("❌ Invalid shoe ID:", { shoeId });
+    throw error;
   }
   
   try {
-    // Generate QR data
-    console.log("📝 Generating QR data...");
+    // Step 1: Generate QR data
+    console.log("📝 Step 1: Generating QR data...");
     const qrData = generateShoeQRData(shoeId);
-    console.log("✅ QR data generated:", qrData);
+    console.log("✅ QR data generated:", {
+      qrData,
+      length: qrData.length
+    });
     
-    // Generate QR image
-    console.log("🖼️ Generating QR image...");
+    // Step 2: Generate QR image
+    console.log("🖼️ Step 2: Generating QR image...");
     const qrCodeDataURL = await generateQRCode(qrData);
-    console.log("✅ QR image generated successfully");
+    console.log("✅ QR image generated:", {
+      success: !!qrCodeDataURL,
+      length: qrCodeDataURL?.length,
+      isValidDataUrl: qrCodeDataURL?.startsWith('data:image/')
+    });
     
-    if (!qrCodeDataURL) {
-      throw new Error("QR code generation returned empty result");
+    if (!qrCodeDataURL || !qrCodeDataURL.startsWith('data:image/')) {
+      throw new Error("QR code generation returned invalid result");
     }
     
-    // Update UI state
+    // Step 3: Update UI state immediately
+    console.log("🎨 Step 3: Updating UI state...");
     if (setState?.setQrCodeUrl) {
       setState.setQrCodeUrl(qrCodeDataURL);
       console.log("✅ UI state updated with QR code");
     }
     
-    // Save to database
-    console.log("🗄️ Saving QR code to database...");
-    await updateShoeWithQRCode(shoeId, qrCodeDataURL);
-    console.log("✅ QR code saved to database successfully");
+    // Step 4: Save to database
+    console.log("🗄️ Step 4: Saving QR code to database...");
+    const saveResult = await updateShoeWithQRCode(shoeId, qrCodeDataURL);
+    console.log("✅ Database save result:", { saveResult });
     
-    toast.success("QR code generated and saved!");
+    if (!saveResult) {
+      console.warn("⚠️ Database save returned false, but no error thrown");
+      toast.warning("QR code generated but may not have saved properly");
+    } else {
+      console.log("🎉 QR code generation and save completed successfully");
+      toast.success("QR code generated and saved!");
+    }
+    
     return qrCodeDataURL;
     
   } catch (error: any) {
     console.error("💥 QR GENERATION FAILED:", {
       error: error.message,
-      shoeId
+      stack: error.stack,
+      shoeId,
+      step: "QR generation process"
     });
     
-    // Don't fail the entire submission for QR issues
-    toast.warning("QR code generation failed, but submission continued");
+    // Clear any partial UI state
+    if (setState?.setQrCodeUrl) {
+      setState.setQrCodeUrl(null);
+    }
+    
+    // Show user-friendly error message
+    toast.error("QR code generation failed. Please try again.");
     throw error;
   }
 };
