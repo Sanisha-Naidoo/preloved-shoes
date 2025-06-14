@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { logStep } from "./submissionLogger";
 
@@ -63,107 +62,99 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
   if (!shoeId?.trim()) {
     throw new Error("Shoe ID is required for QR update");
   }
-  
   if (!qrCodeDataURL?.trim()) {
     throw new Error("QR code data is required for update");
   }
-  
-  // Basic validation - check it's a data URL
   if (!qrCodeDataURL.startsWith('data:image/')) {
     throw new Error("Invalid QR code format for database storage");
   }
-  
-  try {
-    console.log("🔍 Verifying shoe record exists...");
-    
-    // First verify the shoe exists with retry logic
-    let existingShoe = null;
-    let attempts = 0;
-    const maxAttempts = 5;
-    
-    while (!existingShoe && attempts < maxAttempts) {
-      attempts++;
-      console.log(`📋 Verification attempt ${attempts}/${maxAttempts}`);
-      
-      const { data: checkData, error: checkError } = await supabase
-        .from("shoes")
-        .select("id, created_at")
-        .eq("id", shoeId)
-        .maybeSingle(); // Use maybeSingle to avoid errors when no record found
-      
-      if (checkError) {
-        console.error("❌ Shoe record verification failed:", checkError);
-        if (attempts === maxAttempts) {
-          throw new Error(`Shoe record verification failed: ${checkError.message}`);
-        }
-        // Wait before retry
-        await new Promise(resolve => setTimeout(resolve, 500));
-        continue;
+
+  // Wait briefly to handle potential database latency for just-created shoes
+  await new Promise(res => setTimeout(res, 800)); // 800ms buffer (experimental; adjust as needed)
+
+  let existingShoe = null;
+  let attempts = 0;
+  const maxAttempts = 5;
+
+  // Retry loop for "does the shoe exist?"
+  while (!existingShoe && attempts < maxAttempts) {
+    attempts++;
+    console.log(`📋 Verification attempt ${attempts}/${maxAttempts}`);
+    const { data: checkData, error: checkError } = await supabase
+      .from("shoes")
+      .select("id, created_at")
+      .eq("id", shoeId)
+      .maybeSingle();
+    if (checkError) {
+      console.error("❌ Shoe record verification failed:", checkError);
+      if (attempts === maxAttempts) {
+        throw new Error(`Shoe record verification failed: ${checkError.message}`);
       }
-      
-      if (checkData) {
-        existingShoe = checkData;
-        console.log("✅ Shoe record verified:", { id: existingShoe.id, created_at: existingShoe.created_at });
-        break;
-      }
-      
-      if (attempts < maxAttempts) {
-        console.log(`⏳ Shoe record not found yet, waiting 500ms before retry...`);
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
+      await new Promise(resolve => setTimeout(resolve, 600));
+      continue;
     }
-    
-    if (!existingShoe) {
-      console.error("❌ No shoe record found with ID after retries:", shoeId);
-      throw new Error("Shoe record not found after verification attempts");
+    if (checkData) {
+      existingShoe = checkData;
+      break;
     }
-    
-    console.log("💾 Updating QR code in database...");
-    
-    // Update the QR code
+    if (attempts < maxAttempts) {
+      console.log("⏳ DB not ready. Retrying...");
+      await new Promise(resolve => setTimeout(resolve, 600));
+    }
+  }
+
+  if (!existingShoe) {
+    throw new Error("Shoe record not found after verification attempts");
+  }
+  console.log("✅ Shoe record verified:", { id: existingShoe.id, created_at: existingShoe.created_at });
+
+  // Update and verify the QR code in a retry loop
+  let updateAttempts = 0;
+  let lastUpdateError: any = null;
+  const maxUpdateAttempts = 4;
+
+  while (updateAttempts < maxUpdateAttempts) {
+    updateAttempts++;
+    console.log(`💾 Updating (attempt ${updateAttempts}/${maxUpdateAttempts}) QR code in database...`);
     const { error: updateError } = await supabase
       .from("shoes")
       .update({ qr_code: qrCodeDataURL })
       .eq("id", shoeId);
 
     if (updateError) {
+      lastUpdateError = updateError;
       console.error("❌ QR update failed:", updateError);
-      throw new Error(`Failed to update QR code: ${updateError.message}`);
+      await new Promise(res => setTimeout(res, 800)); // Wait and retry
+      continue;
     }
 
-    // Verify the update was successful
-    console.log("🔍 Verifying QR code was saved...");
+    // Check if actually updated
     const { data: verifyData, error: verifyError } = await supabase
       .from("shoes")
       .select("id, qr_code")
       .eq("id", shoeId)
-      .single();
+      .maybeSingle();
 
-    if (verifyError || !verifyData) {
+    if (verifyError) {
+      lastUpdateError = verifyError;
       console.error("❌ QR update verification failed:", verifyError);
-      throw new Error("Failed to verify QR code update");
+      await new Promise(res => setTimeout(res, 800));
+      continue;
     }
 
-    const hasQrCode = !!verifyData.qr_code;
-    const qrCodeLength = verifyData.qr_code?.length || 0;
-    
-    console.log("✅ QR code update result:", {
-      shoeId: verifyData.id,
-      hasQrCode,
-      qrCodeLength
-    });
-
-    if (!hasQrCode) {
-      throw new Error("QR code was not saved to database");
+    const hasQrCode = !!verifyData?.qr_code;
+    if (hasQrCode) {
+      console.log("🎉 QR code successfully saved and verified", { id: shoeId, qrCodeLength: verifyData.qr_code.length });
+      logStep("QR code saved to database successfully", { shoeId, qrCodeLength: verifyData.qr_code.length });
+      return true;
+    } else {
+      lastUpdateError = new Error("QR code field still empty after update");
+      console.warn("QR code field still empty after update. Retrying...");
+      await new Promise(res => setTimeout(res, 900));
     }
-
-    console.log("🎉 QR code successfully saved to database");
-    logStep("QR code saved to database successfully", { shoeId, qrCodeLength });
-    return true;
-
-  } catch (error: any) {
-    console.error("💥 QR code update failed:", error);
-    logStep("QR code database update failed", { shoeId, error: error.message });
-    throw error;
   }
+
+  console.error("💥 QR code update failed after all attempts:", lastUpdateError);
+  logStep("QR code database update failed", { shoeId, error: lastUpdateError?.message });
+  throw new Error("QR code was not saved to database after multiple attempts");
 };
