@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { ArrowLeft, Barcode, QrCode, Camera, AlertCircle } from "lucide-react";
-import BarcodeScanner from "@/components/BarcodeScanner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -143,7 +142,9 @@ const BarcodeScan = () => {
           <CardContent className="p-0">
             {scanning ? (
               <div className="relative">
-                <BarcodeScanner key={`scanner-${scanAttempts}`} onDetected={handleCodeDetected} />
+                <div className="bg-gray-200 h-64 flex items-center justify-center">
+                  <p className="text-gray-500">Scanner component removed</p>
+                </div>
                 <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-3 text-center">
                   <p className="text-sm">
                     Align the barcode or QR code within the scanner area
