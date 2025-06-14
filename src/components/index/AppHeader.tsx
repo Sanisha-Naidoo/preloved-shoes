@@ -14,12 +14,19 @@ export const AppHeader = () => {
           {/* Subtle Grid Pattern Background */}
           <div className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(circle_at_1px_1px,_rgba(0,0,0,0.5)_1px,_transparent_0)] bg-[length:24px_24px] rounded-3xl"></div>
           
-          {/* Logo Section with Premium Styling - Static Version */}
+          {/* Logo Section with Premium Styling and Beta Badge */}
           <div className="relative z-10 mb-8">
-            <div className="bg-gradient-to-br from-white to-gray-50/50 backdrop-blur-sm rounded-2xl shadow-lg shadow-black/5 p-6 mx-auto w-28 h-28 flex items-center justify-center mb-6 border border-white/40 px-[8px] py-[8px]">
+            <div className="relative bg-gradient-to-br from-white to-gray-50/50 backdrop-blur-sm rounded-2xl shadow-lg shadow-black/5 p-6 mx-auto w-28 h-28 flex items-center justify-center mb-6 border border-white/40 px-[8px] py-[8px]">
               <AspectRatio ratio={1 / 1} className="w-full h-full">
                 <img src="/lovable-uploads/ba6fcc1a-24b1-4e24-8750-43bdc56bb2fb.png" alt="Reboot Logo" loading="eager" className="h-full w-full object-contain" />
               </AspectRatio>
+              
+              {/* Beta Badge Overlay */}
+              <div className="absolute -top-2 -right-2">
+                <span className="bg-gradient-to-r from-black to-gray-800 text-white font-semibold px-2 py-1 rounded-full shadow-lg shadow-black/25 border border-gray-400/20 text-xs">
+                  Beta
+                </span>
+              </div>
             </div>
             
             {/* Title with Typography Hierarchy */}
@@ -27,11 +34,6 @@ export const AppHeader = () => {
               <h1 className="font-black text-4xl bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent tracking-tight">
                 ReBOOT
               </h1>
-              <div className="inline-flex items-center justify-center">
-                <span className="bg-gradient-to-r from-black to-gray-800 text-white font-semibold px-3 py-1 rounded-full shadow-lg shadow-black/25 border border-gray-400/20 text-2xl">
-                  Beta
-                </span>
-              </div>
             </div>
           </div>
 
