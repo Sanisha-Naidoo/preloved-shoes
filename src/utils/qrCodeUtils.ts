@@ -9,15 +9,15 @@ export const generateQRCode = async (data: string): Promise<string> => {
       throw new Error("QR code data cannot be empty");
     }
     
-    // Generate QR code as data URL with higher quality settings
+    // Generate QR code with smaller, more conservative settings for testing
     const qrCodeDataURL = await QRCode.toDataURL(data, {
-      width: 400,
-      margin: 2,
+      width: 200, // Reduced from 400
+      margin: 1,  // Reduced from 2
       color: {
         dark: '#000000',
         light: '#FFFFFF'
       },
-      errorCorrectionLevel: 'M'
+      errorCorrectionLevel: 'L' // Changed from 'M' to 'L' for smaller size
     });
     
     // Validate the generated QR code
@@ -27,6 +27,7 @@ export const generateQRCode = async (data: string): Promise<string> => {
     
     console.log("✅ QR code generated successfully:", {
       dataLength: qrCodeDataURL.length,
+      dataSizeKB: Math.round(qrCodeDataURL.length / 1024),
       isValidDataUrl: qrCodeDataURL.startsWith('data:image/'),
       originalData: data
     });

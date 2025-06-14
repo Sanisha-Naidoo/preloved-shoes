@@ -22,7 +22,7 @@ export const generateAndSaveQRCode = async (
   }
   
   try {
-    // Step 1: Generate QR data
+    // Step 1: Generate QR data (start with simpler, smaller data)
     console.log("📝 Step 1: Generating QR data...");
     const qrData = generateShoeQRData(shoeId);
     console.log("✅ QR data generated:", {
@@ -30,66 +30,63 @@ export const generateAndSaveQRCode = async (
       length: qrData.length
     });
     
-    // Step 2: Generate QR image
-    console.log("🖼️ Step 2: Generating QR image...");
+    // Step 2: Generate QR image with smaller settings for testing
+    console.log("🖼️ Step 2: Generating QR image with smaller settings...");
     const qrCodeDataURL = await generateQRCode(qrData);
+    
     console.log("✅ QR image generated:", {
       success: !!qrCodeDataURL,
       length: qrCodeDataURL?.length,
-      isValidDataUrl: qrCodeDataURL?.startsWith('data:image/')
+      isValidDataUrl: qrCodeDataURL?.startsWith('data:image/'),
+      sizeInKB: Math.round(qrCodeDataURL?.length / 1024)
     });
     
     if (!qrCodeDataURL || !qrCodeDataURL.startsWith('data:image/')) {
       throw new Error("QR code generation returned invalid result");
     }
     
-    // Step 3: Update UI state immediately (don't wait for database save)
-    console.log("🎨 Step 3: Updating UI state...");
+    // Step 3: Save to database - CRITICAL OPERATION (no silent failures)
+    console.log("🗄️ Step 3: Saving QR code to database (CRITICAL)...");
+    console.log("📊 QR data being saved:", {
+      shoeId,
+      qrDataLength: qrCodeDataURL.length,
+      qrDataSizeKB: Math.round(qrCodeDataURL.length / 1024),
+      qrDataPreview: qrCodeDataURL.substring(0, 100) + "..."
+    });
+    
+    const saveResult = await updateShoeWithQRCode(shoeId, qrCodeDataURL);
+    
+    if (!saveResult) {
+      throw new Error("Database save operation returned false - QR code not saved");
+    }
+    
+    console.log("🎉 QR code saved to database successfully");
+    
+    // Step 4: Update UI state only after successful database save
+    console.log("🎨 Step 4: Updating UI state...");
     if (setState?.setQrCodeUrl) {
       setState.setQrCodeUrl(qrCodeDataURL);
       console.log("✅ UI state updated with QR code");
     }
     
-    // Step 4: Save to database (but don't fail if this fails)
-    console.log("🗄️ Step 4: Saving QR code to database...");
-    try {
-      const saveResult = await updateShoeWithQRCode(shoeId, qrCodeDataURL);
-      console.log("✅ Database save result:", { saveResult });
-      
-      if (saveResult) {
-        console.log("🎉 QR code saved to database successfully");
-        toast.success("QR code generated and saved!");
-      } else {
-        console.warn("⚠️ Database save returned false, but QR code is still available");
-        toast.success("QR code generated! (Database save may have failed)");
-      }
-    } catch (dbError: any) {
-      console.error("❌ Database save failed, but QR code is still available:", {
-        error: dbError.message,
-        stack: dbError.stack
-      });
-      
-      // Don't clear the QR code from UI if database save fails
-      toast.success("QR code generated! (Database save failed)");
-    }
-    
+    toast.success("QR code generated and saved successfully!");
     return qrCodeDataURL;
     
   } catch (error: any) {
-    console.error("💥 QR GENERATION FAILED:", {
+    console.error("💥 QR GENERATION/SAVE FAILED:", {
       error: error.message,
       stack: error.stack,
       shoeId,
-      step: "QR generation process"
+      step: "Critical QR generation/save process"
     });
     
-    // Only clear UI state if QR generation itself failed (not database save)
-    if (setState?.setQrCodeUrl && !error.message.includes("Database")) {
+    // Clear UI state on any failure
+    if (setState?.setQrCodeUrl) {
       setState.setQrCodeUrl(null);
     }
     
-    // Show user-friendly error message
-    toast.error(`QR code generation failed: ${error.message}`);
-    throw error;
+    // Show specific error message to user
+    toast.error(`QR code save failed: ${error.message}`);
+    throw error; // Re-throw to fail the submission if QR save fails
   }
 };

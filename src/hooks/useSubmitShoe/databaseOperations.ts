@@ -47,9 +47,10 @@ export const createShoeRecord = async (data: ShoeData): Promise<string> => {
 };
 
 export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string): Promise<boolean> => {
-  console.log("🔥 STARTING QR UPDATE", { 
+  console.log("🔥 STARTING CRITICAL QR UPDATE", { 
     shoeId, 
     qrLength: qrCodeDataURL?.length,
+    qrSizeKB: Math.round(qrCodeDataURL?.length / 1024),
     timestamp: new Date().toISOString(),
     isValidDataUrl: qrCodeDataURL?.startsWith('data:image/')
   });
@@ -61,6 +62,12 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
   
   if (!qrCodeDataURL?.trim() || !qrCodeDataURL.startsWith('data:image/')) {
     throw new Error("Valid QR code data URL is required");
+  }
+  
+  // Check QR code size (warn if very large)
+  const sizeKB = Math.round(qrCodeDataURL.length / 1024);
+  if (sizeKB > 100) {
+    console.warn("⚠️ Large QR code detected:", { sizeKB });
   }
   
   try {
@@ -86,34 +93,78 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
       hasExistingQr: !!existingShoe.qr_code
     });
 
-    // Step 2: Perform the update
+    // Step 2: Perform the update with transaction-like behavior
     console.log("🎯 Step 2: Executing QR update...");
+    console.log("📤 Sending QR data:", {
+      dataLength: qrCodeDataURL.length,
+      dataSizeKB: sizeKB,
+      dataType: typeof qrCodeDataURL,
+      dataPreview: qrCodeDataURL.substring(0, 50) + "..."
+    });
+
     const { data: updateData, error: updateError } = await supabase
       .from("shoes")
       .update({ qr_code: qrCodeDataURL })
       .eq("id", shoeId)
-      .select("qr_code");
+      .select("id, qr_code");
 
     if (updateError) {
-      console.error("❌ Update failed:", updateError);
-      throw new Error(`Update failed: ${updateError.message}`);
+      console.error("❌ Update failed:", {
+        error: updateError.message,
+        code: updateError.code,
+        details: updateError.details,
+        hint: updateError.hint
+      });
+      throw new Error(`Database update failed: ${updateError.message}`);
     }
 
     if (!updateData || updateData.length === 0) {
       console.error("❌ No data returned from update");
-      throw new Error("Update executed but no data returned");
+      throw new Error("Update executed but no rows affected - shoe may not exist");
     }
 
-    console.log("✅ Update completed with data:", {
-      hasQrCode: !!updateData[0]?.qr_code,
-      qrCodeLength: updateData[0]?.qr_code?.length,
-      updateDataLength: updateData.length
+    const savedQrCode = updateData[0]?.qr_code;
+    console.log("📨 Update response received:", {
+      hasQrCode: !!savedQrCode,
+      qrCodeLength: savedQrCode?.length || 0,
+      qrCodeSizeKB: savedQrCode ? Math.round(savedQrCode.length / 1024) : 0,
+      updateDataLength: updateData.length,
+      shoeId: updateData[0]?.id
     });
 
     // Validate that the QR code was actually saved
-    if (!updateData[0]?.qr_code) {
+    if (!savedQrCode) {
       console.error("❌ QR code field is empty after update");
-      throw new Error("QR code was not saved - field is empty after update");
+      throw new Error("QR code was not saved - database field is empty after update");
+    }
+
+    // Validate the data integrity
+    if (savedQrCode.length !== qrCodeDataURL.length) {
+      console.error("❌ QR code data length mismatch:", {
+        sent: qrCodeDataURL.length,
+        received: savedQrCode.length
+      });
+      throw new Error("QR code data corrupted - length mismatch after save");
+    }
+
+    // Step 3: Immediate verification read
+    console.log("🔍 Step 3: Immediate verification read...");
+    const { data: verifyData, error: verifyError } = await supabase
+      .from("shoes")
+      .select("qr_code")
+      .eq("id", shoeId)
+      .maybeSingle();
+
+    if (verifyError) {
+      console.warn("⚠️ Verification read failed:", verifyError);
+      // Don't fail here - the update succeeded
+    } else if (verifyData?.qr_code) {
+      console.log("✅ Verification successful:", {
+        verifiedLength: verifyData.qr_code.length,
+        matches: verifyData.qr_code === qrCodeDataURL
+      });
+    } else {
+      console.warn("⚠️ Verification shows no QR code, but update claimed success");
     }
 
     console.log("🎉 QR code update completed successfully");
