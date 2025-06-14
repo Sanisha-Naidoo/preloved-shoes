@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,8 @@ import { Form } from "@/components/ui/form";
 import { ArrowLeft } from "lucide-react";
 import { useManualEntryForm } from "./ManualEntry/hooks/useManualEntryForm";
 import { useSwipeNavigation } from "./ManualEntry/hooks/useSwipeNavigation";
+import { useStepperProgress } from "@/hooks/useStepperProgress";
+import { Stepper } from "@/components/ui/stepper";
 import BrandField from "./ManualEntry/components/BrandField";
 import ModelField from "./ManualEntry/components/ModelField";
 import SizeField from "./ManualEntry/components/SizeField";
@@ -13,6 +16,7 @@ import ConditionField from "./ManualEntry/components/ConditionField";
 const ManualEntry = () => {
   const navigate = useNavigate();
   const { form, selectedBrand, onSubmit, triggerHapticFeedback, validateSize } = useManualEntryForm();
+  const { steps, currentStep } = useStepperProgress();
 
   useSwipeNavigation(triggerHapticFeedback);
 
@@ -27,6 +31,11 @@ const ManualEntry = () => {
       </Button>
 
       <div className="max-w-md mx-auto">
+        {/* Progress Stepper */}
+        <div className="mb-6">
+          <Stepper steps={steps} currentStep={currentStep} />
+        </div>
+
         <h1 className="text-2xl font-bold mb-6">Enter Shoe Details</h1>
         <p className="text-sm text-gray-600 mb-4">I have a...</p>
 

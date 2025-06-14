@@ -1,10 +1,11 @@
-
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Camera, Upload } from "lucide-react";
+import { useStepperProgress } from "@/hooks/useStepperProgress";
+import { Stepper } from "@/components/ui/stepper";
 
 // Import our components
 import { PhotoCaptureHeader } from "@/features/photo-capture/components/PhotoCaptureHeader";
@@ -16,6 +17,7 @@ import { useCamera } from "@/features/photo-capture/hooks/useCamera";
 
 const PhotoCapture = () => {
   const navigate = useNavigate();
+  const { steps, currentStep } = useStepperProgress();
   const {
     capturedImage,
     isCameraOpen,
@@ -82,6 +84,11 @@ const PhotoCapture = () => {
       <PhotoCaptureHeader onBack={handleBackClick} />
 
       <div className="max-w-md mx-auto">
+        {/* Progress Stepper */}
+        <div className="mb-6">
+          <Stepper steps={steps} currentStep={currentStep} />
+        </div>
+
         <Card className="overflow-hidden mb-6">
           <CardContent className="p-0">
             {/* Always include the video element but hide it when not in use */}

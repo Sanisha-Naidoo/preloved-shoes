@@ -4,10 +4,13 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
+import { useStepperProgress } from "@/hooks/useStepperProgress";
+import { Stepper } from "@/components/ui/stepper";
 
 const Rating = () => {
   const navigate = useNavigate();
   const [rating, setRating] = useState<number | null>(null);
+  const { steps, currentStep } = useStepperProgress();
 
   const handleSkip = () => {
     handleSubmit();
@@ -22,13 +25,19 @@ const Rating = () => {
     navigate("/submit");
   };
 
-  return <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 p-4">
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 p-4">
       <Button variant="ghost" className="mb-6" onClick={() => navigate(-1)}>
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back
       </Button>
 
       <div className="max-w-md mx-auto">
+        {/* Progress Stepper */}
+        <div className="mb-6">
+          <Stepper steps={steps} currentStep={currentStep} />
+        </div>
+
         <h1 className="text-2xl font-bold mb-2">Rate Your Experience</h1>
         <p className="text-gray-600 mb-6">
           On a scale of 1-10, how would you rate your experience with this shoe?
@@ -60,7 +69,8 @@ const Rating = () => {
           </Button>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
 
 export default Rating;

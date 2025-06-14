@@ -3,6 +3,8 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSubmitShoe } from "@/hooks/useSubmitShoe";
+import { useStepperProgress } from "@/hooks/useStepperProgress";
+import { Stepper } from "@/components/ui/stepper";
 import { SubmissionLoading } from "@/components/submit/SubmissionLoading";
 import { SubmissionError } from "@/components/submit/SubmissionError";
 import { SubmissionSuccess } from "@/components/submit/SubmissionSuccess";
@@ -10,6 +12,7 @@ import { toast } from "sonner";
 
 const Submit = () => {
   const navigate = useNavigate();
+  const { steps, currentStep } = useStepperProgress();
   console.log("Submit component rendering");
   
   const {
@@ -80,6 +83,11 @@ const Submit = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 p-4 flex flex-col">
+      <div className="max-w-md mx-auto mb-6">
+        {/* Progress Stepper */}
+        <Stepper steps={steps} currentStep={currentStep} />
+      </div>
+
       <div className="flex-grow flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center">
