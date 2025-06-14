@@ -42,7 +42,7 @@ export const Stepper: React.FC<StepperProps> = ({
                   className={cn(
                     "flex items-center justify-center w-8 h-8 rounded-full border-2 text-xs font-bold transition-all duration-200",
                     isCompleted && "bg-green-600 border-green-600 text-white",
-                    isCurrent && "bg-blue-600 border-blue-600 text-white animate-pulse",
+                    isCurrent && "bg-blue-600 border-blue-600 text-white",
                     isUpcoming && "border-gray-300 text-gray-400"
                   )}
                 >
