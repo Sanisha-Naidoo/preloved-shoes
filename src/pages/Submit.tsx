@@ -61,7 +61,7 @@ const Submit = () => {
   };
 
   const handleAnotherSubmission = () => {
-    navigate("/");
+    navigate("/manual-entry");
   };
 
   const handleFinish = () => {
