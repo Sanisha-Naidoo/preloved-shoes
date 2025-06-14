@@ -64,29 +64,22 @@ export const createShoeRecord = async (data: ShoeData): Promise<{ shoeId: string
         throw new Error("QR code generation returned null");
       }
       
-      // Update the shoe record with the QR code - using explicit query
-      console.log("💾 Updating shoe with QR code...");
-      const { data: updateData, error: updateError } = await supabase
-        .from("shoes")
-        .update({ qr_code: qrCodeDataURL })
-        .eq("id", shoeId)
-        .select("id, qr_code")
-        .single();
-
-      if (updateError) {
-        console.error("❌ Failed to update QR code:", updateError);
-        logStep("QR code update failed", updateError);
-        // Don't throw here - the shoe is created, just QR failed
-      } else if (updateData) {
-        console.log("✅ QR code updated successfully:", {
-          id: updateData.id,
-          hasQrCode: !!updateData.qr_code,
-          qrCodeLength: updateData.qr_code?.length || 0
-        });
-        logStep("QR code generated and saved successfully");
-      } else {
-        console.warn("⚠️ Update succeeded but no data returned");
+      // Validate QR code format before saving
+      if (!qrCodeDataURL.startsWith('data:image/png;base64,')) {
+        throw new Error("Invalid QR code format - not a valid data URL");
       }
+      
+      // Save QR code to database with explicit validation
+      console.log("💾 Updating shoe with QR code...");
+      const updateResult = await updateShoeWithQRCode(shoeId, qrCodeDataURL);
+      
+      if (!updateResult) {
+        throw new Error("Failed to save QR code to database");
+      }
+      
+      console.log("🎉 QR code successfully saved to database");
+      logStep("QR code generated and saved successfully");
+      
     } catch (qrError: any) {
       console.error("❌ QR code generation failed:", qrError);
       logStep("QR code generation failed but shoe creation succeeded", qrError);
@@ -111,6 +104,11 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
   
   if (!qrCodeDataURL?.trim()) {
     throw new Error("QR code data is required for update");
+  }
+  
+  // Validate QR code format
+  if (!qrCodeDataURL.startsWith('data:image/png;base64,')) {
+    throw new Error("Invalid QR code format for database storage");
   }
   
   try {
@@ -143,6 +141,24 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
 
     if (!hasQrCode) {
       throw new Error("QR code was not saved to database");
+    }
+
+    // Double-check by reading back the record
+    const { data: verifyData, error: verifyError } = await supabase
+      .from("shoes")
+      .select("qr_code")
+      .eq("id", shoeId)
+      .single();
+
+    if (verifyError) {
+      console.warn("⚠️ Could not verify QR code save:", verifyError);
+    } else if (!verifyData?.qr_code) {
+      throw new Error("QR code verification failed - data not persisted");
+    } else {
+      console.log("✅ QR code verified in database:", {
+        length: verifyData.qr_code.length,
+        startsCorrectly: verifyData.qr_code.startsWith('data:image/')
+      });
     }
 
     console.log("🎉 QR code successfully saved to database");

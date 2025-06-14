@@ -27,6 +27,11 @@ export const generateQRCode = async (data: string): Promise<string> => {
       throw new Error("Invalid QR code data URL generated");
     }
     
+    // Ensure it's a PNG data URL (required format)
+    if (!qrCodeDataURL.startsWith('data:image/png;base64,')) {
+      throw new Error("QR code must be PNG format for database storage");
+    }
+    
     // Check size - warn if getting large
     const sizeKB = Math.round(qrCodeDataURL.length / 1024);
     console.log("✅ QR code generated successfully:", {
@@ -38,7 +43,16 @@ export const generateQRCode = async (data: string): Promise<string> => {
     });
     
     if (sizeKB > 50) {
-      console.warn("Large QR code generated:", sizeKB, "KB");
+      console.warn("⚠️ Large QR code generated:", sizeKB, "KB - may cause database issues");
+    }
+    
+    // Test that the QR code data is valid base64
+    try {
+      const base64Data = qrCodeDataURL.split(',')[1];
+      atob(base64Data); // This will throw if invalid base64
+      console.log("✅ QR code base64 validation successful");
+    } catch (base64Error) {
+      throw new Error("Generated QR code contains invalid base64 data");
     }
     
     return qrCodeDataURL;
