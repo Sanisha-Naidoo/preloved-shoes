@@ -46,6 +46,6 @@ if ('serviceWorker' in navigator) {
         .catch(error => {
           console.error('Service Worker registration failed:', error);
         });
-    }, 1000); // 1 second delay to ensure React is stable
+    }, 2000); // Increased delay to ensure React is stable
   });
 }

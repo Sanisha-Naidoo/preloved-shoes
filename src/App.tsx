@@ -1,6 +1,5 @@
 
 import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ErrorBoundary } from "@/components/submit/ErrorBoundary";
@@ -27,22 +26,20 @@ const App = () => {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <BrowserRouter>
-            <ErrorBoundary>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/manual-entry" element={<ManualEntry />} />
-                <Route path="/photo-capture" element={<PhotoCapture />} />
-                <Route path="/rating" element={<Rating />} />
-                <Route path="/submit" element={<Submit />} />
-                <Route path="/thank-you" element={<ThankYou />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </ErrorBoundary>
-          </BrowserRouter>
-        </TooltipProvider>
+        <Toaster />
+        <BrowserRouter>
+          <ErrorBoundary>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/manual-entry" element={<ManualEntry />} />
+              <Route path="/photo-capture" element={<PhotoCapture />} />
+              <Route path="/rating" element={<Rating />} />
+              <Route path="/submit" element={<Submit />} />
+              <Route path="/thank-you" element={<ThankYou />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </ErrorBoundary>
+        </BrowserRouter>
       </QueryClientProvider>
     </ErrorBoundary>
   );
