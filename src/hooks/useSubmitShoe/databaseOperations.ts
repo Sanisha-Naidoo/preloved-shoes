@@ -50,7 +50,7 @@ export const createShoeRecord = async (data: ShoeData): Promise<{ shoeId: string
     const shoeId = shoeData.id;
     logStep("Shoe data saved successfully", { shoeId });
 
-    // Generate QR code
+    // Generate QR code with less strict validation
     let qrCodeDataURL: string | null = null;
     try {
       console.log("🔍 Generating QR code for shoe:", shoeId);
@@ -64,12 +64,12 @@ export const createShoeRecord = async (data: ShoeData): Promise<{ shoeId: string
         throw new Error("QR code generation returned null");
       }
       
-      // Validate QR code format before saving
-      if (!qrCodeDataURL.startsWith('data:image/png;base64,')) {
+      // Basic validation - just check it's a data URL
+      if (!qrCodeDataURL.startsWith('data:image/')) {
         throw new Error("Invalid QR code format - not a valid data URL");
       }
       
-      // Save QR code to database with explicit validation
+      // Save QR code to database
       console.log("💾 Updating shoe with QR code...");
       const updateResult = await updateShoeWithQRCode(shoeId, qrCodeDataURL);
       
@@ -106,8 +106,8 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
     throw new Error("QR code data is required for update");
   }
   
-  // Validate QR code format
-  if (!qrCodeDataURL.startsWith('data:image/png;base64,')) {
+  // Basic validation - just check it's a data URL (be more lenient)
+  if (!qrCodeDataURL.startsWith('data:image/')) {
     throw new Error("Invalid QR code format for database storage");
   }
   
