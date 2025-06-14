@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { validateRequiredData } from "@/utils/validationUtils";
@@ -123,22 +124,29 @@ export const useSubmitShoe = (options: UseSubmitShoeOptions = {}) => {
       const qrData = generateShoeQRData(shoeId);
       const qrCodeDataURL = await generateQRCode(qrData);
       
-      // Store QR code URL in state
+      // Store QR code URL in state first
       setQrCodeUrl(qrCodeDataURL);
+      logStep("QR code generated successfully", { qrCodeLength: qrCodeDataURL.length });
       
-      // 7. Update the shoe record with the QR code
+      // 7. Update the shoe record with the QR code - with better error handling
       logStep("Updating shoe record with QR code");
-      const { error: qrUpdateError } = await supabase
+      const { data: updatedShoe, error: qrUpdateError } = await supabase
         .from("shoes")
         .update({ qr_code: qrCodeDataURL })
-        .eq("id", shoeId);
+        .eq("id", shoeId)
+        .select();
 
       if (qrUpdateError) {
-        logStep("Error updating shoe with QR code", qrUpdateError);
-        // Don't throw here - QR code generation is not critical to submission success
-        console.warn("QR code generation failed, but submission was successful");
+        logStep("Error updating shoe with QR code", {
+          error: qrUpdateError,
+          shoeId: shoeId,
+          qrCodeLength: qrCodeDataURL.length
+        });
+        console.error("QR code database update failed:", qrUpdateError);
+        toast.error("QR code could not be saved to database, but submission was successful");
       } else {
-        logStep("QR code generated and saved successfully");
+        logStep("QR code saved to database successfully", { updatedShoe });
+        console.log("QR code successfully saved to database");
       }
 
       logStep("Submission completed successfully");
