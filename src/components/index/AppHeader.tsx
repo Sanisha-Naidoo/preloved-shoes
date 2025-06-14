@@ -1,3 +1,4 @@
+
 import React from "react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { ShoeCounter } from "./ShoeCounter";
@@ -14,9 +15,9 @@ export const AppHeader = () => {
           
           {/* Logo Section with Premium Styling and Beta Badge */}
           <div className="relative z-10 mb-8">
-            <div className="relative bg-gradient-to-br from-white to-gray-50/50 backdrop-blur-sm rounded-2xl shadow-lg shadow-black/5 p-4 mx-auto w-24 h-24 flex items-center justify-center mb-6 border border-white/40 px-[8px] py-[8px]">
+            <div className="relative bg-gradient-to-br from-white to-gray-50/50 backdrop-blur-sm rounded-2xl shadow-lg shadow-black/5 p-4 mx-auto w-32 h-32 flex items-center justify-center mb-6 border border-white/40 px-[8px] py-[8px]">
               {/* Reboot Logo Image */}
-              <img src="/lovable-uploads/ba6fcc1a-24b1-4e24-8750-43bdc56bb2fb.png" alt="ReBOOT Logo" className="h-14 w-14 object-contain" />
+              <img src="/lovable-uploads/ba6fcc1a-24b1-4e24-8750-43bdc56bb2fb.png" alt="ReBOOT Logo" className="h-20 w-20 object-contain rounded-xl" />
               {/* Beta Badge Overlay */}
               <div className="absolute -top-2 -right-2">
                 <span className="bg-gradient-to-r from-black to-gray-800 text-white font-semibold px-2 py-1 rounded-full shadow-lg shadow-black/25 border border-gray-400/20 text-xs">
