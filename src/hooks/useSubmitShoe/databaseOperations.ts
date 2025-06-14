@@ -1,6 +1,6 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { logStep } from "./submissionLogger";
+import { generateQRCode, generateShoeQRData } from "@/utils/qrCodeUtils";
 
 export interface ShoeData {
   brand: string;
@@ -13,37 +13,75 @@ export interface ShoeData {
   photoUrl: string;
 }
 
-export const createShoeRecord = async (data: ShoeData): Promise<string> => {
-  logStep("Saving shoe data to database");
-  const { data: shoeData, error: shoeError } = await supabase
-    .from("shoes")
-    .insert([
-      {
-        brand: data.brand,
-        model: data.model || null,
-        size: data.size,
-        size_unit: data.sizeUnit,
-        condition: data.condition,
-        barcode: data.barcode || null,
-        rating: data.rating,
-        photo_url: data.photoUrl,
-        sole_photo_url: data.photoUrl,
-      },
-    ])
-    .select();
+export const createShoeRecord = async (data: ShoeData): Promise<{ shoeId: string; qrCodeDataURL: string | null }> => {
+  logStep("Creating shoe record with QR code generation");
+  
+  try {
+    // First, create the shoe record
+    const { data: shoeData, error: shoeError } = await supabase
+      .from("shoes")
+      .insert([
+        {
+          brand: data.brand,
+          model: data.model || null,
+          size: data.size,
+          size_unit: data.sizeUnit,
+          condition: data.condition,
+          barcode: data.barcode || null,
+          rating: data.rating,
+          photo_url: data.photoUrl,
+          sole_photo_url: data.photoUrl,
+        },
+      ])
+      .select()
+      .single();
 
-  if (shoeError) {
-    logStep("Error saving shoe data", shoeError);
-    throw shoeError;
+    if (shoeError) {
+      logStep("Error saving shoe data", shoeError);
+      throw shoeError;
+    }
+
+    if (!shoeData) {
+      logStep("No shoe data returned after insert");
+      throw new Error("Failed to create shoe record");
+    }
+
+    const shoeId = shoeData.id;
+    logStep("Shoe data saved successfully", { shoeId });
+
+    // Generate QR code
+    let qrCodeDataURL: string | null = null;
+    try {
+      console.log("🔍 Generating QR code for shoe:", shoeId);
+      const qrData = generateShoeQRData(shoeId);
+      qrCodeDataURL = await generateQRCode(qrData);
+      
+      // Update the shoe record with the QR code
+      const { error: updateError } = await supabase
+        .from("shoes")
+        .update({ qr_code: qrCodeDataURL })
+        .eq("id", shoeId);
+
+      if (updateError) {
+        console.error("❌ Failed to update QR code:", updateError);
+        // Don't throw here - the shoe is created, just QR failed
+        logStep("QR code update failed but shoe creation succeeded", updateError);
+      } else {
+        console.log("✅ QR code updated successfully");
+        logStep("QR code generated and saved successfully");
+      }
+    } catch (qrError: any) {
+      console.error("❌ QR code generation failed:", qrError);
+      logStep("QR code generation failed but shoe creation succeeded", qrError);
+      // Don't throw here - the shoe is created, just QR failed
+    }
+
+    return { shoeId, qrCodeDataURL };
+
+  } catch (error: any) {
+    logStep("Failed to create shoe record", error);
+    throw error;
   }
-
-  if (!shoeData || shoeData.length === 0) {
-    logStep("No shoe data returned after insert");
-    throw new Error("Failed to create shoe record");
-  }
-
-  logStep("Shoe data saved successfully", { shoeId: shoeData[0].id });
-  return shoeData[0].id;
 };
 
 export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string): Promise<boolean> => {

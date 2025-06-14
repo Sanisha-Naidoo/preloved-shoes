@@ -43,9 +43,9 @@ export const executeSubmission = async (
     const photoUrl = await processAndUploadImage(solePhoto);
     console.log("✅ Image upload successful:", photoUrl);
     
-    // 3. Save the shoe data to the database
-    console.log("💾 Step 3: Creating shoe record...");
-    const shoeId = await createShoeRecord({
+    // 3. Save the shoe data to the database WITH QR code generation
+    console.log("💾 Step 3: Creating shoe record with QR code...");
+    const { shoeId, qrCodeDataURL } = await createShoeRecord({
       brand: shoeDetails.brand,
       model: shoeDetails.model,
       size: shoeDetails.size,
@@ -56,17 +56,14 @@ export const executeSubmission = async (
       photoUrl
     });
     console.log("✅ Shoe record created with ID:", shoeId);
+    console.log("✅ QR code generated and saved:", !!qrCodeDataURL);
     
     setState.setSubmissionId(shoeId);
+    if (qrCodeDataURL) {
+      setState.setQrCodeUrl(qrCodeDataURL);
+    }
 
-    // 4. Generate and save QR code (REQUIRED STEP)
-    console.log("🔍 Step 4: Generating and saving QR code (REQUIRED)...");
-    
-    const qrCodeDataURL = await generateAndSaveQRCode(shoeId, setState);
-    
-    console.log("🎉 QR code generation and save completed successfully");
-
-    console.log("🧹 Step 5: Cleaning up session data...");
+    console.log("🧹 Step 4: Cleaning up session data...");
     logStep("Submission completed successfully");
     
     // Clear session storage after successful submission
