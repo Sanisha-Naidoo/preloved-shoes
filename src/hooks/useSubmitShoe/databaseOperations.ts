@@ -51,7 +51,8 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
     shoeId, 
     qrCodeLength: qrCodeDataURL.length,
     qrCodeType: typeof qrCodeDataURL,
-    qrCodePreview: qrCodeDataURL.substring(0, 50) + "..."
+    qrCodePreview: qrCodeDataURL.substring(0, 50) + "...",
+    isValidDataURL: qrCodeDataURL.startsWith('data:image/png;base64,')
   });
   
   try {
@@ -77,12 +78,11 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
       hasExistingQrCode: !!existingShoe.qr_code 
     });
 
-    // Perform the QR code update with better error handling
-    const { data: updatedShoe, error: updateError } = await supabase
+    // Perform the QR code update - simplified approach
+    const { error: updateError } = await supabase
       .from("shoes")
       .update({ qr_code: qrCodeDataURL })
-      .eq("id", shoeId)
-      .select("id, qr_code");
+      .eq("id", shoeId);
 
     if (updateError) {
       logStep("QR code update failed", {
@@ -97,21 +97,9 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
       throw new Error(`Failed to update QR code: ${updateError.message}`);
     }
 
-    if (!updatedShoe || updatedShoe.length === 0) {
-      logStep("QR code update returned no data", { shoeId });
-      throw new Error("QR code update succeeded but returned no data");
-    }
+    logStep("QR code update command executed successfully", { shoeId });
 
-    const updated = updatedShoe[0];
-    logStep("QR code successfully saved to database", { 
-      updatedShoe: updated,
-      qrCodeSaved: !!updated.qr_code,
-      savedQrCodeLength: updated.qr_code?.length,
-      shoeId: updated.id,
-      updateSuccessful: updated.qr_code === qrCodeDataURL
-    });
-
-    // Double-check with a fresh query
+    // Verify the update worked with a fresh query
     const { data: verifiedShoe, error: verifyError } = await supabase
       .from("shoes")
       .select("qr_code")
@@ -120,22 +108,36 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
       
     if (verifyError) {
       logStep("Error during QR code verification", { verifyError, shoeId });
-      console.warn("QR code verification failed:", verifyError);
-    } else {
-      logStep("Final QR code verification", { 
-        qrCodeExists: !!verifiedShoe.qr_code,
-        qrCodeLength: verifiedShoe.qr_code?.length,
-        qrCodeStartsCorrectly: verifiedShoe.qr_code?.startsWith('data:image/png;base64,'),
-        shoeId,
-        matchesGenerated: verifiedShoe.qr_code === qrCodeDataURL,
-        verifiedData: verifiedShoe.qr_code?.substring(0, 100) + "..."
-      });
-      
-      if (!verifiedShoe.qr_code) {
-        throw new Error("QR code was not properly saved - verification failed");
-      }
+      throw new Error(`QR code verification failed: ${verifyError.message}`);
     }
 
+    if (!verifiedShoe) {
+      logStep("No shoe found during verification", { shoeId });
+      throw new Error("Shoe not found during verification");
+    }
+
+    const qrCodeSaved = !!verifiedShoe.qr_code;
+    const matchesGenerated = verifiedShoe.qr_code === qrCodeDataURL;
+
+    logStep("Final QR code verification", { 
+      qrCodeExists: qrCodeSaved,
+      qrCodeLength: verifiedShoe.qr_code?.length,
+      qrCodeStartsCorrectly: verifiedShoe.qr_code?.startsWith('data:image/png;base64,'),
+      shoeId,
+      matchesGenerated,
+      verifiedDataPreview: verifiedShoe.qr_code?.substring(0, 100) + "...",
+      originalDataPreview: qrCodeDataURL.substring(0, 100) + "..."
+    });
+    
+    if (!qrCodeSaved) {
+      throw new Error("QR code was not saved - verification shows null value");
+    }
+
+    if (!matchesGenerated) {
+      throw new Error("QR code was saved but content doesn't match generated code");
+    }
+
+    logStep("QR code successfully verified in database", { shoeId });
     return true;
 
   } catch (error: any) {
@@ -146,6 +148,6 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
       qrCodeLength: qrCodeDataURL.length 
     });
     console.error("QR code update error:", error);
-    throw error; // Re-throw to handle in calling function
+    throw error;
   }
 };

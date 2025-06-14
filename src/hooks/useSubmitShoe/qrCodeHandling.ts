@@ -23,21 +23,22 @@ export const generateAndSaveQRCode = async (
     startsWithDataUrl: qrCodeDataURL.startsWith('data:image/png;base64,')
   });
   
+  // Try to save QR code to database - but don't fail the entire submission if this fails
   try {
-    // Update the shoe record with the QR code
-    const updateSuccess = await updateShoeWithQRCode(shoeId, qrCodeDataURL);
-    
-    if (updateSuccess) {
-      logStep("QR code successfully saved to database");
-      toast.success("QR code generated and saved successfully!");
-    } else {
-      logStep("QR code update returned false");
-      toast.error("QR code generated but could not be saved to database");
-    }
+    logStep("Attempting to save QR code to database");
+    await updateShoeWithQRCode(shoeId, qrCodeDataURL);
+    logStep("QR code successfully saved to database");
+    toast.success("QR code generated and saved successfully!");
   } catch (error: any) {
-    logStep("QR code database save failed", { error: error.message });
+    logStep("QR code database save failed", { 
+      error: error.message,
+      errorStack: error.stack,
+      shoeId,
+      qrCodeLength: qrCodeDataURL.length 
+    });
+    console.error("QR code save error:", error);
     toast.error(`QR code generated but database save failed: ${error.message}`);
-    // Don't throw here - we still want to show the QR code even if saving failed
+    // Don't re-throw here - we still want to show the QR code even if saving failed
   }
   
   return qrCodeDataURL;
