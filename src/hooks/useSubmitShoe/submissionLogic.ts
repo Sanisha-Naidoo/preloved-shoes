@@ -5,7 +5,6 @@ import { SubmissionState, SubmissionRefs, UseSubmitShoeOptions } from "./types";
 import { performValidation } from "./validation";
 import { processAndUploadImage } from "./imageProcessing";
 import { createShoeRecord } from "./databaseOperations";
-import { generateAndSaveQRCode } from "./qrCodeHandling";
 import { handleSubmissionError } from "./errorHandling";
 import { clearSessionData } from "./sessionCleanup";
 
@@ -43,9 +42,9 @@ export const executeSubmission = async (
     const photoUrl = await processAndUploadImage(solePhoto);
     console.log("✅ Image upload successful:", photoUrl);
     
-    // 3. Save the shoe data to the database WITH QR code generation
-    console.log("💾 Step 3: Creating shoe record with QR code...");
-    const { shoeId, qrCodeDataURL } = await createShoeRecord({
+    // 3. Save the shoe data to the database (without QR code for now)
+    console.log("💾 Step 3: Creating shoe record...");
+    const { shoeId } = await createShoeRecord({
       brand: shoeDetails.brand,
       model: shoeDetails.model,
       size: shoeDetails.size,
@@ -56,22 +55,18 @@ export const executeSubmission = async (
       photoUrl
     });
     console.log("✅ Shoe record created with ID:", shoeId);
-    console.log("✅ QR code generated and saved:", !!qrCodeDataURL);
     
     setState.setSubmissionId(shoeId);
-    if (qrCodeDataURL) {
-      setState.setQrCodeUrl(qrCodeDataURL);
-    }
 
     console.log("🧹 Step 4: Cleaning up session data...");
-    logStep("Submission completed successfully");
+    logStep("Submission completed successfully - QR code will be generated when user clicks action buttons");
     
     // Clear session storage after successful submission
     clearSessionData();
 
     setState.setIsSubmitted(true);
     console.log("🎉 SUBMISSION PROCESS COMPLETED SUCCESSFULLY");
-    toast.success("Submission successful! QR code generated.");
+    toast.success("Submission successful! Click 'Generate QR Code' to create your unique QR code.");
     
     if (options.onSuccess && refs.isMounted.current) {
       options.onSuccess();
