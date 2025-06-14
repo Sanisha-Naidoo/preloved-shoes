@@ -69,8 +69,24 @@ export const createShoeRecord = async (data: ShoeData): Promise<{ shoeId: string
         throw new Error("Invalid QR code format - not a valid data URL");
       }
       
-      // Save QR code to database - remove .single() to avoid PGRST116 error
+      // Save QR code to database with better error handling
       console.log("💾 Updating shoe with QR code...");
+      console.log("🔍 Shoe ID to update:", shoeId);
+      console.log("🔍 QR code length:", qrCodeDataURL.length);
+      
+      // First, verify the shoe exists
+      const { data: existingShoe, error: checkError } = await supabase
+        .from("shoes")
+        .select("id")
+        .eq("id", shoeId)
+        .single();
+      
+      if (checkError || !existingShoe) {
+        console.error("❌ Shoe record not found:", checkError);
+        throw new Error(`Shoe record not found: ${checkError?.message || 'No record returned'}`);
+      }
+      
+      console.log("✅ Shoe record exists, proceeding with QR update");
       
       const { data: updateData, error: updateError } = await supabase
         .from("shoes")
@@ -85,6 +101,7 @@ export const createShoeRecord = async (data: ShoeData): Promise<{ shoeId: string
 
       if (!updateData || updateData.length === 0) {
         console.error("❌ No update data returned");
+        console.error("❌ Update query details:", { shoeId, qrCodeLength: qrCodeDataURL.length });
         throw new Error("QR code update returned no data");
       }
 
