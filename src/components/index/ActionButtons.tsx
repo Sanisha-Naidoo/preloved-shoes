@@ -1,9 +1,8 @@
-
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { FileText, Camera, Send, Download } from "lucide-react";
+import { FileText, Camera, Send, Download, Footprints } from "lucide-react";
 
 interface ActionButtonsProps {
   hasShoeDetails: boolean;
@@ -64,7 +63,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
       >
         <div className="flex items-center justify-center gap-3">
           <div className={`transition-all duration-300 ${hasShoeDetails ? 'text-green-600' : 'text-white'}`}>
-            <FileText className="h-5 w-5" />
+            <Footprints className="h-5 w-5" />
           </div>
           <span className="tracking-tight">
             {hasShoeDetails ? 'Edit' : 'Enter'} Shoe Details
