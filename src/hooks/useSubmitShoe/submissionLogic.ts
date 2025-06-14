@@ -7,7 +7,6 @@ import { processAndUploadImage } from "./imageProcessing";
 import { createShoeRecord } from "./databaseOperations";
 import { handleSubmissionError } from "./errorHandling";
 import { clearSessionData } from "./sessionCleanup";
-import { generateAndSaveQRCode } from "./qrCodeHandling";
 
 export const executeSubmission = async (
   state,
@@ -57,31 +56,15 @@ export const executeSubmission = async (
     console.log("✅ Shoe record created with ID:", shoeId);
     
     setState.setSubmissionId(shoeId);
-
-    // Wait for database consistency
-    console.log("⏳ Step 4: Waiting for database consistency...");
-    await new Promise(res => setTimeout(res, 3000)); // Increased to 3 seconds
-
-    // Generate QR code - make this optional to not fail the whole submission
-    console.log("🔄 Step 5: Generating QR code...");
-    try {
-      const qrCodeDataURL = await generateAndSaveQRCode(shoeId, setState);
-      setState.setQrCodeUrl(qrCodeDataURL);
-      console.log("✅ QR code generated and saved successfully");
-      toast.success("Submission successful! Your QR code has been generated.");
-    } catch (qrError: any) {
-      console.error("⚠️ QR code generation failed:", qrError);
-      toast.warning("Submission successful, but QR code generation failed. The QR code will be generated when you access your shoe record.");
-    }
-
     setState.setIsSubmitted(true);
     console.log("🎉 SUBMISSION PROCESS COMPLETED");
 
-    console.log("🧹 Step 6: Cleaning up session data...");
+    console.log("🧹 Step 4: Cleaning up session data...");
     logStep("Submission completed successfully");
     
     // Clear session storage after successful submission
     clearSessionData();
+    toast.success("Submission successful!");
     
     if (options.onSuccess && refs.isMounted.current) {
       options.onSuccess();
