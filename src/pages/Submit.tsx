@@ -3,7 +3,6 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSimpleSubmit } from "@/hooks/useSimpleSubmit";
-import { useQRGeneration } from "@/hooks/useQRGeneration";
 import { useStepperProgress } from "@/hooks/useStepperProgress";
 import { Stepper } from "@/components/ui/stepper";
 import { SubmissionLoading } from "@/components/submit/SubmissionLoading";
@@ -23,12 +22,6 @@ const Submit = () => {
     submitData,
     setIsSubmitted
   } = useSimpleSubmit();
-
-  const {
-    isGenerating,
-    qrCodeUrl,
-    generateQR
-  } = useQRGeneration();
 
   useEffect(() => {
     // Check for missing data
@@ -52,12 +45,6 @@ const Submit = () => {
   const handleRetry = () => {
     setIsSubmitted(false);
     submitData();
-  };
-
-  const handleGenerateQR = () => {
-    if (submissionId) {
-      generateQR(submissionId);
-    }
   };
 
   const handleAnotherSubmission = () => {
@@ -85,9 +72,6 @@ const Submit = () => {
                 onSubmitAnother={handleAnotherSubmission} 
                 onFinish={handleFinish} 
                 submissionId={submissionId} 
-                qrCodeUrl={qrCodeUrl}
-                onGenerateQR={handleGenerateQR}
-                isGeneratingQR={isGenerating}
               />
             ) : error ? (
               <SubmissionError 
