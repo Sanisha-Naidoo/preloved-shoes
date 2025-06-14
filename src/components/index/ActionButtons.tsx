@@ -1,4 +1,5 @@
 
+
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -97,38 +98,29 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
         </Button>
       )}
       
-      {/* Submit Button - Premium CTA */}
-      {(hasShoeDetails || hasSolePhoto) && (
+      {/* Submit Button - Premium CTA - Only show when BOTH steps are complete */}
+      {canSubmit && (
         <div className="pt-4 animate-scale-in">
           <Button 
             onClick={handleSubmit}
-            disabled={!canSubmit}
-            className={`group w-full h-16 text-lg font-bold transition-all duration-500 ease-out rounded-2xl button-premium ${
-              canSubmit 
-                ? 'bg-gradient-to-r from-green-600 via-emerald-600 to-green-700 text-white hover:from-green-700 hover:via-emerald-700 hover:to-green-800 hover:shadow-2xl hover:shadow-green-500/40 border-0 hover:scale-[1.02] active:scale-[0.98]' 
-                : 'glass-effect text-gray-400 border border-gray-200/40 cursor-not-allowed'
-            }`}
+            className="group w-full h-16 text-lg font-bold transition-all duration-500 ease-out rounded-2xl button-premium bg-gradient-to-r from-green-600 via-emerald-600 to-green-700 text-white hover:from-green-700 hover:via-emerald-700 hover:to-green-800 hover:shadow-2xl hover:shadow-green-500/40 border-0 hover:scale-[1.02] active:scale-[0.98]"
           >
             <div className="flex items-center justify-center gap-4">
-              <div className={`transition-all duration-300 ${canSubmit ? 'text-white group-hover:scale-110' : 'text-gray-400'}`}>
+              <div className="transition-all duration-300 text-white group-hover:scale-110">
                 <Send className="h-6 w-6" />
               </div>
               <span className="tracking-tight">
-                {canSubmit ? 'Submit for Review' : 'Complete All Steps to Submit'}
+                Submit for Review
               </span>
-              {canSubmit && (
-                <div className="flex gap-1">
-                  <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse"></div>
-                  <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                  <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-                </div>
-              )}
+              <div className="flex gap-1">
+                <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse"></div>
+                <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+              </div>
             </div>
             
             {/* Subtle shimmer effect for enabled state */}
-            {canSubmit && (
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-shimmer"></div>
-            )}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-shimmer"></div>
           </Button>
         </div>
       )}
@@ -147,3 +139,4 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
     </div>
   );
 };
+
