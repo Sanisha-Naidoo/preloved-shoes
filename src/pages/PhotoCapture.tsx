@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -23,25 +24,18 @@ const PhotoCapture = () => {
     isCameraOpen,
     isLoading,
     cameraError,
-    isPhotoApproved,
     videoRef,
     canvasRef,
     capturePhoto,
     retryCamera,
     cancelCameraAccess,
     uploadPhotoManually,
-    approvePhoto,
     stopCamera,
   } = useCamera();
 
   const handleContinue = () => {
     if (!capturedImage) {
       toast.error("Please capture a photo of the sole before continuing.");
-      return;
-    }
-    
-    if (!isPhotoApproved) {
-      toast.error("Please approve the photo before continuing.");
       return;
     }
     
@@ -75,8 +69,7 @@ const PhotoCapture = () => {
     isCameraOpen, 
     isLoading, 
     cameraError: !!cameraError, 
-    videoRefExists: !!videoRef.current,
-    isPhotoApproved 
+    videoRefExists: !!videoRef.current
   });
 
   return (
@@ -114,8 +107,6 @@ const PhotoCapture = () => {
                 capturedImage={capturedImage}
                 onRetake={retryCamera}
                 onContinue={handleContinue}
-                onApprove={approvePhoto}
-                isApproved={isPhotoApproved}
               />
             ) : (
               <div className="p-6 text-center">
@@ -153,8 +144,7 @@ const PhotoCapture = () => {
         {capturedImage && (
           <Button 
             onClick={handleContinue} 
-            className="w-full"
-            disabled={!isPhotoApproved}
+            className="w-full bg-green-500 hover:bg-green-600 text-white"
           >
             Continue
           </Button>
