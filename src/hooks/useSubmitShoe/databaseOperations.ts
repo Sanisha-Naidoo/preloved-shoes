@@ -86,51 +86,45 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
       hasExistingQR: !!existingShoe.qr_code 
     });
 
-    // Step 2: Perform the QR code update
+    // Step 2: Perform the QR code update with select to get the result
     console.log("🎯 Step 2: Updating QR code...");
-    const { error: updateError, count } = await supabase
+    const { data: updateResult, error: updateError } = await supabase
       .from("shoes")
       .update({ qr_code: qrCodeDataURL })
-      .eq("id", shoeId);
+      .eq("id", shoeId)
+      .select("id, qr_code");
 
     if (updateError) {
       console.error("❌ QR update failed:", updateError);
       throw new Error(`QR code update failed: ${updateError.message}`);
     }
 
-    // Check if any rows were affected
-    if (count === 0) {
+    // Check if any rows were returned (indicating success)
+    if (!updateResult || updateResult.length === 0) {
       console.error("❌ No rows were updated");
       throw new Error("Update executed but no rows affected - shoe may not exist");
     }
 
-    console.log("✅ QR code update completed, rows affected:", count);
+    const updatedShoe = updateResult[0];
+    console.log("✅ QR code update completed:", {
+      shoeId: updatedShoe.id,
+      hasQrCode: !!updatedShoe.qr_code,
+      qrCodeLength: updatedShoe.qr_code?.length || 0
+    });
 
-    // Step 3: Verify the update was successful
-    console.log("🔍 Step 3: Verifying QR code was saved...");
-    const { data: verifyData, error: verifyError } = await supabase
-      .from("shoes")
-      .select("qr_code")
-      .eq("id", shoeId)
-      .single();
-
-    if (verifyError) {
-      console.error("❌ Verification failed:", verifyError);
-      throw new Error(`QR code verification failed: ${verifyError.message}`);
+    // Step 3: Verify the QR code was saved correctly
+    if (!updatedShoe.qr_code) {
+      console.error("❌ QR code not found in update result");
+      throw new Error("QR code was not saved - update result shows empty field");
     }
 
-    if (!verifyData?.qr_code) {
-      console.error("❌ QR code not found after update");
-      throw new Error("QR code was not saved - verification shows empty field");
-    }
-
-    if (verifyData.qr_code !== qrCodeDataURL) {
+    if (updatedShoe.qr_code !== qrCodeDataURL) {
       console.error("❌ QR code data mismatch after save");
       throw new Error("QR code data corrupted during save");
     }
 
     console.log("🎉 QR code successfully saved and verified", {
-      savedLength: verifyData.qr_code.length,
+      savedLength: updatedShoe.qr_code.length,
       expectedLength: qrCodeDataURL.length
     });
 
