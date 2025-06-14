@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Sparkles, Zap } from 'lucide-react';
 import { useShoeCounter } from '@/hooks/useShoeCounter';
@@ -77,20 +76,22 @@ export const ShoeCounter = () => {
         </div>
       </div>
 
-      {/* Count Display with Apple-style Typography and shimmer */}
+      {/* Count Display with Container and Apple-style Typography */}
       <div className="mb-6">
-        <div
-          className={`font-black text-6xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent transition-all duration-500 ease-out text-rendering-optimized relative overflow-hidden
-            ${isAnimating ? 'scale-110 blur-[1px]' : 'scale-100 blur-0'}`}
-          style={{
-            // Animate shimmer via background
-            backgroundImage:
-              "linear-gradient(100deg, #222 30%, #fff 50%, #222 70%)",
-            backgroundSize: "200% 100%",
-            animation: "shimmer-counter 2s linear infinite"
-          }}
-        >
-          {displayCount.toLocaleString()}
+        <div className="bg-gradient-to-br from-gray-50/80 to-white/60 backdrop-blur-sm rounded-2xl border border-gray-200/40 shadow-lg shadow-gray-500/10 p-6 mx-auto w-fit">
+          <div
+            className={`font-black text-6xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent transition-all duration-500 ease-out text-rendering-optimized relative overflow-hidden
+              ${isAnimating ? 'scale-110 blur-[1px]' : 'scale-100 blur-0'}`}
+            style={{
+              // Animate shimmer via background
+              backgroundImage:
+                "linear-gradient(100deg, #222 30%, #fff 50%, #222 70%)",
+              backgroundSize: "200% 100%",
+              animation: "shimmer-counter 2s linear infinite"
+            }}
+          >
+            {displayCount.toLocaleString()}
+          </div>
         </div>
       </div>
 
