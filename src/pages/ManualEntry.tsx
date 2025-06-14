@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,7 @@ import ConditionField from "./ManualEntry/components/ConditionField";
 
 const ManualEntry = () => {
   const navigate = useNavigate();
-  const { form, selectedBrand, onSubmit, triggerHapticFeedback } = useManualEntryForm();
+  const { form, selectedBrand, onSubmit, triggerHapticFeedback, validateSize } = useManualEntryForm();
 
   useSwipeNavigation(triggerHapticFeedback);
 
@@ -35,7 +34,7 @@ const ManualEntry = () => {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <BrandField control={form.control} selectedBrand={selectedBrand} />
             <ModelField control={form.control} />
-            <SizeField control={form.control} />
+            <SizeField control={form.control} validateSize={validateSize} />
             <ConditionField control={form.control} />
 
             <Button type="submit" className="w-full h-14 text-base font-medium">

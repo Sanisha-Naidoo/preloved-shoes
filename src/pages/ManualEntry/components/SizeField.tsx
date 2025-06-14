@@ -1,6 +1,6 @@
 
-import React from "react";
-import { Control } from "react-hook-form";
+import React, { useEffect } from "react";
+import { Control, useFormContext } from "react-hook-form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,9 +9,21 @@ import { ShoeFormData } from "../types";
 
 interface SizeFieldProps {
   control: Control<ShoeFormData>;
+  validateSize: (size: string) => string | true;
 }
 
-const SizeField: React.FC<SizeFieldProps> = ({ control }) => {
+const SizeField: React.FC<SizeFieldProps> = ({ control, validateSize }) => {
+  const { watch, trigger } = useFormContext<ShoeFormData>();
+  const sizeUnit = watch("sizeUnit");
+  const size = watch("size");
+
+  // Re-validate size when size unit changes
+  useEffect(() => {
+    if (size) {
+      trigger("size");
+    }
+  }, [sizeUnit, size, trigger]);
+
   return (
     <div className="space-y-2">
       <Label>Size *</Label>
@@ -44,6 +56,10 @@ const SizeField: React.FC<SizeFieldProps> = ({ control }) => {
           <FormField 
             control={control} 
             name="size" 
+            rules={{
+              required: "Size is required",
+              validate: validateSize
+            }}
             render={({ field }) => (
               <FormItem>
                 <FormControl>
@@ -52,7 +68,6 @@ const SizeField: React.FC<SizeFieldProps> = ({ control }) => {
                     inputMode="decimal" 
                     pattern="[0-9]*\.?[0-9]*" 
                     className="h-12 text-base" 
-                    required 
                     {...field} 
                   />
                 </FormControl>
