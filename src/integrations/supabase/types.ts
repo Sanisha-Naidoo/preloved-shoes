@@ -18,6 +18,7 @@ export type Database = {
           id: string
           model: string | null
           photo_url: string | null
+          qr_code: string | null
           rating: number | null
           size: string
           size_unit: string
@@ -31,6 +32,7 @@ export type Database = {
           id?: string
           model?: string | null
           photo_url?: string | null
+          qr_code?: string | null
           rating?: number | null
           size: string
           size_unit?: string
@@ -44,6 +46,7 @@ export type Database = {
           id?: string
           model?: string | null
           photo_url?: string | null
+          qr_code?: string | null
           rating?: number | null
           size?: string
           size_unit?: string

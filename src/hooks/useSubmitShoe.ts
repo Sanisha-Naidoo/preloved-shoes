@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { validateRequiredData } from "@/utils/validationUtils";
 import { dataURLtoFile, validateImage } from "@/utils/imageUtils";
 import { uploadFileWithRetry } from "@/utils/uploadUtils";
+import { generateQRCode, generateShoeQRData } from "@/utils/qrCodeUtils";
 import { toast } from "sonner";
 
 interface UseSubmitShoeOptions {
@@ -116,6 +117,26 @@ export const useSubmitShoe = (options: UseSubmitShoeOptions = {}) => {
       logStep("Shoe data saved successfully", { shoeId: shoeData[0].id });
       const shoeId = shoeData[0].id;
       setSubmissionId(shoeId);
+
+      // 6. Generate QR code for the shoe
+      logStep("Generating QR code for shoe");
+      const qrData = generateShoeQRData(shoeId);
+      const qrCodeDataURL = await generateQRCode(qrData);
+      
+      // 7. Update the shoe record with the QR code
+      logStep("Updating shoe record with QR code");
+      const { error: qrUpdateError } = await supabase
+        .from("shoes")
+        .update({ qr_code: qrCodeDataURL })
+        .eq("id", shoeId);
+
+      if (qrUpdateError) {
+        logStep("Error updating shoe with QR code", qrUpdateError);
+        // Don't throw here - QR code generation is not critical to submission success
+        console.warn("QR code generation failed, but submission was successful");
+      } else {
+        logStep("QR code generated and saved successfully");
+      }
 
       logStep("Submission completed successfully");
       
