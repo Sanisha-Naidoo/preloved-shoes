@@ -1,7 +1,10 @@
+
 import React, { useEffect, useState } from 'react';
-import { Sparkles, Zap, Footprints } from 'lucide-react';
+import { Sparkles, Zap } from 'lucide-react';
 import { useShoeCounter } from '@/hooks/useShoeCounter';
 import { Skeleton } from '@/components/ui/skeleton';
+
+// REMOVED Footprints import for central icon
 
 export const ShoeCounter = () => {
   const {
@@ -65,11 +68,10 @@ export const ShoeCounter = () => {
         <div className="w-1 h-1 bg-gradient-to-r from-gray-600 to-gray-800 rounded-full"></div>
       </div>
 
-      {/* Central Counter Icon with Premium Styling - Static Version */}
+      {/* Central Counter Icon with Premium Styling - REMOVED Shoe Icon */}
       <div className="mb-6">
         <div className="bg-gradient-to-br from-black via-gray-800 to-black rounded-2xl p-4 mx-auto w-16 h-16 flex items-center justify-center shadow-xl shadow-black/30 border border-gray-400/30">
-          <Footprints className="h-7 w-7 text-white" />
-          
+          {/* Removed the Footprints icon previously here */}
           {/* Subtle Inner Glow */}
           <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
         </div>
@@ -118,17 +120,3 @@ export const ShoeCounter = () => {
       </div>
     </div>;
 };
-
-// Add to your CSS (src/index.css) for shimmer on logo and counter if not present:
-// @keyframes shimmer-logo {
-//   0% { mask-position: -100% 0; }
-//   100% { mask-position: 200% 0; }
-// }
-// .animate-shimmer-logo {
-//   animation: shimmer-logo 2s linear infinite;
-//   mask-size: 200% 100%;
-// }
-// @keyframes shimmer-counter {
-//   0% { background-position: -100% 0; }
-//   100% { background-position: 200% 0; }
-// }

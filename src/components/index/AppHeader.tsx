@@ -1,6 +1,8 @@
+
 import React from "react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { ShoeCounter } from "./ShoeCounter";
+import { Footprints } from "lucide-react";
 
 export const AppHeader = () => {
   console.log('AppHeader rendering...');
@@ -15,8 +17,17 @@ export const AppHeader = () => {
           
           {/* Logo Section with Premium Styling and Beta Badge */}
           <div className="relative z-10 mb-8">
-            <div className="relative bg-gradient-to-br from-white to-gray-50/50 backdrop-blur-sm rounded-2xl shadow-lg shadow-black/5 p-6 mx-auto w-28 h-28 flex items-center justify-center mb-6 border border-white/40 px-[8px] py-[8px]">
-              
+            <div className="relative bg-gradient-to-br from-white to-gray-50/50 backdrop-blur-sm rounded-2xl shadow-lg shadow-black/5 p-6 mx-auto w-40 h-40 flex items-center justify-center mb-6 border border-white/40 px-[8px] py-[8px]">
+              {/* Shoe Logo - now much bigger and with shimmer effect */}
+              <Footprints
+                className="h-24 w-24 text-gray-900 animate-shimmer-logo"
+                style={{
+                  maskImage:
+                    "linear-gradient(120deg, rgba(255,255,255,0.35) 40%, rgba(255,255,255,1) 50%, rgba(255,255,255,0.35) 60%)",
+                  WebkitMaskImage:
+                    "linear-gradient(120deg, rgba(255,255,255,0.35) 40%, rgba(255,255,255,1) 50%, rgba(255,255,255,0.35) 60%)",
+                }}
+              />
               {/* Beta Badge Overlay */}
               <div className="absolute -top-2 -right-2">
                 <span className="bg-gradient-to-r from-black to-gray-800 text-white font-semibold px-2 py-1 rounded-full shadow-lg shadow-black/25 border border-gray-400/20 text-xs">
@@ -51,14 +62,3 @@ export const AppHeader = () => {
       </div>
     </header>;
 };
-
-// Add custom shimmer animation for the logo
-// Add the following to your CSS file (src/index.css) if not already present:
-// @keyframes shimmer-logo {
-//   0% { mask-position: -100% 0; }
-//   100% { mask-position: 200% 0; }
-// }
-// .animate-shimmer-logo {
-//   animation: shimmer-logo 2s linear infinite;
-//   mask-size: 200% 100%;
-// }
