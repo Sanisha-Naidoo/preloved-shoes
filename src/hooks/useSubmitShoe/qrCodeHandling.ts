@@ -8,36 +8,51 @@ export const generateAndSaveQRCode = async (
   shoeId: string,
   setState: any
 ): Promise<string> => {
+  console.log("=== QR CODE GENERATION START ===");
   console.log("Generating QR code for shoe ID:", shoeId);
   
   try {
     // Generate the QR data and image
     const qrData = generateShoeQRData(shoeId);
-    const qrCodeDataURL = await generateQRCode(qrData);
+    console.log("QR data generated:", qrData);
     
-    console.log("QR code generated successfully");
+    const qrCodeDataURL = await generateQRCode(qrData);
+    console.log("QR code image generated:", {
+      length: qrCodeDataURL.length,
+      preview: qrCodeDataURL.substring(0, 100) + "..."
+    });
     
     // Store in state immediately so user can see it
     setState.setQrCodeUrl(qrCodeDataURL);
+    console.log("QR code set in state");
     
-    // Try to save to database, but don't fail submission if this fails
-    try {
-      await updateShoeWithQRCode(shoeId, qrCodeDataURL);
-      console.log("QR code saved to database successfully");
+    // Save to database - this is critical
+    console.log("Attempting to save QR code to database...");
+    const saveResult = await updateShoeWithQRCode(shoeId, qrCodeDataURL);
+    console.log("Database save result:", saveResult);
+    
+    if (saveResult) {
+      console.log("✅ QR code successfully saved to database");
       toast.success("QR code generated and saved!");
-    } catch (saveError: any) {
-      console.error("Failed to save QR code to database:", saveError);
-      toast.error("QR code generated but not saved to database");
-      // Don't throw - let submission continue
+    } else {
+      console.error("❌ Database save returned false");
+      toast.error("QR code generated but failed to save to database");
     }
     
+    console.log("=== QR CODE GENERATION END ===");
     return qrCodeDataURL;
     
   } catch (error: any) {
-    console.error("Error generating QR code:", error);
-    toast.error("Failed to generate QR code");
+    console.error("=== QR CODE GENERATION ERROR ===");
+    console.error("Error generating or saving QR code:", error);
+    console.error("Error details:", {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    toast.error(`QR code failed: ${error.message}`);
     
-    // Don't throw - let submission continue without QR code
+    // Still return empty string so submission doesn't fail
     return "";
   }
 };
