@@ -1,7 +1,30 @@
+
 import React, { useEffect, useState } from 'react';
 import { Sparkles, Zap } from 'lucide-react';
 import { useShoeCounter } from '@/hooks/useShoeCounter';
 import { Skeleton } from '@/components/ui/skeleton';
+
+interface FlippingDigitProps {
+  digit: string;
+  isFlipping: boolean;
+}
+
+const FlippingDigit: React.FC<FlippingDigitProps> = ({ digit, isFlipping }) => {
+  return (
+    <div className="relative inline-block w-[1ch] overflow-hidden">
+      <div
+        className={`transition-transform duration-300 ease-in-out ${
+          isFlipping ? 'animate-[flip_0.3s_ease-in-out]' : ''
+        }`}
+        style={{
+          transform: isFlipping ? 'rotateX(360deg)' : 'rotateX(0deg)',
+        }}
+      >
+        {digit}
+      </div>
+    </div>
+  );
+};
 
 export const ShoeCounter = () => {
   const {
@@ -11,6 +34,7 @@ export const ShoeCounter = () => {
   } = useShoeCounter();
   const [displayCount, setDisplayCount] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [flippingDigits, setFlippingDigits] = useState<boolean[]>([]);
   const goalAmount = 1500; // Define the goal amount
 
   console.log('ShoeCounter render:', {
@@ -21,10 +45,21 @@ export const ShoeCounter = () => {
     goalAmount
   });
 
-  // Smooth count animation with easing
+  // Smooth count animation with easing and digit flipping
   useEffect(() => {
     if (!isLoading && count !== displayCount) {
       setIsAnimating(true);
+      
+      // Determine which digits are changing (last 3 digits)
+      const oldCountStr = displayCount.toString().padStart(4, '0');
+      const newCountStr = count.toString().padStart(4, '0');
+      const digitsToFlip = oldCountStr.split('').map((digit, index) => {
+        const isLast3 = index >= oldCountStr.length - 3;
+        return isLast3 && digit !== newCountStr[index];
+      });
+      
+      setFlippingDigits(digitsToFlip);
+      
       const difference = count - displayCount;
       let startTime: number | null = null;
       const duration = 500; // Animation duration in ms
@@ -41,6 +76,7 @@ export const ShoeCounter = () => {
         } else {
           setDisplayCount(count); // Ensure final count is accurate
           setIsAnimating(false);
+          setFlippingDigits([]);
         }
       };
       requestAnimationFrame(animateCount);
@@ -74,6 +110,8 @@ export const ShoeCounter = () => {
   }
 
   const progressPercentage = Math.min(displayCount / goalAmount * 100, 100);
+  const countString = displayCount.toLocaleString();
+  const digits = countString.split('');
 
   return <div className="relative text-center py-2 animate-scale-in">
       {/* Floating Micro-interaction Elements */}
@@ -90,8 +128,7 @@ export const ShoeCounter = () => {
       <div className="mb-6">
         <div className="bg-gradient-to-br from-gray-50/80 to-white/60 backdrop-blur-sm rounded-2xl border border-gray-200/40 shadow-lg shadow-gray-500/10 p-6 mx-auto w-fit">
           <div
-            className={`font-black text-6xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent transition-all duration-500 ease-out text-rendering-optimized relative overflow-hidden
-              ${isAnimating ? 'blur-[1px]' : 'blur-0'}`}
+            className={`font-black text-6xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent transition-all duration-500 ease-out text-rendering-optimized relative overflow-hidden`}
             style={{
               // Animate shimmer via background
               backgroundImage:
@@ -100,7 +137,24 @@ export const ShoeCounter = () => {
               animation: "shimmer-counter 2s linear infinite"
             }}
           >
-            {displayCount.toLocaleString()}
+            {digits.map((char, index) => {
+              const isDigit = /\d/.test(char);
+              const digitIndex = countString.replace(/[^\d]/g, '').length - countString.slice(index).replace(/[^\d]/g, '').length;
+              const totalDigits = countString.replace(/[^\d]/g, '').length;
+              const isLast3 = isDigit && digitIndex >= totalDigits - 3;
+              const shouldFlip = isAnimating && isLast3;
+              
+              if (isDigit && isLast3) {
+                return (
+                  <FlippingDigit
+                    key={`${index}-${char}`}
+                    digit={char}
+                    isFlipping={shouldFlip}
+                  />
+                );
+              }
+              return <span key={index}>{char}</span>;
+            })}
           </div>
         </div>
       </div>
