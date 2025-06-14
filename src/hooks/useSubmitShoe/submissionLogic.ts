@@ -31,14 +31,20 @@ export const executeSubmission = async (
     setState.setError(null);
     
     logStep("Starting submission process");
+    console.log("🚀 SUBMISSION PROCESS STARTED");
     
     // 1. Validate required data
+    console.log("📋 Step 1: Validating data...");
     const { shoeDetails, solePhoto, rating } = performValidation();
+    console.log("✅ Data validation successful");
     
     // 2. Prepare and upload the image
+    console.log("📸 Step 2: Processing and uploading image...");
     const photoUrl = await processAndUploadImage(solePhoto);
+    console.log("✅ Image upload successful:", photoUrl);
     
     // 3. Save the shoe data to the database
+    console.log("💾 Step 3: Creating shoe record...");
     const shoeId = await createShoeRecord({
       brand: shoeDetails.brand,
       model: shoeDetails.model,
@@ -49,23 +55,49 @@ export const executeSubmission = async (
       rating,
       photoUrl
     });
+    console.log("✅ Shoe record created with ID:", shoeId);
     
     setState.setSubmissionId(shoeId);
 
-    // 4. Generate and save QR code (non-blocking)
+    // 4. Generate and save QR code (this is where we suspect the issue is)
+    console.log("🔍 Step 4: Starting QR code generation...");
+    console.log("QR Code generation input:", {
+      shoeId,
+      shoeIdType: typeof shoeId,
+      shoeIdLength: shoeId?.length
+    });
+    
     try {
-      await generateAndSaveQRCode(shoeId, setState);
+      const qrResult = await generateAndSaveQRCode(shoeId, setState);
+      console.log("🎯 QR code generation completed. Result:", {
+        resultType: typeof qrResult,
+        resultLength: qrResult?.length,
+        resultPreview: qrResult?.substring(0, 50) + "..."
+      });
+      
+      if (qrResult) {
+        console.log("✅ QR code generation and save successful");
+      } else {
+        console.log("⚠️ QR code generation returned empty result");
+      }
     } catch (qrError) {
-      console.error("QR code generation failed, but continuing submission:", qrError);
+      console.error("❌ QR code generation failed with error:", qrError);
+      console.error("QR Error details:", {
+        message: qrError.message,
+        stack: qrError.stack,
+        name: qrError.name
+      });
       // Don't fail the entire submission for QR code issues
     }
 
+    console.log("🧹 Step 5: Cleaning up session data...");
     logStep("Submission completed successfully");
     
     // Clear session storage after successful submission
     clearSessionData();
 
     setState.setIsSubmitted(true);
+    console.log("🎉 SUBMISSION PROCESS COMPLETED SUCCESSFULLY");
     toast.success("Submission successful!");
     
     if (options.onSuccess && refs.isMounted.current) {
@@ -73,6 +105,7 @@ export const executeSubmission = async (
     }
     
   } catch (error: any) {
+    console.error("💥 SUBMISSION PROCESS FAILED:", error);
     handleSubmissionError(
       error,
       state,
