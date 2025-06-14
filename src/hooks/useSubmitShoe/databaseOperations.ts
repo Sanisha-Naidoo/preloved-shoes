@@ -64,91 +64,47 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
   }
   
   try {
-    // Add a small delay to ensure the shoe record is fully committed
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Step 1: Use a simple, direct update approach
+    console.log("🎯 Updating QR code directly...");
     
-    // Step 1: Verify the shoe exists and get current state
-    console.log("🔍 Step 1: Verifying shoe exists...");
-    const { data: existingShoe, error: checkError } = await supabase
+    const { error: updateError, count } = await supabase
+      .from("shoes")
+      .update({ qr_code: qrCodeDataURL })
+      .eq("id", shoeId);
+
+    if (updateError) {
+      console.error("❌ QR update failed:", updateError);
+      throw new Error(`QR code update failed: ${updateError.message}`);
+    }
+
+    // Step 2: Verify the update was successful by fetching the record
+    console.log("🔍 Verifying QR code was saved...");
+    const { data: verifyData, error: verifyError } = await supabase
       .from("shoes")
       .select("id, qr_code")
       .eq("id", shoeId)
       .single();
 
-    if (checkError) {
-      console.error("❌ Shoe verification failed:", checkError);
-      throw new Error(`Failed to verify shoe exists: ${checkError.message}`);
+    if (verifyError) {
+      console.error("❌ Verification failed:", verifyError);
+      throw new Error(`Failed to verify QR code save: ${verifyError.message}`);
     }
 
-    if (!existingShoe) {
-      throw new Error(`Shoe with ID ${shoeId} not found in database`);
+    if (!verifyData) {
+      throw new Error("Shoe record not found during verification");
     }
 
-    console.log("✅ Shoe verified:", { 
-      id: existingShoe.id, 
-      hasExistingQR: !!existingShoe.qr_code 
-    });
-
-    // Step 2: Perform the QR code update with retry logic
-    console.log("🎯 Step 2: Updating QR code with retry...");
-    let updateResult = null;
-    let updateError = null;
-    
-    // Try update up to 3 times with increasing delays
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      console.log(`📝 Update attempt ${attempt}/3...`);
-      
-      const { data, error } = await supabase
-        .from("shoes")
-        .update({ qr_code: qrCodeDataURL })
-        .eq("id", shoeId)
-        .select("id, qr_code");
-
-      if (!error && data && data.length > 0) {
-        updateResult = data;
-        updateError = null;
-        break;
-      }
-      
-      updateError = error;
-      console.warn(`❌ Update attempt ${attempt} failed:`, error || "No rows affected");
-      
-      if (attempt < 3) {
-        // Wait longer between retries
-        await new Promise(resolve => setTimeout(resolve, attempt * 200));
-      }
+    if (!verifyData.qr_code) {
+      throw new Error("QR code was not saved - verification shows empty field");
     }
 
-    if (updateError) {
-      console.error("❌ All QR update attempts failed:", updateError);
-      throw new Error(`QR code update failed after 3 attempts: ${updateError.message}`);
-    }
-
-    if (!updateResult || updateResult.length === 0) {
-      console.error("❌ No rows were updated after all attempts");
-      throw new Error("Update executed but no rows affected after 3 attempts - shoe may not exist");
-    }
-
-    const updatedShoe = updateResult[0];
-    console.log("✅ QR code update completed:", {
-      shoeId: updatedShoe.id,
-      hasQrCode: !!updatedShoe.qr_code,
-      qrCodeLength: updatedShoe.qr_code?.length || 0
-    });
-
-    // Step 3: Verify the QR code was saved correctly
-    if (!updatedShoe.qr_code) {
-      console.error("❌ QR code not found in update result");
-      throw new Error("QR code was not saved - update result shows empty field");
-    }
-
-    if (updatedShoe.qr_code !== qrCodeDataURL) {
-      console.error("❌ QR code data mismatch after save");
+    if (verifyData.qr_code !== qrCodeDataURL) {
       throw new Error("QR code data corrupted during save");
     }
 
     console.log("🎉 QR code successfully saved and verified", {
-      savedLength: updatedShoe.qr_code.length,
+      shoeId: verifyData.id,
+      savedLength: verifyData.qr_code.length,
       expectedLength: qrCodeDataURL.length
     });
 
