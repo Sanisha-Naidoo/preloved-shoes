@@ -18,7 +18,20 @@ export const AppHeader = () => {
           <div className="relative z-10 mb-8">
             <div className="relative bg-gradient-to-br from-white to-gray-50/50 backdrop-blur-sm rounded-2xl shadow-lg shadow-black/5 p-6 mx-auto w-28 h-28 flex items-center justify-center mb-6 border border-white/40 px-[8px] py-[8px]">
               <AspectRatio ratio={1 / 1} className="w-full h-full">
-                <img src="/lovable-uploads/ba6fcc1a-24b1-4e24-8750-43bdc56bb2fb.png" alt="Reboot Logo" loading="eager" className="h-full w-full object-contain" />
+                {/* Added shimmer effect to logo image */}
+                <img
+                  src="/lovable-uploads/ba6fcc1a-24b1-4e24-8750-43bdc56bb2fb.png"
+                  alt="Reboot Logo"
+                  loading="eager"
+                  className="h-full w-full object-contain relative z-10 animate-shimmer-logo"
+                  style={{
+                    // Animate a shimmer using mask gradient and animation
+                    maskImage:
+                      "linear-gradient(120deg, transparent 20%, white 50%, transparent 80%)",
+                    WebkitMaskImage:
+                      "linear-gradient(120deg, transparent 20%, white 50%, transparent 80%)"
+                  }}
+                />
               </AspectRatio>
               
               {/* Beta Badge Overlay */}
@@ -55,3 +68,14 @@ export const AppHeader = () => {
       </div>
     </header>;
 };
+
+// Add custom shimmer animation for the logo
+// Add the following to your CSS file (src/index.css) if not already present:
+// @keyframes shimmer-logo {
+//   0% { mask-position: -100% 0; }
+//   100% { mask-position: 200% 0; }
+// }
+// .animate-shimmer-logo {
+//   animation: shimmer-logo 2s linear infinite;
+//   mask-size: 200% 100%;
+// }

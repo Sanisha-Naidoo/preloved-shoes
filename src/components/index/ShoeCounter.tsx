@@ -53,7 +53,6 @@ export const ShoeCounter = () => {
         </div>
       </div>;
   }
-  console.log('ShoeCounter rendering counter with count:', displayCount);
   const progressPercentage = Math.min(displayCount / 6000 * 100, 100);
   return <div className="relative text-center py-2 animate-scale-in">
       {/* Floating Micro-interaction Elements */}
@@ -76,9 +75,19 @@ export const ShoeCounter = () => {
         </div>
       </div>
 
-      {/* Count Display with Apple-style Typography */}
+      {/* Count Display with Apple-style Typography and shimmer */}
       <div className="mb-6">
-        <div className={`font-black text-6xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent transition-all duration-500 ease-out text-rendering-optimized ${isAnimating ? 'scale-110 blur-[1px]' : 'scale-100 blur-0'}`}>
+        <div
+          className={`font-black text-6xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent transition-all duration-500 ease-out text-rendering-optimized relative overflow-hidden
+            ${isAnimating ? 'scale-110 blur-[1px]' : 'scale-100 blur-0'}`}
+          style={{
+            // Animate shimmer via background
+            backgroundImage:
+              "linear-gradient(100deg, #222 30%, #fff 50%, #222 70%)",
+            backgroundSize: "200% 100%",
+            animation: "shimmer-counter 2s linear infinite"
+          }}
+        >
           {displayCount.toLocaleString()}
         </div>
       </div>
@@ -109,3 +118,17 @@ export const ShoeCounter = () => {
       </div>
     </div>;
 };
+
+// Add to your CSS (src/index.css) for shimmer on logo and counter if not present:
+// @keyframes shimmer-logo {
+//   0% { mask-position: -100% 0; }
+//   100% { mask-position: 200% 0; }
+// }
+// .animate-shimmer-logo {
+//   animation: shimmer-logo 2s linear infinite;
+//   mask-size: 200% 100%;
+// }
+// @keyframes shimmer-counter {
+//   0% { background-position: -100% 0; }
+//   100% { background-position: 200% 0; }
+// }
