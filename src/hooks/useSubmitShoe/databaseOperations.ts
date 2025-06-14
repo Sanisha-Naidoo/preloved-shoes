@@ -64,10 +64,10 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
   }
   
   try {
-    // Step 1: Use a simple, direct update approach
+    // Step 1: Update the QR code
     console.log("🎯 Updating QR code directly...");
     
-    const { error: updateError, count } = await supabase
+    const { error: updateError } = await supabase
       .from("shoes")
       .update({ qr_code: qrCodeDataURL })
       .eq("id", shoeId);
@@ -77,7 +77,12 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
       throw new Error(`QR code update failed: ${updateError.message}`);
     }
 
-    // Step 2: Verify the update was successful by fetching the record
+    console.log("✅ QR update completed, waiting before verification...");
+    
+    // Step 2: Wait a moment for the database to commit the transaction
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Step 3: Verify the update was successful
     console.log("🔍 Verifying QR code was saved...");
     const { data: verifyData, error: verifyError } = await supabase
       .from("shoes")
@@ -95,7 +100,35 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
     }
 
     if (!verifyData.qr_code) {
-      throw new Error("QR code was not saved - verification shows empty field");
+      console.error("❌ QR code still empty after update and delay");
+      // Try one more update with a longer QR code to test if it's a data issue
+      console.log("🔄 Attempting retry with explicit transaction...");
+      
+      const { error: retryError } = await supabase
+        .from("shoes")
+        .update({ qr_code: qrCodeDataURL })
+        .eq("id", shoeId);
+        
+      if (retryError) {
+        throw new Error(`Retry update failed: ${retryError.message}`);
+      }
+      
+      // Wait longer for retry
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Check again
+      const { data: retryData, error: retryCheckError } = await supabase
+        .from("shoes")
+        .select("id, qr_code")
+        .eq("id", shoeId)
+        .single();
+        
+      if (retryCheckError || !retryData?.qr_code) {
+        throw new Error("QR code was not saved - database update not persisting");
+      }
+      
+      console.log("✅ QR code saved on retry");
+      return true;
     }
 
     if (verifyData.qr_code !== qrCodeDataURL) {
