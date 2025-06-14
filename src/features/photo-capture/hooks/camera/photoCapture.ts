@@ -1,4 +1,7 @@
+
 import { toast } from "sonner";
+import { uploadFileWithRetry } from "@/utils/uploadUtils";
+import { dataURLtoFile } from "@/utils/imageUtils";
 
 // Helper function to resize image to prevent upload issues
 const resizeImage = (dataUrl: string, maxWidth = 800, maxHeight = 800, quality = 0.85): Promise<string> => {
@@ -93,6 +96,8 @@ export const uploadImageManually = async (
   setCapturedImage: (image: string | null) => void,
   cleanupFn: () => void
 ): Promise<void> => {
+  console.log("Manual image upload started");
+  
   // Create a file input element
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
@@ -102,10 +107,12 @@ export const uploadImageManually = async (
   fileInput.onchange = async (event) => {
     const target = event.target as HTMLInputElement;
     if (!target.files || target.files.length === 0) {
+      console.log("No file selected");
       return;
     }
     
     const file = target.files[0];
+    console.log("File selected:", file.name, file.size, file.type);
     
     // Check if the file is an image
     if (!file.type.startsWith('image/')) {
@@ -120,20 +127,29 @@ export const uploadImageManually = async (
     const reader = new FileReader();
     reader.onload = async (e) => {
       const imageDataUrl = e.target?.result as string;
+      console.log("Image read successfully, data URL length:", imageDataUrl?.length);
+      
       if (imageDataUrl) {
         try {
           // Resize the image to prevent upload issues
+          console.log("Resizing image...");
           const resizedImage = await resizeImage(imageDataUrl);
+          console.log("Image resized successfully, new length:", resizedImage.length);
+          
+          // Set the captured image
           setCapturedImage(resizedImage);
+          console.log("Image set in state");
+          
           toast.success('Image uploaded successfully!');
         } catch (err) {
-          toast.error('Failed to process image');
           console.error('Image processing error:', err);
+          toast.error('Failed to process image');
         }
       }
     };
     
-    reader.onerror = () => {
+    reader.onerror = (error) => {
+      console.error('FileReader error:', error);
       toast.error('Failed to read the selected file');
     };
     

@@ -11,7 +11,11 @@
  */
 export const dataURLtoFile = async (dataUrl: string, filename: string): Promise<File> => {
   try {
-    console.log("Converting data URL to File...");
+    console.log("Converting data URL to File...", {
+      dataUrlLength: dataUrl?.length,
+      filename,
+      dataUrlStart: dataUrl?.substring(0, 50)
+    });
     
     // Validate the data URL format
     if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:')) {
@@ -30,6 +34,7 @@ export const dataURLtoFile = async (dataUrl: string, filename: string): Promise<
     }
     
     const mime = mimeMatch[1];
+    console.log("Detected MIME type:", mime);
     
     // Validate that this is an image type we support
     if (!mime.startsWith('image/')) {
@@ -38,6 +43,7 @@ export const dataURLtoFile = async (dataUrl: string, filename: string): Promise<
     
     try {
       const bstr = atob(arr[1]);
+      console.log("Base64 decoded, binary string length:", bstr.length);
       
       // Convert base64 to binary
       let n = bstr.length;
@@ -56,7 +62,12 @@ export const dataURLtoFile = async (dataUrl: string, filename: string): Promise<
       
       // Create and return a File object
       const file = new File([u8arr], filename, { type: mime });
-      console.log(`Created file: ${filename}, type: ${mime}, size: ${file.size} bytes`);
+      console.log(`Created file:`, {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        lastModified: file.lastModified
+      });
       return file;
     } catch (e) {
       console.error("Base64 decoding error:", e);
@@ -74,6 +85,12 @@ export const dataURLtoFile = async (dataUrl: string, filename: string): Promise<
  * @returns True if valid, throws an error if not
  */
 export const validateImage = (dataUrl: string): boolean => {
+  console.log("Validating image...", {
+    hasData: !!dataUrl,
+    length: dataUrl?.length,
+    startsCorrectly: dataUrl?.startsWith('data:image/')
+  });
+  
   if (!dataUrl) {
     throw new Error("No image data provided");
   }
@@ -84,9 +101,12 @@ export const validateImage = (dataUrl: string): boolean => {
   
   // Check size
   const approximateSizeInMB = (dataUrl.length * 3/4) / (1024 * 1024);
+  console.log("Approximate image size:", approximateSizeInMB.toFixed(2), "MB");
+  
   if (approximateSizeInMB > 15) {
     throw new Error(`Image is too large (approximately ${approximateSizeInMB.toFixed(2)}MB). Please use a smaller image.`);
   }
   
+  console.log("Image validation passed");
   return true;
 };
