@@ -80,6 +80,11 @@ export const executeSubmission = async (
       throw shoeError;
     }
 
+    if (!shoeData || shoeData.length === 0) {
+      logStep("No shoe data returned after insert");
+      throw new Error("Failed to create shoe record");
+    }
+
     logStep("Shoe data saved successfully", { shoeId: shoeData[0].id });
     const shoeId = shoeData[0].id;
     setState.setSubmissionId(shoeId);
@@ -93,8 +98,27 @@ export const executeSubmission = async (
     setState.setQrCodeUrl(qrCodeDataURL);
     logStep("QR code generated successfully", { qrCodeLength: qrCodeDataURL.length });
     
-    // 7. Update the shoe record with the QR code
-    logStep("Updating shoe record with QR code");
+    // 7. Update the shoe record with the QR code - with better error checking
+    logStep("Updating shoe record with QR code", { shoeId, qrDataUrl: qrData });
+    
+    // First verify the shoe exists before updating
+    const { data: existingShoe, error: checkError } = await supabase
+      .from("shoes")
+      .select("id")
+      .eq("id", shoeId)
+      .single();
+
+    if (checkError || !existingShoe) {
+      logStep("Error: Shoe record not found for QR update", { 
+        checkError, 
+        existingShoe, 
+        shoeId 
+      });
+      throw new Error(`Shoe record ${shoeId} not found for QR code update`);
+    }
+
+    logStep("Shoe record verified, proceeding with QR code update");
+
     const { data: updatedShoe, error: qrUpdateError } = await supabase
       .from("shoes")
       .update({ qr_code: qrCodeDataURL })
@@ -109,8 +133,18 @@ export const executeSubmission = async (
       });
       console.error("QR code database update failed:", qrUpdateError);
       toast.error("QR code could not be saved to database, but submission was successful");
+    } else if (!updatedShoe || updatedShoe.length === 0) {
+      logStep("QR code update completed but no rows were affected", { 
+        updatedShoe, 
+        shoeId 
+      });
+      console.error("QR code update affected 0 rows");
+      toast.error("QR code could not be saved to database, but submission was successful");
     } else {
-      logStep("QR code saved to database successfully", { updatedShoe });
+      logStep("QR code saved to database successfully", { 
+        updatedShoe: updatedShoe[0],
+        qrCodeSaved: !!updatedShoe[0].qr_code 
+      });
       console.log("QR code successfully saved to database");
     }
 
