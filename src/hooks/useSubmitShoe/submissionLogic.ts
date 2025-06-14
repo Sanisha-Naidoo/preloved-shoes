@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { validateRequiredData } from "@/utils/validationUtils";
 import { dataURLtoFile, validateImage } from "@/utils/imageUtils";
@@ -92,19 +91,25 @@ export const executeSubmission = async (
     // 6. Generate QR code for the shoe
     logStep("Generating QR code for shoe");
     const qrData = generateShoeQRData(shoeId);
+    logStep("QR data generated", { qrData, shoeId });
+    
     const qrCodeDataURL = await generateQRCode(qrData);
     
     // Store QR code URL in state first
     setState.setQrCodeUrl(qrCodeDataURL);
-    logStep("QR code generated successfully", { qrCodeLength: qrCodeDataURL.length });
+    logStep("QR code generated successfully", { 
+      qrCodeLength: qrCodeDataURL.length,
+      qrCodePreview: qrCodeDataURL.substring(0, 50) + "...",
+      qrData
+    });
     
-    // 7. Update the shoe record with the QR code - with better error checking
-    logStep("Updating shoe record with QR code", { shoeId, qrDataUrl: qrData });
+    // 7. Update the shoe record with the QR code - with enhanced debugging
+    logStep("Starting QR code database update", { shoeId, qrData });
     
     // First verify the shoe exists before updating
     const { data: existingShoe, error: checkError } = await supabase
       .from("shoes")
-      .select("id")
+      .select("id, qr_code")
       .eq("id", shoeId)
       .single();
 
@@ -117,35 +122,63 @@ export const executeSubmission = async (
       throw new Error(`Shoe record ${shoeId} not found for QR code update`);
     }
 
-    logStep("Shoe record verified, proceeding with QR code update");
+    logStep("Shoe record verified for QR update", { 
+      existingShoe,
+      currentQrCode: existingShoe.qr_code,
+      newQrCodeLength: qrCodeDataURL.length
+    });
 
+    // Attempt the QR code update
     const { data: updatedShoe, error: qrUpdateError } = await supabase
       .from("shoes")
       .update({ qr_code: qrCodeDataURL })
       .eq("id", shoeId)
-      .select();
+      .select("id, qr_code");
 
+    // Enhanced error checking and logging
     if (qrUpdateError) {
-      logStep("Error updating shoe with QR code", {
+      logStep("QR code database update failed", {
         error: qrUpdateError,
         shoeId: shoeId,
-        qrCodeLength: qrCodeDataURL.length
+        qrCodeLength: qrCodeDataURL.length,
+        errorCode: qrUpdateError.code,
+        errorMessage: qrUpdateError.message
       });
       console.error("QR code database update failed:", qrUpdateError);
       toast.error("QR code could not be saved to database, but submission was successful");
     } else if (!updatedShoe || updatedShoe.length === 0) {
       logStep("QR code update completed but no rows were affected", { 
         updatedShoe, 
-        shoeId 
+        shoeId,
+        updateResult: updatedShoe
       });
       console.error("QR code update affected 0 rows");
       toast.error("QR code could not be saved to database, but submission was successful");
     } else {
       logStep("QR code saved to database successfully", { 
         updatedShoe: updatedShoe[0],
-        qrCodeSaved: !!updatedShoe[0].qr_code 
+        qrCodeSaved: !!updatedShoe[0].qr_code,
+        savedQrCodeLength: updatedShoe[0].qr_code?.length,
+        shoeId: updatedShoe[0].id
       });
       console.log("QR code successfully saved to database");
+      
+      // Verify the QR code was actually saved by reading it back
+      const { data: verifyShoe, error: verifyError } = await supabase
+        .from("shoes")
+        .select("qr_code")
+        .eq("id", shoeId)
+        .single();
+        
+      if (verifyError) {
+        logStep("Error verifying QR code save", { verifyError, shoeId });
+      } else {
+        logStep("QR code verification", { 
+          qrCodeExists: !!verifyShoe.qr_code,
+          qrCodeLength: verifyShoe.qr_code?.length,
+          shoeId
+        });
+      }
     }
 
     logStep("Submission completed successfully");
