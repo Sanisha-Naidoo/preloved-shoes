@@ -88,18 +88,17 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
 
     // Step 2: Perform the update
     console.log("🎯 Step 2: Executing QR update...");
-    const { error: updateError, count } = await supabase
+    const { error: updateError } = await supabase
       .from("shoes")
       .update({ qr_code: qrCodeDataURL })
-      .eq("id", shoeId)
-      .select('*', { count: 'exact', head: true });
+      .eq("id", shoeId);
 
     if (updateError) {
       console.error("❌ Update failed:", updateError);
       throw new Error(`Update failed: ${updateError.message}`);
     }
 
-    console.log("📊 Update executed:", { rowsAffected: count });
+    console.log("📊 Update executed successfully");
 
     // Step 3: Verify the update was successful
     console.log("🔍 Step 3: Verifying update was successful...");
