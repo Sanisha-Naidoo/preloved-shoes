@@ -59,16 +59,12 @@ export const executeSubmission = async (
     
     setState.setSubmissionId(shoeId);
 
-    // 4. Generate QR code (now optional - won't fail submission if it fails)
-    console.log("🔍 Step 4: Starting optional QR code generation...");
+    // 4. Generate and save QR code (REQUIRED STEP)
+    console.log("🔍 Step 4: Generating and saving QR code (REQUIRED)...");
     
-    const qrResult = await generateAndSaveQRCode(shoeId, setState);
+    const qrCodeDataURL = await generateAndSaveQRCode(shoeId, setState);
     
-    if (qrResult) {
-      console.log("🎉 QR code process completed successfully");
-    } else {
-      console.log("⚠️ QR code generation failed, but submission continues");
-    }
+    console.log("🎉 QR code generation and save completed successfully");
 
     console.log("🧹 Step 5: Cleaning up session data...");
     logStep("Submission completed successfully");
@@ -78,7 +74,7 @@ export const executeSubmission = async (
 
     setState.setIsSubmitted(true);
     console.log("🎉 SUBMISSION PROCESS COMPLETED SUCCESSFULLY");
-    toast.success("Submission successful!");
+    toast.success("Submission successful! QR code generated.");
     
     if (options.onSuccess && refs.isMounted.current) {
       options.onSuccess();
