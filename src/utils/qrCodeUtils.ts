@@ -11,15 +11,15 @@ export const generateQRCode = async (data: string): Promise<string> => {
     
     // Generate QR code with optimized settings for database storage
     const qrCodeDataURL = await QRCode.toDataURL(data, {
-      width: 256,    // Reasonable size
+      width: 200,    // Smaller size for better database storage
       margin: 1,     // Minimal margin
       color: {
         dark: '#000000',
         light: '#FFFFFF'
       },
       errorCorrectionLevel: 'L', // Low error correction for smaller size
-      type: 'image/png',         // PNG is more efficient than default
-      quality: 0.8               // Good quality but not maximum
+      type: 'image/png',
+      quality: 0.8
     });
     
     // Validate the generated QR code
@@ -29,16 +29,17 @@ export const generateQRCode = async (data: string): Promise<string> => {
     
     // Check size - warn if getting large
     const sizeKB = Math.round(qrCodeDataURL.length / 1024);
-    if (sizeKB > 20) {
-      console.warn("Large QR code generated:", sizeKB, "KB");
-    }
-    
     console.log("✅ QR code generated successfully:", {
       dataLength: qrCodeDataURL.length,
       dataSizeKB: sizeKB,
       isValidDataUrl: qrCodeDataURL.startsWith('data:image/'),
-      originalData: data
+      originalData: data,
+      preview: qrCodeDataURL.substring(0, 100) + "..."
     });
+    
+    if (sizeKB > 50) {
+      console.warn("Large QR code generated:", sizeKB, "KB");
+    }
     
     return qrCodeDataURL;
   } catch (error: any) {

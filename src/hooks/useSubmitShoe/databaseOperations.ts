@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { logStep } from "./submissionLogger";
 import { generateQRCode, generateShoeQRData } from "@/utils/qrCodeUtils";
@@ -17,7 +18,7 @@ export const createShoeRecord = async (data: ShoeData): Promise<{ shoeId: string
   logStep("Creating shoe record with QR code generation");
   
   try {
-    // First, create the shoe record
+    // First, create the shoe record without QR code
     const { data: shoeData, error: shoeError } = await supabase
       .from("shoes")
       .insert([
@@ -54,26 +55,43 @@ export const createShoeRecord = async (data: ShoeData): Promise<{ shoeId: string
     try {
       console.log("🔍 Generating QR code for shoe:", shoeId);
       const qrData = generateShoeQRData(shoeId);
-      qrCodeDataURL = await generateQRCode(qrData);
+      console.log("📝 QR data generated:", qrData);
       
-      // Update the shoe record with the QR code
-      const { error: updateError } = await supabase
+      qrCodeDataURL = await generateQRCode(qrData);
+      console.log("✅ QR code generated, length:", qrCodeDataURL?.length);
+      
+      if (!qrCodeDataURL) {
+        throw new Error("QR code generation returned null");
+      }
+      
+      // Update the shoe record with the QR code - using explicit query
+      console.log("💾 Updating shoe with QR code...");
+      const { data: updateData, error: updateError } = await supabase
         .from("shoes")
         .update({ qr_code: qrCodeDataURL })
-        .eq("id", shoeId);
+        .eq("id", shoeId)
+        .select("id, qr_code")
+        .single();
 
       if (updateError) {
         console.error("❌ Failed to update QR code:", updateError);
+        logStep("QR code update failed", updateError);
         // Don't throw here - the shoe is created, just QR failed
-        logStep("QR code update failed but shoe creation succeeded", updateError);
-      } else {
-        console.log("✅ QR code updated successfully");
+      } else if (updateData) {
+        console.log("✅ QR code updated successfully:", {
+          id: updateData.id,
+          hasQrCode: !!updateData.qr_code,
+          qrCodeLength: updateData.qr_code?.length || 0
+        });
         logStep("QR code generated and saved successfully");
+      } else {
+        console.warn("⚠️ Update succeeded but no data returned");
       }
     } catch (qrError: any) {
       console.error("❌ QR code generation failed:", qrError);
       logStep("QR code generation failed but shoe creation succeeded", qrError);
       // Don't throw here - the shoe is created, just QR failed
+      qrCodeDataURL = null;
     }
 
     return { shoeId, qrCodeDataURL };
