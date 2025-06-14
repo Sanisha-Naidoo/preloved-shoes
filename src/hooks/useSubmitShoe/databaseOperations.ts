@@ -64,6 +64,9 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
   }
   
   try {
+    // Add a small delay to ensure the shoe record is fully committed
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     // Step 1: Verify the shoe exists and get current state
     console.log("🔍 Step 1: Verifying shoe exists...");
     const { data: existingShoe, error: checkError } = await supabase
@@ -86,23 +89,44 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
       hasExistingQR: !!existingShoe.qr_code 
     });
 
-    // Step 2: Perform the QR code update with select to get the result
-    console.log("🎯 Step 2: Updating QR code...");
-    const { data: updateResult, error: updateError } = await supabase
-      .from("shoes")
-      .update({ qr_code: qrCodeDataURL })
-      .eq("id", shoeId)
-      .select("id, qr_code");
+    // Step 2: Perform the QR code update with retry logic
+    console.log("🎯 Step 2: Updating QR code with retry...");
+    let updateResult = null;
+    let updateError = null;
+    
+    // Try update up to 3 times with increasing delays
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      console.log(`📝 Update attempt ${attempt}/3...`);
+      
+      const { data, error } = await supabase
+        .from("shoes")
+        .update({ qr_code: qrCodeDataURL })
+        .eq("id", shoeId)
+        .select("id, qr_code");
 
-    if (updateError) {
-      console.error("❌ QR update failed:", updateError);
-      throw new Error(`QR code update failed: ${updateError.message}`);
+      if (!error && data && data.length > 0) {
+        updateResult = data;
+        updateError = null;
+        break;
+      }
+      
+      updateError = error;
+      console.warn(`❌ Update attempt ${attempt} failed:`, error || "No rows affected");
+      
+      if (attempt < 3) {
+        // Wait longer between retries
+        await new Promise(resolve => setTimeout(resolve, attempt * 200));
+      }
     }
 
-    // Check if any rows were returned (indicating success)
+    if (updateError) {
+      console.error("❌ All QR update attempts failed:", updateError);
+      throw new Error(`QR code update failed after 3 attempts: ${updateError.message}`);
+    }
+
     if (!updateResult || updateResult.length === 0) {
-      console.error("❌ No rows were updated");
-      throw new Error("Update executed but no rows affected - shoe may not exist");
+      console.error("❌ No rows were updated after all attempts");
+      throw new Error("Update executed but no rows affected after 3 attempts - shoe may not exist");
     }
 
     const updatedShoe = updateResult[0];
