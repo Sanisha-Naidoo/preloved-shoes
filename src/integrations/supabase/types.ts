@@ -54,27 +54,6 @@ export type Database = {
         }
         Relationships: []
       }
-      shoutbox_messages: {
-        Row: {
-          id: string
-          message: string
-          name: string
-          timestamp: string
-        }
-        Insert: {
-          id?: string
-          message: string
-          name: string
-          timestamp?: string
-        }
-        Update: {
-          id?: string
-          message?: string
-          name?: string
-          timestamp?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
