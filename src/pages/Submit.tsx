@@ -106,7 +106,7 @@ const Submit = () => {
                 onRetry={handleRetry} 
               />
             ) : isSubmitting ? (
-              <SubmissionLoading retryCount={retryCount} maxRetries={MAX_RETRIES} />
+              <SubmissionLoading />
             ) : hasMissingCriticalData ? (
               <div className="text-center">
                 <h2 className="text-2xl font-bold mb-4">Cannot Submit</h2>
