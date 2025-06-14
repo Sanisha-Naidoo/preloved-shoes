@@ -59,18 +59,16 @@ export const executeSubmission = async (
     
     setState.setSubmissionId(shoeId);
 
-    // 4. Generate QR code (now CRITICAL - will fail submission if it fails)
-    console.log("🔍 Step 4: Starting CRITICAL QR code generation...");
-    console.log("🎯 Initiating QR generation process...");
+    // 4. Generate QR code (now optional - won't fail submission if it fails)
+    console.log("🔍 Step 4: Starting optional QR code generation...");
     
     const qrResult = await generateAndSaveQRCode(shoeId, setState);
     
-    console.log("🎉 QR code process completed successfully:", {
-      resultType: typeof qrResult,
-      resultLength: qrResult?.length || 0,
-      resultValid: !!qrResult,
-      resultSizeKB: qrResult ? Math.round(qrResult.length / 1024) : 0
-    });
+    if (qrResult) {
+      console.log("🎉 QR code process completed successfully");
+    } else {
+      console.log("⚠️ QR code generation failed, but submission continues");
+    }
 
     console.log("🧹 Step 5: Cleaning up session data...");
     logStep("Submission completed successfully");

@@ -16,7 +16,6 @@ export const SubmissionLoading: React.FC<SubmissionLoadingProps> = ({
       <h2 className="text-2xl font-bold mb-4">Submitting...</h2>
       <p className="text-gray-600">
         Please wait while we process your submission.
-        {retryCount > 0 && ` (Attempt ${retryCount + 1}/${maxRetries + 1})`}
       </p>
     </div>
   );
