@@ -69,30 +69,30 @@ export const createShoeRecord = async (data: ShoeData): Promise<{ shoeId: string
         throw new Error("Invalid QR code format - not a valid data URL");
       }
       
-      // Save QR code to database - simplified approach
+      // Save QR code to database - remove .single() to avoid PGRST116 error
       console.log("💾 Updating shoe with QR code...");
       
       const { data: updateData, error: updateError } = await supabase
         .from("shoes")
         .update({ qr_code: qrCodeDataURL })
         .eq("id", shoeId)
-        .select("id, qr_code")
-        .single();
+        .select("id, qr_code");
 
       if (updateError) {
         console.error("❌ QR update failed:", updateError);
         throw new Error(`Failed to update QR code: ${updateError.message}`);
       }
 
-      if (!updateData) {
+      if (!updateData || updateData.length === 0) {
         console.error("❌ No update data returned");
         throw new Error("QR code update returned no data");
       }
 
+      const updatedRecord = updateData[0];
       console.log("✅ QR code update successful:", {
-        shoeId: updateData.id,
-        hasQrCode: !!updateData.qr_code,
-        qrCodeLength: updateData.qr_code?.length || 0
+        shoeId: updatedRecord.id,
+        hasQrCode: !!updatedRecord.qr_code,
+        qrCodeLength: updatedRecord.qr_code?.length || 0
       });
       
       console.log("🎉 QR code successfully saved to database");
@@ -124,7 +124,7 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
     throw new Error("QR code data is required for update");
   }
   
-  // Basic validation - just check it's a data URL (be more lenient)
+  // Basic validation - just check it's a data URL
   if (!qrCodeDataURL.startsWith('data:image/')) {
     throw new Error("Invalid QR code format for database storage");
   }
@@ -136,25 +136,25 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
       .from("shoes")
       .update({ qr_code: qrCodeDataURL })
       .eq("id", shoeId)
-      .select("id, qr_code")
-      .single();
+      .select("id, qr_code");
 
     if (error) {
       console.error("❌ QR update failed:", error);
       throw new Error(`Failed to update QR code: ${error.message}`);
     }
 
-    if (!data) {
+    if (!data || data.length === 0) {
       console.error("❌ No shoe record found or updated");
       throw new Error("QR code update returned no data");
     }
 
-    const hasQrCode = !!data.qr_code;
+    const updatedRecord = data[0];
+    const hasQrCode = !!updatedRecord.qr_code;
     
     console.log("✅ QR code update result:", {
-      shoeId: data.id,
+      shoeId: updatedRecord.id,
       hasQrCode,
-      qrCodeLength: data.qr_code?.length || 0
+      qrCodeLength: updatedRecord.qr_code?.length || 0
     });
 
     if (!hasQrCode) {
