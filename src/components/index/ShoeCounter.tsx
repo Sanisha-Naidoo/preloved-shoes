@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Sparkles, Zap } from 'lucide-react';
 import { useShoeCounter } from '@/hooks/useShoeCounter';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -45,43 +45,57 @@ export const ShoeCounter = () => {
     goalAmount
   });
 
-  // Smooth count animation with easing and digit flipping
+  // Initialize displayCount when count is first loaded
   useEffect(() => {
-    if (!isLoading && count !== displayCount) {
-      setIsAnimating(true);
-      
-      // Determine which digits are changing (last 3 digits)
-      const oldCountStr = displayCount.toString().padStart(4, '0');
-      const newCountStr = count.toString().padStart(4, '0');
-      const digitsToFlip = oldCountStr.split('').map((digit, index) => {
-        const isLast3 = index >= oldCountStr.length - 3;
-        return isLast3 && digit !== newCountStr[index];
-      });
-      
-      setFlippingDigits(digitsToFlip);
-      
-      const difference = count - displayCount;
-      let startTime: number | null = null;
-      const duration = 500; // Animation duration in ms
-
-      const animateCount = (timestamp: number) => {
-        if (!startTime) startTime = timestamp;
-        const progress = Math.min((timestamp - startTime) / duration, 1);
-        const newDisplayCount = Math.floor(displayCount + difference * progress);
-        
-        setDisplayCount(newDisplayCount);
-
-        if (progress < 1) {
-          requestAnimationFrame(animateCount);
-        } else {
-          setDisplayCount(count); // Ensure final count is accurate
-          setIsAnimating(false);
-          setFlippingDigits([]);
-        }
-      };
-      requestAnimationFrame(animateCount);
+    if (!isLoading && displayCount === 0 && count > 0) {
+      setDisplayCount(count);
     }
-  }, [count, displayCount, isLoading]);
+  }, [count, isLoading, displayCount]);
+
+  // Smooth count animation with easing and digit flipping
+  const animateToNewCount = useCallback((newCount: number) => {
+    if (newCount === displayCount) return;
+    
+    setIsAnimating(true);
+    
+    // Determine which digits are changing (last 3 digits)
+    const oldCountStr = displayCount.toString().padStart(4, '0');
+    const newCountStr = newCount.toString().padStart(4, '0');
+    const digitsToFlip = oldCountStr.split('').map((digit, index) => {
+      const isLast3 = index >= oldCountStr.length - 3;
+      return isLast3 && digit !== newCountStr[index];
+    });
+    
+    setFlippingDigits(digitsToFlip);
+    
+    const difference = newCount - displayCount;
+    let startTime: number | null = null;
+    const duration = 500; // Animation duration in ms
+
+    const animateCount = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      const newDisplayCount = Math.floor(displayCount + difference * progress);
+      
+      setDisplayCount(newDisplayCount);
+
+      if (progress < 1) {
+        requestAnimationFrame(animateCount);
+      } else {
+        setDisplayCount(newCount); // Ensure final count is accurate
+        setIsAnimating(false);
+        setFlippingDigits([]);
+      }
+    };
+    requestAnimationFrame(animateCount);
+  }, [displayCount]);
+
+  // Only trigger animation when count actually changes
+  useEffect(() => {
+    if (!isLoading && count !== displayCount && count > 0) {
+      animateToNewCount(count);
+    }
+  }, [count, isLoading, animateToNewCount]);
 
   if (error) {
     console.error('ShoeCounter error:', error);
