@@ -50,8 +50,35 @@ export const useCamera = (): CameraState & CameraActions & CameraRefs => {
     }
   };
   
-  // Create effects
-  const effects = createCameraEffects(state, actions, updatedCleanup);
+  // Create effects with modified initialization logic
+  const effects = {
+    initializeOnMount: () => {
+      console.log("Camera component mounted");
+      
+      // Clear any existing photo from session storage on mount
+      sessionStorage.removeItem("solePhoto");
+      
+      // Reset all state
+      state.setCapturedImage(null);
+      state.setIsPhotoApproved(false);
+      state.setCameraError(null);
+      state.setIsLoading(false);
+      state.setIsCameraOpen(false);
+      
+      // Only start camera if we don't already have an image
+      if (!state.capturedImage) {
+        // Small delay to ensure DOM is ready
+        setTimeout(() => {
+          actions.startCamera();
+        }, 100);
+      }
+    },
+    
+    cleanupOnUnmount: () => {
+      console.log("Camera component unmounting - performing full cleanup");
+      cleanup.performFullCleanup();
+    }
+  };
 
   // Reset all camera-related state on mount
   useEffect(() => {

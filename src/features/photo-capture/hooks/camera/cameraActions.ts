@@ -91,14 +91,15 @@ export const createCameraActions = (state: any) => {
   };
 
   const uploadPhotoManually = () => {
-    console.log("Manual photo upload initiated");
+    console.log("Manual photo upload initiated - stopping all camera activity");
     
-    // Stop any active camera first
+    // Stop any active camera first and clear all camera-related state
     stopCamera();
     
-    // Reset states
+    // Reset states completely
     setIsLoading(false);
     setCameraError(null);
+    setIsCameraOpen(false); // Explicitly ensure camera is closed
     
     // Clear any pending timeouts
     if (timeoutRef.current) {
@@ -106,18 +107,31 @@ export const createCameraActions = (state: any) => {
       timeoutRef.current = null;
     }
     
-    // Custom upload handler that auto-approves
-    const autoApproveUpload = (image: string | null) => {
-      setCapturedImage(image);
+    // Reset attempt counter to prevent auto-restart
+    initAttemptRef.current = 0;
+    
+    // Custom upload handler that handles state properly
+    const handleManualUpload = (image: string | null) => {
+      console.log("Manual upload callback triggered with image:", !!image);
+      
       if (image) {
-        // Auto-approve manual uploads since user explicitly selected them
+        // Set the image and ensure camera stays off
+        setCapturedImage(image);
         setIsPhotoApproved(true);
-        console.log("Manual upload auto-approved");
-        toast.success("Photo uploaded and ready to continue!");
+        setIsCameraOpen(false); // Double-ensure camera is off
+        setIsLoading(false);
+        setCameraError(null);
+        
+        console.log("Manual upload completed successfully - camera should stay off");
+        toast.success("Photo uploaded successfully!");
       }
     };
     
-    uploadImageManually(autoApproveUpload, stopCamera);
+    // Use the standard upload function with our custom handler
+    uploadImageManually(handleManualUpload, () => {
+      // Custom cleanup that doesn't restart camera
+      console.log("Manual upload cleanup - ensuring camera stays off");
+    });
   };
 
   const approvePhoto = () => {
