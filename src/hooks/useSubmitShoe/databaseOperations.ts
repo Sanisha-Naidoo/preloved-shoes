@@ -74,28 +74,53 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
   }
   
   try {
-    console.log("📝 Updating QR code in database...");
+    console.log("🔍 Verifying shoe record exists...");
     
-    // First verify the shoe exists
-    const { data: existingShoe, error: checkError } = await supabase
-      .from("shoes")
-      .select("id")
-      .eq("id", shoeId)
-      .single();
+    // First verify the shoe exists with retry logic
+    let existingShoe = null;
+    let attempts = 0;
+    const maxAttempts = 5;
     
-    if (checkError) {
-      console.error("❌ Shoe record verification failed:", checkError);
-      throw new Error(`Shoe record not found: ${checkError.message}`);
+    while (!existingShoe && attempts < maxAttempts) {
+      attempts++;
+      console.log(`📋 Verification attempt ${attempts}/${maxAttempts}`);
+      
+      const { data: checkData, error: checkError } = await supabase
+        .from("shoes")
+        .select("id, created_at")
+        .eq("id", shoeId)
+        .maybeSingle(); // Use maybeSingle to avoid errors when no record found
+      
+      if (checkError) {
+        console.error("❌ Shoe record verification failed:", checkError);
+        if (attempts === maxAttempts) {
+          throw new Error(`Shoe record verification failed: ${checkError.message}`);
+        }
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, 500));
+        continue;
+      }
+      
+      if (checkData) {
+        existingShoe = checkData;
+        console.log("✅ Shoe record verified:", { id: existingShoe.id, created_at: existingShoe.created_at });
+        break;
+      }
+      
+      if (attempts < maxAttempts) {
+        console.log(`⏳ Shoe record not found yet, waiting 500ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
     }
     
     if (!existingShoe) {
-      console.error("❌ No shoe record found with ID:", shoeId);
-      throw new Error("Shoe record not found");
+      console.error("❌ No shoe record found with ID after retries:", shoeId);
+      throw new Error("Shoe record not found after verification attempts");
     }
     
-    console.log("✅ Shoe record verified, proceeding with QR update");
+    console.log("💾 Updating QR code in database...");
     
-    // Update the QR code - don't use .single() for updates
+    // Update the QR code
     const { error: updateError } = await supabase
       .from("shoes")
       .update({ qr_code: qrCodeDataURL })
@@ -107,6 +132,7 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
     }
 
     // Verify the update was successful
+    console.log("🔍 Verifying QR code was saved...");
     const { data: verifyData, error: verifyError } = await supabase
       .from("shoes")
       .select("id, qr_code")
@@ -119,11 +145,12 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
     }
 
     const hasQrCode = !!verifyData.qr_code;
+    const qrCodeLength = verifyData.qr_code?.length || 0;
     
     console.log("✅ QR code update result:", {
       shoeId: verifyData.id,
       hasQrCode,
-      qrCodeLength: verifyData.qr_code?.length || 0
+      qrCodeLength
     });
 
     if (!hasQrCode) {
@@ -131,7 +158,7 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
     }
 
     console.log("🎉 QR code successfully saved to database");
-    logStep("QR code saved to database successfully", { shoeId, qrCodeLength: verifyData.qr_code?.length });
+    logStep("QR code saved to database successfully", { shoeId, qrCodeLength });
     return true;
 
   } catch (error: any) {

@@ -59,27 +59,32 @@ export const executeSubmission = async (
     
     setState.setSubmissionId(shoeId);
 
-    // 4. Generate and save QR code automatically
-    console.log("🔄 Step 4: Generating QR code...");
+    // 4. Wait a moment for database consistency, then generate QR code
+    console.log("⏳ Step 4: Waiting for database consistency...");
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+    
+    console.log("🔄 Step 5: Generating QR code...");
     try {
-      const qrCodeDataURL = await generateAndSaveQRCode(shoeId, setState);
+      const qrCodeDataURL = await generateAndSaveQRCodeWithRetry(shoeId, setState, 3);
       setState.setQrCodeUrl(qrCodeDataURL);
       console.log("✅ QR code generated and saved successfully");
+      
+      setState.setIsSubmitted(true);
+      console.log("🎉 SUBMISSION PROCESS COMPLETED SUCCESSFULLY WITH QR CODE");
+      toast.success("Submission successful! Your QR code has been generated.");
     } catch (qrError: any) {
-      console.error("⚠️ QR code generation failed, but submission succeeded:", qrError);
-      // Don't fail the entire submission if QR code generation fails
-      toast.warning("Submission successful, but QR code generation failed. You can try generating it manually.");
+      console.error("⚠️ QR code generation failed after retries:", qrError);
+      // Still mark as submitted since the shoe record was created successfully
+      setState.setIsSubmitted(true);
+      console.log("🎉 SUBMISSION PROCESS COMPLETED (without QR code)");
+      toast.warning("Submission successful, but QR code generation failed. The QR code will be generated when you access your shoe record.");
     }
 
-    console.log("🧹 Step 5: Cleaning up session data...");
-    logStep("Submission completed successfully with QR code");
+    console.log("🧹 Step 6: Cleaning up session data...");
+    logStep("Submission completed successfully");
     
     // Clear session storage after successful submission
     clearSessionData();
-
-    setState.setIsSubmitted(true);
-    console.log("🎉 SUBMISSION PROCESS COMPLETED SUCCESSFULLY");
-    toast.success("Submission successful! Your QR code has been generated.");
     
     if (options.onSuccess && refs.isMounted.current) {
       options.onSuccess();
@@ -106,4 +111,41 @@ export const executeSubmission = async (
     }
     refs.isSubmittingRef.current = false;
   }
+};
+
+// Helper function to retry QR code generation with exponential backoff
+const generateAndSaveQRCodeWithRetry = async (
+  shoeId: string,
+  setState: any,
+  maxRetries: number = 3
+): Promise<string> => {
+  let lastError: any;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`🔄 QR generation attempt ${attempt}/${maxRetries}`);
+      
+      // Add a small delay between retries
+      if (attempt > 1) {
+        const delay = Math.pow(2, attempt - 1) * 500; // 500ms, 1s, 2s
+        console.log(`⏳ Waiting ${delay}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+      
+      const qrCodeDataURL = await generateAndSaveQRCode(shoeId, setState);
+      console.log(`✅ QR code generated successfully on attempt ${attempt}`);
+      return qrCodeDataURL;
+      
+    } catch (error: any) {
+      console.error(`❌ QR generation attempt ${attempt} failed:`, error.message);
+      lastError = error;
+      
+      if (attempt === maxRetries) {
+        console.error("💥 All QR generation attempts failed");
+        throw lastError;
+      }
+    }
+  }
+  
+  throw lastError;
 };

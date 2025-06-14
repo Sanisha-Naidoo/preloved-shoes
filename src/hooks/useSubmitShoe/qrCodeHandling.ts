@@ -21,10 +21,15 @@ export const generateAndSaveQRCode = async (
     // Step 2: Generate QR image
     console.log("🖼️ Generating QR image...");
     const qrCodeDataURL = await generateQRCode(qrData);
+    console.log("✅ QR image generated successfully");
     
-    // Step 3: Save to database
+    // Step 3: Save to database with verification
     console.log("💾 Saving QR code to database...");
-    await updateShoeWithQRCode(shoeId, qrCodeDataURL);
+    const success = await updateShoeWithQRCode(shoeId, qrCodeDataURL);
+    
+    if (!success) {
+      throw new Error("Failed to save QR code to database");
+    }
     
     // Step 4: Update UI state
     if (setState?.setQrCodeUrl) {
@@ -33,10 +38,12 @@ export const generateAndSaveQRCode = async (
     }
     
     console.log("🎉 QR code process completed successfully");
+    logStep("QR code generated and saved successfully", { shoeId });
     return qrCodeDataURL;
     
   } catch (error: any) {
     console.error("💥 QR code generation/save failed:", error);
+    logStep("QR code generation failed", { shoeId, error: error.message });
     throw new Error(`QR code process failed: ${error.message}`);
   }
 };
