@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { validateRequiredData } from "@/utils/validationUtils";
@@ -18,6 +17,7 @@ export const useSubmitShoe = (options: UseSubmitShoeOptions = {}) => {
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [submissionId, setSubmissionId] = useState<string | null>(null);
+  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const MAX_RETRIES = options.maxRetries || 3;
   
   // Refs to prevent concurrent submissions and track component state
@@ -122,6 +122,9 @@ export const useSubmitShoe = (options: UseSubmitShoeOptions = {}) => {
       logStep("Generating QR code for shoe");
       const qrData = generateShoeQRData(shoeId);
       const qrCodeDataURL = await generateQRCode(qrData);
+      
+      // Store QR code URL in state
+      setQrCodeUrl(qrCodeDataURL);
       
       // 7. Update the shoe record with the QR code
       logStep("Updating shoe record with QR code");
@@ -236,6 +239,7 @@ export const useSubmitShoe = (options: UseSubmitShoeOptions = {}) => {
     submitData,
     setIsSubmitted,
     submissionId,
+    qrCodeUrl,
     manualRetry,
   };
 };

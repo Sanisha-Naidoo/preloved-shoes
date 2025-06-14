@@ -20,6 +20,7 @@ const Submit = () => {
     MAX_RETRIES,
     submitData,
     submissionId,
+    qrCodeUrl,
     manualRetry
   } = useSubmitShoe({
     onSuccess: () => {
@@ -87,6 +88,7 @@ const Submit = () => {
                 onSubmitAnother={handleAnotherSubmission} 
                 onFinish={handleFinish} 
                 submissionId={submissionId} 
+                qrCodeUrl={qrCodeUrl}
               />
             ) : error ? (
               <SubmissionError 
