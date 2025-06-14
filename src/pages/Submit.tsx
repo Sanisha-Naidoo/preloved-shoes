@@ -82,8 +82,12 @@ const Submit = () => {
       <div className="flex-grow flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center">
-            {isSubmitting ? (
-              <SubmissionLoading retryCount={retryCount} maxRetries={MAX_RETRIES} />
+            {isSubmitted ? (
+              <SubmissionSuccess 
+                onSubmitAnother={handleAnotherSubmission} 
+                onFinish={handleFinish} 
+                submissionId={submissionId} 
+              />
             ) : error ? (
               <SubmissionError 
                 error={error} 
@@ -91,12 +95,8 @@ const Submit = () => {
                 maxRetries={MAX_RETRIES} 
                 onRetry={handleRetry} 
               />
-            ) : isSubmitted ? (
-              <SubmissionSuccess 
-                onSubmitAnother={handleAnotherSubmission} 
-                onFinish={handleFinish} 
-                submissionId={submissionId} 
-              />
+            ) : isSubmitting ? (
+              <SubmissionLoading retryCount={retryCount} maxRetries={MAX_RETRIES} />
             ) : hasMissingCriticalData ? (
               <div className="text-center">
                 <h2 className="text-2xl font-bold mb-4">Cannot Submit</h2>
