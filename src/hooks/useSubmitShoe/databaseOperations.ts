@@ -47,126 +47,128 @@ export const createShoeRecord = async (data: ShoeData): Promise<string> => {
 };
 
 export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string): Promise<boolean> => {
-  console.log("=== DATABASE QR UPDATE START ===");
-  console.log("🗄️ Updating shoe with QR code:");
-  console.log("Input parameters:", {
+  console.log("=== STARTING QR CODE DATABASE UPDATE ===");
+  console.log("🔍 Input validation:", {
     shoeId,
-    shoeIdType: typeof shoeId,
-    shoeIdValid: !!shoeId,
-    qrCodeLength: qrCodeDataURL.length,
-    qrCodeType: typeof qrCodeDataURL,
-    qrCodeValid: !!qrCodeDataURL,
-    isDataURL: qrCodeDataURL.startsWith('data:image'),
+    shoeIdValid: !!shoeId && shoeId.length > 0,
+    qrCodeLength: qrCodeDataURL?.length || 0,
+    qrCodeValid: !!qrCodeDataURL && qrCodeDataURL.length > 0,
     timestamp: new Date().toISOString()
   });
   
-  if (!shoeId) {
-    console.error("❌ No shoe ID provided for database update");
+  if (!shoeId || shoeId.trim() === '') {
+    const error = "❌ No valid shoe ID provided for QR code update";
+    console.error(error);
     throw new Error("Shoe ID is required for QR code update");
   }
   
-  if (!qrCodeDataURL) {
-    console.error("❌ No QR code data provided for database update");
+  if (!qrCodeDataURL || qrCodeDataURL.trim() === '') {
+    const error = "❌ No valid QR code data provided for update";
+    console.error(error);
     throw new Error("QR code data is required for update");
   }
   
   try {
-    console.log("📡 Executing Supabase update query...");
+    // First verify the shoe exists
+    console.log("🔍 Step 1: Verifying shoe exists in database...");
+    const { data: existingShoe, error: findError } = await supabase
+      .from("shoes")
+      .select("id, brand, model, qr_code")
+      .eq("id", shoeId)
+      .single();
+      
+    if (findError) {
+      console.error("❌ Error finding shoe:", findError);
+      throw new Error(`Failed to find shoe: ${findError.message}`);
+    }
+    
+    if (!existingShoe) {
+      console.error("❌ Shoe not found with ID:", shoeId);
+      throw new Error(`No shoe found with ID: ${shoeId}`);
+    }
+    
+    console.log("✅ Shoe found:", {
+      id: existingShoe.id,
+      brand: existingShoe.brand,
+      model: existingShoe.model,
+      hasExistingQrCode: !!existingShoe.qr_code,
+      existingQrCodeLength: existingShoe.qr_code?.length || 0
+    });
+    
+    // Now update with QR code
+    console.log("💾 Step 2: Updating shoe with QR code...");
     const updateStart = Date.now();
     
-    const { data, error } = await supabase
+    const { data: updateData, error: updateError } = await supabase
       .from("shoes")
       .update({ qr_code: qrCodeDataURL })
       .eq("id", shoeId)
       .select("id, qr_code");
 
     const updateDuration = Date.now() - updateStart;
-    console.log(`⏱️ Update query completed in ${updateDuration}ms`);
+    console.log(`⏱️ Update operation completed in ${updateDuration}ms`);
     
-    console.log("📊 Supabase update response analysis:");
-    console.log("Response data:", {
-      data,
-      dataType: typeof data,
-      dataArray: Array.isArray(data),
-      dataLength: data?.length,
-      hasData: !!data
+    console.log("📊 Update response analysis:");
+    console.log("Update data:", {
+      data: updateData,
+      isArray: Array.isArray(updateData),
+      length: updateData?.length || 0,
+      hasData: !!updateData
     });
-    console.log("Response error:", {
-      error,
-      errorType: typeof error,
-      hasError: !!error
+    console.log("Update error:", {
+      error: updateError,
+      hasError: !!updateError
     });
 
-    if (error) {
-      console.error("❌ Supabase update error:", error);
-      console.error("Error details:", {
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-        code: error.code
-      });
-      throw new Error(`Failed to save QR code: ${error.message}`);
+    if (updateError) {
+      console.error("❌ Supabase update error:", updateError);
+      throw new Error(`Failed to update QR code: ${updateError.message}`);
     }
 
-    if (!data || data.length === 0) {
-      console.error("❌ No data returned from update");
-      console.error("Possible causes:");
-      console.error("1. Shoe with ID does not exist");
-      console.error("2. RLS policy blocking update");
+    if (!updateData || updateData.length === 0) {
+      console.error("❌ No data returned from update operation");
+      console.error("This could indicate:");
+      console.error("1. RLS policy blocking the update");
+      console.error("2. Shoe ID doesn't exist");
       console.error("3. Database connection issue");
-      
-      // Let's verify the shoe exists
-      console.log("🔍 Verifying shoe exists...");
-      const { data: existingShoe, error: checkError } = await supabase
-        .from("shoes")
-        .select("id, brand, qr_code")
-        .eq("id", shoeId)
-        .single();
-        
-      if (checkError) {
-        console.error("❌ Error checking if shoe exists:", checkError);
-      } else if (existingShoe) {
-        console.log("✅ Shoe exists:", existingShoe);
-        console.log("Current QR code value:", {
-          hasQrCode: !!existingShoe.qr_code,
-          qrCodeLength: existingShoe.qr_code?.length
-        });
-      } else {
-        console.error("❌ Shoe does not exist in database");
-      }
-      
-      throw new Error("No shoe found with the provided ID or update failed");
+      throw new Error("Update operation returned no data - check RLS policies");
     }
 
-    const updatedShoe = data[0];
-    console.log("✅ Database update successful:");
-    console.log("Updated shoe data:", {
+    const updatedShoe = updateData[0];
+    console.log("✅ Update successful! Updated shoe:");
+    console.log("Updated data:", {
       id: updatedShoe.id,
-      hasQrCode: !!updatedShoe.qr_code,
-      qrCodeLength: updatedShoe.qr_code?.length,
-      qrCodePreview: updatedShoe.qr_code?.substring(0, 50) + "..."
+      qrCodeSaved: !!updatedShoe.qr_code,
+      qrCodeLength: updatedShoe.qr_code?.length || 0,
+      qrCodeMatches: updatedShoe.qr_code === qrCodeDataURL
     });
     
-    if (updatedShoe.qr_code) {
-      console.log("✅ QR code successfully saved to database");
-      console.log("Verification:", {
-        savedQrCodeLength: updatedShoe.qr_code.length,
-        originalQrCodeLength: qrCodeDataURL.length,
-        lengthsMatch: updatedShoe.qr_code.length === qrCodeDataURL.length,
-        contentMatches: updatedShoe.qr_code === qrCodeDataURL
-      });
+    // Final verification - re-fetch to confirm save
+    console.log("🔍 Step 3: Final verification - re-fetching from database...");
+    const { data: verifyData, error: verifyError } = await supabase
+      .from("shoes")
+      .select("id, qr_code")
+      .eq("id", shoeId)
+      .single();
+      
+    if (verifyError) {
+      console.error("❌ Verification fetch error:", verifyError);
     } else {
-      console.error("❌ QR code field is still null after update");
-      throw new Error("QR code was not saved properly - field remains null");
+      console.log("🎯 Final verification result:", {
+        id: verifyData.id,
+        hasQrCode: !!verifyData.qr_code,
+        qrCodeLength: verifyData.qr_code?.length || 0,
+        qrCodeMatches: verifyData.qr_code === qrCodeDataURL,
+        successful: !!verifyData.qr_code && verifyData.qr_code === qrCodeDataURL
+      });
     }
 
-    console.log("=== DATABASE QR UPDATE SUCCESS ===");
+    console.log("=== QR CODE DATABASE UPDATE COMPLETED SUCCESSFULLY ===");
     return true;
 
   } catch (error: any) {
-    console.error("=== DATABASE QR UPDATE ERROR ===");
-    console.error("💥 Error updating shoe with QR code:", error);
-    console.error("Full error analysis:", {
+    console.error("=== QR CODE DATABASE UPDATE FAILED ===");
+    console.error("💥 Complete error details:", {
       message: error.message,
       stack: error.stack,
       name: error.name,
