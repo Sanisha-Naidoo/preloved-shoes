@@ -1,9 +1,8 @@
+
 import React, { useEffect, useState } from 'react';
 import { Sparkles, Zap } from 'lucide-react';
 import { useShoeCounter } from '@/hooks/useShoeCounter';
 import { Skeleton } from '@/components/ui/skeleton';
-
-// REMOVED Footprints import for central icon
 
 export const ShoeCounter = () => {
   const {
@@ -32,6 +31,7 @@ export const ShoeCounter = () => {
       return () => clearTimeout(timer);
     }
   }, [count, displayCount, isLoading]);
+
   if (error) {
     console.error('ShoeCounter error:', error);
     return <div className="text-center py-6 animate-fade-in-up">
@@ -41,6 +41,7 @@ export const ShoeCounter = () => {
         </div>
       </div>;
   }
+
   if (isLoading) {
     console.log('ShoeCounter loading...');
     return <div className="text-center py-6 animate-fade-in-up">
@@ -55,7 +56,9 @@ export const ShoeCounter = () => {
         </div>
       </div>;
   }
+
   const progressPercentage = Math.min(displayCount / 6000 * 100, 100);
+
   return <div className="relative text-center py-2 animate-scale-in">
       {/* Floating Micro-interaction Elements */}
       <div className="absolute -top-1 -left-1 opacity-40 animate-float">
@@ -65,15 +68,6 @@ export const ShoeCounter = () => {
       animationDelay: '0.5s'
     }}>
         <div className="w-1 h-1 bg-gradient-to-r from-gray-600 to-gray-800 rounded-full"></div>
-      </div>
-
-      {/* Central Counter Icon with Premium Styling - REMOVED Shoe Icon */}
-      <div className="mb-6">
-        <div className="bg-gradient-to-br from-black via-gray-800 to-black rounded-2xl p-4 mx-auto w-16 h-16 flex items-center justify-center shadow-xl shadow-black/30 border border-gray-400/30">
-          {/* Removed the Footprints icon previously here */}
-          {/* Subtle Inner Glow */}
-          <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
-        </div>
       </div>
 
       {/* Count Display with Container and Apple-style Typography */}
