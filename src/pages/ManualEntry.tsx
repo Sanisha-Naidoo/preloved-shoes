@@ -11,6 +11,7 @@ import { ArrowLeft } from "lucide-react";
 
 type ShoeFormData = {
   brand: string;
+  customBrand: string;
   model: string;
   size: string;
   sizeUnit: string;
@@ -40,6 +41,7 @@ const ManualEntry = () => {
   const form = useForm<ShoeFormData>({
     defaultValues: {
       brand: "",
+      customBrand: "",
       model: "",
       size: "",
       sizeUnit: "EU",
@@ -47,15 +49,27 @@ const ManualEntry = () => {
     }
   });
 
+  const selectedBrand = form.watch("brand");
+
   // Add haptic feedback for mobile devices
   const triggerHapticFeedback = () => {
     if (navigator.vibrate) {
       navigator.vibrate(50); // Vibrate for 50ms
     }
   };
+
   const onSubmit = (data: ShoeFormData) => {
+    // Use custom brand if "Other" is selected, otherwise use the selected brand
+    const finalData = {
+      ...data,
+      brand: data.brand === "Other" ? data.customBrand : data.brand
+    };
+
+    // Remove customBrand from the final data before storing
+    const { customBrand, ...dataToStore } = finalData;
+    
     // Store the data in session storage to be used later
-    sessionStorage.setItem("shoeDetails", JSON.stringify(data));
+    sessionStorage.setItem("shoeDetails", JSON.stringify(dataToStore));
     triggerHapticFeedback();
 
     // Show a success toast
@@ -133,6 +147,27 @@ const ManualEntry = () => {
                 </FormItem>
               )} 
             />
+
+            {selectedBrand === "Other" && (
+              <FormField 
+                control={form.control} 
+                name="customBrand" 
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Custom Brand *</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Enter brand name" 
+                        className="h-12 text-base" 
+                        required 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} 
+              />
+            )}
 
             <FormField control={form.control} name="model" render={({
             field
