@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -74,31 +75,24 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
         </div>
       </Button>
 
-      {/* Secondary Action Button - Photo Capture */}
-      {hasShoeDetails && (
+      {/* Secondary Action Button - Photo Capture - Only show when details are complete but no photo taken */}
+      {hasShoeDetails && !hasSolePhoto && (
         <Button 
           onClick={() => {
             console.log("Photo capture button clicked");
             triggerHapticFeedback();
             navigate('/photo-capture');
           }} 
-          variant={hasSolePhoto ? "outline" : "default"}
-          className={`group w-full h-14 text-base font-semibold transition-all duration-500 ease-out button-premium animate-scale-in ${
-            hasSolePhoto 
-              ? 'glass-effect text-gray-700 hover:bg-white/90 hover:border-gray-300 hover:shadow-xl hover:shadow-gray-500/10' 
-              : 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 hover:shadow-xl hover:shadow-blue-500/30 border-0'
-          } rounded-2xl`}
+          variant="default"
+          className="group w-full h-14 text-base font-semibold transition-all duration-500 ease-out button-premium animate-scale-in bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 hover:shadow-xl hover:shadow-blue-500/30 border-0 rounded-2xl"
         >
           <div className="flex items-center justify-center gap-3">
-            <div className={`transition-all duration-300 ${hasSolePhoto ? 'text-blue-600' : 'text-white'}`}>
+            <div className="transition-all duration-300 text-white">
               <Camera className="h-5 w-5" />
             </div>
             <span className="tracking-tight">
-              {hasSolePhoto ? 'Retake' : 'Take'} Sole Photo
+              Take Sole Photo
             </span>
-            {hasSolePhoto && (
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-            )}
           </div>
         </Button>
       )}
