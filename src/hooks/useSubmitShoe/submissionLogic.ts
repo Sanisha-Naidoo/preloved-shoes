@@ -1,3 +1,4 @@
+
 import { toast } from "sonner";
 import { logStep } from "./submissionLogger";
 import { SubmissionState, SubmissionRefs, UseSubmitShoeOptions } from "./types";
@@ -57,14 +58,14 @@ export const executeSubmission = async (
     
     setState.setSubmissionId(shoeId);
 
-    // Give DB a much more solid window to finish creation
-    console.log("⏳ Step 4: Waiting 1.5s for DB record to be fully ready before generating QR...");
-    await new Promise(res => setTimeout(res, 1500));
+    // Wait for database consistency
+    console.log("⏳ Step 4: Waiting for database consistency...");
+    await new Promise(res => setTimeout(res, 2000));
 
-    // QR code (RETRY & new logic in qrCodeHandling)
-    console.log("🔄 Step 5: Generating QR code (heavy retry)...");
+    // Generate QR code with retry
+    console.log("🔄 Step 5: Generating QR code...");
     try {
-      const qrCodeDataURL = await generateAndSaveQRCodeWithRetry(shoeId, setState, 3); // already has waits per-attempt
+      const qrCodeDataURL = await generateAndSaveQRCodeWithRetry(shoeId, setState, 2);
       setState.setQrCodeUrl(qrCodeDataURL);
       console.log("✅ QR code generated and saved successfully");
 
@@ -72,9 +73,9 @@ export const executeSubmission = async (
       console.log("🎉 SUBMISSION PROCESS COMPLETED SUCCESSFULLY WITH QR CODE");
       toast.success("Submission successful! Your QR code has been generated.");
     } catch (qrError: any) {
-      console.error("⚠️ QR code generation failed after retries:", qrError);
+      console.error("⚠️ QR code generation failed:", qrError);
       setState.setIsSubmitted(true);
-      toast.warning("Submission successful, but QR code generation failed. The QR code will be generated when you access your shoe record.");
+      toast.warning("Submission successful, but QR code generation failed. You can try generating it manually.");
     }
 
     console.log("🧹 Step 6: Cleaning up session data...");
@@ -110,11 +111,11 @@ export const executeSubmission = async (
   }
 };
 
-// Helper function to retry QR code generation with exponential backoff
+// Helper function to retry QR code generation
 const generateAndSaveQRCodeWithRetry = async (
   shoeId: string,
   setState: any,
-  maxRetries: number = 3
+  maxRetries: number = 2
 ): Promise<string> => {
   let lastError: any;
   
@@ -122,9 +123,9 @@ const generateAndSaveQRCodeWithRetry = async (
     try {
       console.log(`🔄 QR generation attempt ${attempt}/${maxRetries}`);
       
-      // Add a small delay between retries
+      // Add a delay between retries
       if (attempt > 1) {
-        const delay = Math.pow(2, attempt - 1) * 500; // 500ms, 1s, 2s
+        const delay = attempt * 1000; // 1s, 2s
         console.log(`⏳ Waiting ${delay}ms before retry...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }

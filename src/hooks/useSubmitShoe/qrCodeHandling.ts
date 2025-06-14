@@ -1,3 +1,4 @@
+
 import { generateQRCode, generateShoeQRData } from "@/utils/qrCodeUtils";
 import { updateShoeWithQRCode } from "./databaseOperations";
 import { logStep } from "./submissionLogger";
@@ -22,7 +23,7 @@ export const generateAndSaveQRCode = async (
     const qrCodeDataURL = await generateQRCode(qrData);
     console.log("✅ QR image generated successfully");
     
-    // Step 3: Save to database with verification and retry
+    // Step 3: Save to database
     console.log("💾 Saving QR code to database...");
     const success = await updateShoeWithQRCode(shoeId, qrCodeDataURL);
     if (!success) {
@@ -42,6 +43,6 @@ export const generateAndSaveQRCode = async (
   } catch (error: any) {
     console.error("💥 QR code generation/save failed:", error);
     logStep("QR code generation failed", { shoeId, error: error.message });
-    throw new Error(`QR code process failed: ${error.message}`);
+    throw error;
   }
 };
