@@ -16,6 +16,25 @@ type ShoeFormData = {
   sizeUnit: string;
   condition: string;
 };
+
+const runningBrands = [
+  "Adidas",
+  "ASICS",
+  "Brooks",
+  "Hoka",
+  "New Balance",
+  "Nike",
+  "On Cloud",
+  "Puma",
+  "Saucony",
+  "Under Armour",
+  "Mizuno",
+  "Salomon",
+  "Altra",
+  "Merrell",
+  "Other"
+];
+
 const ManualEntry = () => {
   const navigate = useNavigate();
   const form = useForm<ShoeFormData>({
@@ -73,11 +92,13 @@ const ManualEntry = () => {
       document.removeEventListener('touchend', handleTouchEnd);
     };
   }, [navigate]);
-  return <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 p-4">
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 p-4">
       <Button variant="ghost" className="mb-6 h-12 w-12" onClick={() => {
-      triggerHapticFeedback();
-      navigate("/");
-    }}>
+        triggerHapticFeedback();
+        navigate("/");
+      }}>
         <ArrowLeft className="h-5 w-5" />
         <span className="sr-only">Back</span>
       </Button>
@@ -88,15 +109,30 @@ const ManualEntry = () => {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField control={form.control} name="brand" render={({
-            field
-          }) => <FormItem>
+            <FormField 
+              control={form.control} 
+              name="brand" 
+              render={({ field }) => (
+                <FormItem>
                   <FormLabel>Brand *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="On Cloud, Nike, Adidas, etc." required className="h-12 text-base" {...field} />
-                  </FormControl>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="h-12 text-base">
+                        <SelectValue placeholder="Select a brand" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {runningBrands.map((brand) => (
+                        <SelectItem key={brand} value={brand}>
+                          {brand}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
-                </FormItem>} />
+                </FormItem>
+              )} 
+            />
 
             <FormField control={form.control} name="model" render={({
             field
@@ -171,6 +207,8 @@ const ManualEntry = () => {
           </form>
         </Form>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default ManualEntry;
