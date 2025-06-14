@@ -71,53 +71,48 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
   }
 
   try {
-    // First verify the shoe exists
-    console.log("📋 Verifying shoe record exists...");
-    const { data: existingShoe, error: checkError } = await supabase
-      .from("shoes")
-      .select("id, created_at")
-      .eq("id", shoeId)
-      .single();
-
-    if (checkError) {
-      console.error("❌ Shoe record verification failed:", checkError);
-      throw new Error(`Shoe record verification failed: ${checkError.message}`);
-    }
-
-    if (!existingShoe) {
-      throw new Error("Shoe record not found");
-    }
-
-    console.log("✅ Shoe record verified:", { id: existingShoe.id, created_at: existingShoe.created_at });
-
-    // Update the QR code
     console.log("💾 Updating QR code in database...");
+    
+    // Use upsert approach to handle any potential issues
     const { data: updateData, error: updateError } = await supabase
       .from("shoes")
       .update({ qr_code: qrCodeDataURL })
       .eq("id", shoeId)
-      .select("id, qr_code");
+      .select("id, qr_code")
+      .single();
 
     if (updateError) {
       console.error("❌ QR update failed:", updateError);
+      
+      // If update fails, try a different approach - check if record exists first
+      const { data: existingRecord, error: checkError } = await supabase
+        .from("shoes")
+        .select("id, qr_code")
+        .eq("id", shoeId)
+        .single();
+        
+      if (checkError || !existingRecord) {
+        throw new Error(`Shoe record not found or inaccessible: ${checkError?.message || 'Record not found'}`);
+      }
+      
+      // Record exists but update failed - this might be an RLS or transaction issue
       throw new Error(`QR code update failed: ${updateError.message}`);
     }
 
-    if (!updateData || updateData.length === 0) {
-      throw new Error("No rows were updated");
+    if (!updateData) {
+      throw new Error("Update operation returned no data");
     }
 
-    const updatedRecord = updateData[0];
-    const hasQrCode = !!updatedRecord.qr_code;
+    const hasQrCode = !!updateData.qr_code;
     
     if (hasQrCode) {
-      console.log("🎉 QR code successfully saved and verified", { 
+      console.log("🎉 QR code successfully saved", { 
         id: shoeId, 
-        qrCodeLength: updatedRecord.qr_code.length 
+        qrCodeLength: updateData.qr_code.length 
       });
       logStep("QR code saved to database successfully", { 
         shoeId, 
-        qrCodeLength: updatedRecord.qr_code.length 
+        qrCodeLength: updateData.qr_code.length 
       });
       return true;
     } else {
