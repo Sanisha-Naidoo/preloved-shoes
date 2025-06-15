@@ -1,18 +1,6 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { logStep } from "./submissionLogger";
-
-// Add getCurrentUserId helper using Supabase Auth (if user is logged in)
-const getCurrentUserId = () => {
-  const user = supabase.auth.getUser
-    ? supabase.auth.getUser()
-    : null;
-  // Above is async in v2, so use .getSession() instead:
-  // This function will always be called in a context (submission) where the user must be logged in
-  // We'll use sessionStorage for user_id if user context not available, fallback to null.
-
-  // We'll return null and require the calling code to only submit if user is logged in
-  return null;
-};
 
 export interface ShoeData {
   brand: string;
@@ -24,12 +12,12 @@ export interface ShoeData {
   photoUrl: string;
 }
 
-// Expects user_id argument, so update all calls to pass user_id (required by RLS now)
-export const createShoeRecord = async (data: ShoeData, userId: string): Promise<{ shoeId: string }> => {
+// Updated to work without authentication - user_id is now optional
+export const createShoeRecord = async (data: ShoeData, userId?: string): Promise<{ shoeId: string }> => {
   logStep("Creating shoe record");
   
   try {
-    // Create the shoe record
+    // Create the shoe record with optional user_id
     const { data: shoeData, error: shoeError } = await supabase
       .from("shoes")
       .insert([
@@ -42,7 +30,7 @@ export const createShoeRecord = async (data: ShoeData, userId: string): Promise<
           rating: data.rating,
           photo_url: data.photoUrl,
           sole_photo_url: data.photoUrl,
-          user_id: userId
+          user_id: userId || null // Allow null for anonymous submissions
         },
       ])
       .select()

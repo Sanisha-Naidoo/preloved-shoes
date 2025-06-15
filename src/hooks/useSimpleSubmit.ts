@@ -6,7 +6,6 @@ import { validateImage } from "@/utils/imageUtils";
 import { processAndUploadImage } from "@/hooks/useSubmitShoe/imageProcessing";
 import { createShoeRecord } from "@/hooks/useSubmitShoe/databaseOperations";
 import { clearSessionData } from "@/hooks/useSubmitShoe/sessionCleanup";
-import { supabase } from "@/integrations/supabase/client"; // ADDED
 
 async function syncToNotion(shoe: any) {
   try {
@@ -61,19 +60,7 @@ export const useSimpleSubmit = () => {
 
       console.log("💾 Creating shoe record...");
 
-      // =================== ADDED: GET USER ID ===================
-      const session = await supabase.auth.getSession();
-      const userId = session?.data?.session?.user?.id;
-      if (!userId) {
-        setIsSubmitting(false);
-        setError("You must be logged in to submit a shoe.");
-        toast.error("You must be logged in to submit a shoe.");
-        submissionInProgress.current = false;
-        return;
-      }
-      // ==========================================================
-
-      // Updated: createShoeRecord with userId
+      // Updated: createShoeRecord without userId (anonymous submission)
       const { shoeId } = await createShoeRecord({
         brand: shoeDetails.brand,
         model: shoeDetails.model,
@@ -82,7 +69,7 @@ export const useSimpleSubmit = () => {
         condition: shoeDetails.condition,
         rating,
         photoUrl
-      }, userId);
+      });
 
       // SYNC TO NOTION (no barcode)
       syncToNotion({
