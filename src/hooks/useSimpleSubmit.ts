@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { validateRequiredData } from "@/utils/validationUtils";
@@ -6,6 +5,28 @@ import { validateImage } from "@/utils/imageUtils";
 import { processAndUploadImage } from "@/hooks/useSubmitShoe/imageProcessing";
 import { createShoeRecord } from "@/hooks/useSubmitShoe/databaseOperations";
 import { clearSessionData } from "@/hooks/useSubmitShoe/sessionCleanup";
+
+async function syncToNotion(shoe: any) {
+  // This will POST to the Supabase edge function to sync to Notion
+  try {
+    const res = await fetch(
+      "https://aycjzixhdarwgzdwoxun.functions.supabase.co/notion-sync",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(shoe),
+      }
+    );
+    if (!res.ok) {
+      const errorRes = await res.json();
+      console.error("Failed to sync with Notion", errorRes);
+    } else {
+      console.log("Shoe entry synced to Notion");
+    }
+  } catch (e) {
+    console.error("Sync to Notion failed", e);
+  }
+}
 
 export const useSimpleSubmit = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,6 +64,18 @@ export const useSimpleSubmit = () => {
       // 3. Create shoe record
       console.log("💾 Creating shoe record...");
       const { shoeId } = await createShoeRecord({
+        brand: shoeDetails.brand,
+        model: shoeDetails.model,
+        size: shoeDetails.size,
+        sizeUnit: shoeDetails.sizeUnit,
+        condition: shoeDetails.condition,
+        barcode: shoeDetails.barcode,
+        rating,
+        photoUrl
+      });
+
+      // 🆕 Sync to Notion after successful DB entry
+      syncToNotion({
         brand: shoeDetails.brand,
         model: shoeDetails.model,
         size: shoeDetails.size,
