@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { logStep } from "./submissionLogger";
 
@@ -8,7 +7,6 @@ export interface ShoeData {
   size: string;
   sizeUnit: string;
   condition: string;
-  barcode?: string;
   rating: number | null;
   photoUrl: string;
 }
@@ -27,7 +25,6 @@ export const createShoeRecord = async (data: ShoeData): Promise<{ shoeId: string
           size: data.size,
           size_unit: data.sizeUnit,
           condition: data.condition,
-          barcode: data.barcode || null,
           rating: data.rating,
           photo_url: data.photoUrl,
           sole_photo_url: data.photoUrl,

@@ -11,7 +11,6 @@ export type Database = {
     Tables: {
       shoes: {
         Row: {
-          barcode: string | null
           brand: string
           condition: string
           created_at: string
@@ -25,7 +24,6 @@ export type Database = {
           sole_photo_url: string | null
         }
         Insert: {
-          barcode?: string | null
           brand: string
           condition: string
           created_at?: string
@@ -39,7 +37,6 @@ export type Database = {
           sole_photo_url?: string | null
         }
         Update: {
-          barcode?: string | null
           brand?: string
           condition?: string
           created_at?: string

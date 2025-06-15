@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 
 // Optionally: Implement a GET endpoint on the edge function for secure proxying
-const NOTION_DB_ID = ""; // Not required here, as we'll call Notion API via function
 
 type NotionShoe = {
   id: string;
@@ -10,13 +9,8 @@ type NotionShoe = {
   Model?: string;
   Size?: string;
   Condition?: string;
-  // Add more properties if needed
+  // barcode removed
 };
-
-const NOTION_TOKEN = undefined; // Never expose real API key!
-const NOTION_VERSION = "2022-06-28";
-
-// Simple public DEMO: the secure way is to proxy through an edge function!
 
 const fetchNotionShoes = async () => {
   const res = await fetch("/api/notion-shoes"); // See note: you should proxy through an edge function
@@ -29,7 +23,6 @@ export const NotionShoeList: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // DEMO: This should call your own edge function!
     fetchNotionShoes()
       .then((data) => setShoes(data))
       .catch((e) => {
@@ -59,6 +52,7 @@ export const NotionShoeList: React.FC = () => {
               <td className="border px-2 py-1">{shoe.Model}</td>
               <td className="border px-2 py-1">{shoe.Size}</td>
               <td className="border px-2 py-1">{shoe.Condition}</td>
+              {/* barcode removed */}
             </tr>
           ))}
         </tbody>

@@ -12,10 +12,8 @@ interface ShoePayload {
   size?: string;
   sizeUnit?: string;
   condition?: string;
-  barcode?: string | null;
   rating?: number | null;
   photoUrl?: string | null;
-  // Optionally, id (uuid) and created_at
   [key: string]: any;
 }
 
@@ -53,7 +51,6 @@ serve(async (req) => {
     );
   }
 
-  // Map fields to Notion database properties (change this as needed to match your Notion DB)
   const properties: Record<string, any> = {
     Brand: { title: [{ text: { content: brand } }] },
     Size: { rich_text: [{ text: { content: size } }] },
@@ -61,11 +58,9 @@ serve(async (req) => {
   };
   if (body.model) properties.Model = { rich_text: [{ text: { content: body.model } }] };
   if (body.sizeUnit) properties["Size Unit"] = { rich_text: [{ text: { content: body.sizeUnit } }] };
-  if (body.barcode) properties.Barcode = { rich_text: [{ text: { content: body.barcode } }] };
   if (body.rating !== undefined && body.rating !== null) properties.Rating = { number: body.rating };
   if (body.photoUrl) properties.Photo = { url: body.photoUrl };
 
-  // POST to Notion API
   const notionRes = await fetch("https://api.notion.com/v1/pages", {
     method: "POST",
     headers: {

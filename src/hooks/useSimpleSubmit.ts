@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { validateRequiredData } from "@/utils/validationUtils";
@@ -7,7 +8,6 @@ import { createShoeRecord } from "@/hooks/useSubmitShoe/databaseOperations";
 import { clearSessionData } from "@/hooks/useSubmitShoe/sessionCleanup";
 
 async function syncToNotion(shoe: any) {
-  // This will POST to the Supabase edge function to sync to Notion
   try {
     const res = await fetch(
       "https://aycjzixhdarwgzdwoxun.functions.supabase.co/notion-sync",
@@ -36,7 +36,6 @@ export const useSimpleSubmit = () => {
   const submissionInProgress = useRef(false);
 
   const submitData = async () => {
-    // Prevent multiple concurrent submissions
     if (isSubmitting || isSubmitted || submissionInProgress.current) {
       console.log("Submission already in progress or completed, skipping");
       return;
@@ -46,22 +45,19 @@ export const useSimpleSubmit = () => {
       submissionInProgress.current = true;
       setIsSubmitting(true);
       setError(null);
-      
+
       console.log("🚀 Starting submission process");
-      
-      // 1. Validate data
+
       const { shoeDetails, solePhoto } = validateRequiredData();
       const rating = sessionStorage.getItem("rating") ? parseInt(sessionStorage.getItem("rating")!) : null;
       validateImage(solePhoto);
-      
+
       console.log("✅ Data validation successful");
-      
-      // 2. Upload image
+
       console.log("📸 Processing and uploading image...");
       const photoUrl = await processAndUploadImage(solePhoto);
       console.log("✅ Image upload successful:", photoUrl);
-      
-      // 3. Create shoe record
+
       console.log("💾 Creating shoe record...");
       const { shoeId } = await createShoeRecord({
         brand: shoeDetails.brand,
@@ -69,32 +65,30 @@ export const useSimpleSubmit = () => {
         size: shoeDetails.size,
         sizeUnit: shoeDetails.sizeUnit,
         condition: shoeDetails.condition,
-        barcode: shoeDetails.barcode,
         rating,
         photoUrl
       });
 
-      // 🆕 Sync to Notion after successful DB entry
+      // SYNC TO NOTION (no barcode)
       syncToNotion({
         brand: shoeDetails.brand,
         model: shoeDetails.model,
         size: shoeDetails.size,
         sizeUnit: shoeDetails.sizeUnit,
         condition: shoeDetails.condition,
-        barcode: shoeDetails.barcode,
         rating,
         photoUrl
       });
 
       console.log("✅ Shoe record created with ID:", shoeId);
-      
+
       setSubmissionId(shoeId);
       setIsSubmitted(true);
       clearSessionData();
       toast.success("Submission successful!");
-      
+
       console.log("🎉 Submission process completed successfully");
-      
+
     } catch (error: any) {
       console.error("💥 Submission process failed:", error);
       setError(error.message || "Submission failed");
@@ -114,7 +108,6 @@ export const useSimpleSubmit = () => {
     setIsSubmitted: (value: boolean) => {
       setIsSubmitted(value);
       if (!value) {
-        // Reset submission tracking when resetting submission state
         submissionInProgress.current = false;
         setSubmissionId(null);
         setError(null);

@@ -7,7 +7,7 @@ import { validateShoeSize, getSizeErrorMessage } from "../utils/sizeValidation";
 
 export const useManualEntryForm = () => {
   const navigate = useNavigate();
-  
+
   const form = useForm<ShoeFormData>({
     defaultValues: {
       brand: "",
@@ -31,16 +31,13 @@ export const useManualEntryForm = () => {
 
   const validateSize = (size: string) => {
     if (!size) return "Size is required";
-    
     if (!validateShoeSize(size, selectedSizeUnit)) {
       return getSizeErrorMessage(selectedSizeUnit);
     }
-    
     return true;
   };
 
   const onSubmit = (data: ShoeFormData) => {
-    // Validate size before submission
     const sizeValidation = validateSize(data.size);
     if (sizeValidation !== true) {
       form.setError("size", { message: sizeValidation });
@@ -54,7 +51,7 @@ export const useManualEntryForm = () => {
     };
 
     const { customBrand, ...dataToStore } = finalData;
-    
+    // barcode removed
     sessionStorage.setItem("shoeDetails", JSON.stringify(dataToStore));
     triggerHapticFeedback();
 

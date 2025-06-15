@@ -6,4 +6,5 @@ export type ShoeFormData = {
   size: string;
   sizeUnit: string;
   condition: string;
+  // barcode removed
 };

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -38,82 +37,30 @@ const BarcodeScan = () => {
   };
 
   const handleCodeDetected = (value: string, type: string) => {
-    console.log(`${type.toUpperCase()} detected:`, value);
+    // No barcode: skip any barcode handling
     setScannedValue(value);
     setCodeType(type);
     setLookingUp(true);
     stopScanning();
-    
-    const codeTypeDisplay = type === 'qrcode' ? 'QR Code' : 'Barcode';
-    toast.success(`${codeTypeDisplay} detected!`, {
+
+    // Toast and code type left for possible QR codes or other features
+    toast.success("Code detected!", {
       id: "code-detected",
       duration: 2000,
     });
   };
 
   const lookupCode = async (code: string, type: string) => {
-    try {
-      console.log(`Looking up ${type}:`, code);
-      
-      // Handle URLs in QR codes differently
-      const isUrl = code.startsWith('http');
-      let query;
-      
-      if (isUrl) {
-        console.log("Detected URL in code:", code);
-        // For URLs, we'll try to extract identifiers or query params
-        // Example: extract Nike product ID from Nike app link
-        if (code.includes('nike.app.link')) {
-          // Try to query based on partial match (better would be to extract product ID)
-          query = supabase
-            .from("shoes")
-            .select("*")
-            .ilike("model", "%nike%")
-            .maybeSingle();
-        } else {
-          // Default URL handling - just search for the full URL
-          query = supabase
-            .from("shoes")
-            .select("*")
-            .eq("barcode", code)
-            .maybeSingle();
-        }
-      } else {
-        // Regular barcode lookup
-        query = supabase
-          .from("shoes")
-          .select("*")
-          .eq("barcode", code)
-          .maybeSingle();
-      }
-
-      const { data, error } = await query;
-
-      if (error && error.code !== "PGRST116") {
-        throw error;
-      }
-
-      if (data) {
-        setShoeDetails(data);
-        setDialogOpen(true);
-      } else {
-        console.log(`No match found for ${type}:`, code);
-        setNoMatchFound(true);
-      }
-    } catch (error) {
-      console.error(`Error looking up ${type}:`, error);
-      setNoMatchFound(true);
-    } finally {
-      setLookingUp(false);
-    }
+    // No barcode: skip any shoe code lookup by barcode,
+    // can optionally keep for QR future, currently just disables search
+    setNoMatchFound(true);
+    setLookingUp(false);
   };
 
   const handleConfirmDetails = () => {
     // Store the shoe details in session storage
     sessionStorage.setItem("shoeDetails", JSON.stringify(shoeDetails));
-    // Close the dialog
     setDialogOpen(false);
-    // Navigate to the photo capture page
     navigate("/photo-capture");
   };
 
@@ -147,7 +94,7 @@ const BarcodeScan = () => {
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-3 text-center">
                   <p className="text-sm">
-                    Align the barcode or QR code within the scanner area
+                    Align the code within the scanner area
                   </p>
                 </div>
               </div>
@@ -156,11 +103,7 @@ const BarcodeScan = () => {
                 {lookingUp ? (
                   <div className="py-12 px-6 text-center">
                     <div className="animate-pulse mb-4">
-                      {codeType === 'qrcode' ? (
-                        <QrCode className="h-12 w-12 mx-auto text-gray-400" />
-                      ) : (
-                        <Barcode className="h-12 w-12 mx-auto text-gray-400" />
-                      )}
+                      <Camera className="h-12 w-12 mx-auto text-gray-400" />
                     </div>
                     <p className="text-lg font-medium">Looking up your shoe...</p>
                   </div>
@@ -168,8 +111,7 @@ const BarcodeScan = () => {
                   <div className="py-12 px-6 text-center">
                     <AlertCircle className="h-12 w-12 mx-auto mb-4 text-amber-500" />
                     <p className="text-lg font-medium mb-2">
-                      Couldn't find a match for{' '}
-                      {codeType === 'qrcode' ? 'QR code' : 'barcode'}
+                      Couldn't find a match for this code.
                     </p>
                     <p className="text-sm text-gray-500 mb-6">
                       {scannedValue && scannedValue.length > 30
@@ -223,14 +165,7 @@ const BarcodeScan = () => {
                   <p className="text-sm font-medium text-gray-500">Size</p>
                   <p className="text-lg">{shoeDetails.size}</p>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">
-                    {codeType === 'qrcode' ? 'QR Code' : 'Barcode'}
-                  </p>
-                  <p className="text-lg text-ellipsis overflow-hidden">
-                    {shoeDetails.barcode || scannedValue}
-                  </p>
-                </div>
+                {/* Barcode field removed */}
               </div>
             </div>
           )}
