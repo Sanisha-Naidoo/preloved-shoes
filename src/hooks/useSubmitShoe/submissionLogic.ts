@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import { logStep } from "./submissionLogger";
 import { SubmissionState, SubmissionRefs, UseSubmitShoeOptions } from "./types";
@@ -49,7 +48,6 @@ export const executeSubmission = async (
       size: shoeDetails.size,
       sizeUnit: shoeDetails.sizeUnit,
       condition: shoeDetails.condition,
-      barcode: shoeDetails.barcode,
       rating,
       photoUrl
     });
