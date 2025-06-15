@@ -37,6 +37,7 @@ const App = () => {
               <Route path="/submit" element={<Submit />} />
               <Route path="/thank-you" element={<ThankYou />} />
               <Route path="*" element={<NotFound />} />
+              {/* Removed /auth route */}
             </Routes>
           </ErrorBoundary>
         </BrowserRouter>
