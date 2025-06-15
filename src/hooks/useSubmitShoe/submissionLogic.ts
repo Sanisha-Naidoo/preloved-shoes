@@ -1,3 +1,4 @@
+
 import { toast } from "sonner";
 import { logStep } from "./submissionLogger";
 import { SubmissionState, SubmissionRefs, UseSubmitShoeOptions } from "./types";
@@ -6,6 +7,7 @@ import { processAndUploadImage } from "./imageProcessing";
 import { createShoeRecord } from "./databaseOperations";
 import { handleSubmissionError } from "./errorHandling";
 import { clearSessionData } from "./sessionCleanup";
+import { supabase } from "@/integrations/supabase/client";
 
 export const executeSubmission = async (
   state,
@@ -14,33 +16,41 @@ export const executeSubmission = async (
   options,
   MAX_RETRIES
 ) => {
-  // Prevent multiple concurrent submissions
   if (refs.isSubmittingRef.current || state.isSubmitted || refs.hasAttemptedSubmission.current) {
     console.log("Submission already in progress or completed, skipping");
     return;
   }
-  
-  // Mark that we've attempted submission to prevent re-triggers
+
   refs.hasAttemptedSubmission.current = true;
-  
+
   try {
     setState.setIsSubmitting(true);
     refs.isSubmittingRef.current = true;
     setState.setError(null);
     logStep("Starting submission process");
     console.log("🚀 SUBMISSION PROCESS STARTED");
-    
+
     // 1. Validate required data
     console.log("📋 Step 1: Validating data...");
     const { shoeDetails, solePhoto, rating } = performValidation();
     console.log("✅ Data validation successful");
-    
+
+    // 1.1 Get current userId
+    const session = await supabase.auth.getSession();
+    const userId = session?.data?.session?.user?.id;
+    if (!userId) {
+      setState.setIsSubmitting(false);
+      setState.setError("You must be logged in to submit a shoe.");
+      toast.error("You must be logged in to submit a shoe.");
+      return;
+    }
+
     // 2. Prepare and upload the image
     console.log("📸 Step 2: Processing and uploading image...");
     const photoUrl = await processAndUploadImage(solePhoto);
     console.log("✅ Image upload successful:", photoUrl);
-    
-    // 3. Save the shoe data to the database
+
+    // 3. Save the shoe data to the database (pass userId)
     console.log("💾 Step 3: Creating shoe record...");
     const { shoeId } = await createShoeRecord({
       brand: shoeDetails.brand,
@@ -50,24 +60,22 @@ export const executeSubmission = async (
       condition: shoeDetails.condition,
       rating,
       photoUrl
-    });
+    }, userId);
     console.log("✅ Shoe record created with ID:", shoeId);
-    
+
     setState.setSubmissionId(shoeId);
     setState.setIsSubmitted(true);
     console.log("🎉 SUBMISSION PROCESS COMPLETED");
 
     console.log("🧹 Step 4: Cleaning up session data...");
     logStep("Submission completed successfully");
-    
-    // Clear session storage after successful submission
     clearSessionData();
     toast.success("Submission successful!");
-    
+
     if (options.onSuccess && refs.isMounted.current) {
       options.onSuccess();
     }
-    
+
   } catch (error: any) {
     console.error("💥 SUBMISSION PROCESS FAILED:", {
       error: error.message,

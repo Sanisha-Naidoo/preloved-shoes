@@ -9,6 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      notion_locks: {
+        Row: {
+          locked_at: string
+          shoe_id: string
+          user_id: string | null
+        }
+        Insert: {
+          locked_at?: string
+          shoe_id: string
+          user_id?: string | null
+        }
+        Update: {
+          locked_at?: string
+          shoe_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
       shoes: {
         Row: {
           brand: string
@@ -22,6 +58,7 @@ export type Database = {
           size: string
           size_unit: string
           sole_photo_url: string | null
+          user_id: string | null
         }
         Insert: {
           brand: string
@@ -35,6 +72,7 @@ export type Database = {
           size: string
           size_unit?: string
           sole_photo_url?: string | null
+          user_id?: string | null
         }
         Update: {
           brand?: string
@@ -48,6 +86,31 @@ export type Database = {
           size?: string
           size_unit?: string
           sole_photo_url?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      shoutbox_messages: {
+        Row: {
+          id: string
+          message: string
+          name: string
+          timestamp: string
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          message: string
+          name: string
+          timestamp?: string
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          message?: string
+          name?: string
+          timestamp?: string
+          user_id?: string | null
         }
         Relationships: []
       }
