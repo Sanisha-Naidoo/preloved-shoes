@@ -30,19 +30,16 @@ const Submit = () => {
       return;
     }
 
-    // Check for missing data
+    // Check for missing shoe details (required)
     const shoeDetailsStr = sessionStorage.getItem("shoeDetails");
-    const solePhotoStr = sessionStorage.getItem("solePhoto");
     
     if (!shoeDetailsStr) {
       toast.error("Missing shoe details. Please go back and complete the form.");
       return;
     }
     
-    if (!solePhotoStr) {
-      toast.error("Missing shoe photo. Please go back and take a photo.");
-      return;
-    }
+    // Photo is now optional - don't block submission if missing
+    console.log("Starting submission process - photo is optional");
 
     // Mark that we've attempted submission to prevent duplicates
     hasAttemptedSubmission.current = true;
@@ -66,7 +63,7 @@ const Submit = () => {
   };
 
   // Check if we have critical missing data AND haven't submitted yet
-  const hasMissingCriticalData = !isSubmitted && (!sessionStorage.getItem("shoeDetails") || !sessionStorage.getItem("solePhoto"));
+  const hasMissingCriticalData = !isSubmitted && !sessionStorage.getItem("shoeDetails");
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 p-4 flex flex-col">
@@ -94,7 +91,7 @@ const Submit = () => {
               <div className="text-center">
                 <h2 className="text-2xl font-bold mb-4">Cannot Submit</h2>
                 <p className="text-gray-600 mb-6">
-                  Please go back and complete all required steps.
+                  Please go back and complete the required shoe information.
                 </p>
                 <button 
                   onClick={() => navigate("/")} 
