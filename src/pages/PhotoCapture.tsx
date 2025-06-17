@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -59,23 +58,18 @@ const PhotoCapture = () => {
     toast.info("Photo skipped - you can continue without a photo");
   };
 
-  // Fixed back button handler that properly resets the component state
+  // Fixed back button handler that properly cleans up without breaking submission flow
   const handleBackClick = () => {
-    console.log("Back button clicked, cleaning up and navigating away");
+    console.log("Back button clicked, cleaning up camera and navigating back");
     
-    // Clear the stored photo
+    // Clear only the photo from session storage (preserve shoe details for submission flow)
     sessionStorage.removeItem("solePhoto");
     
     // Stop the camera and release resources
     stopCamera();
     
-    // Use window.location.reload() to force a complete refresh
-    // This ensures a clean state when the user returns to this page
-    window.location.reload();
-    
-    // After reload completes, navigate to home
-    // This won't execute immediately due to the reload
-    navigate("/");
+    // Navigate back to manual entry using React Router (preserves session data)
+    navigate("/manual-entry");
   };
 
   // Log the current state to help with debugging
