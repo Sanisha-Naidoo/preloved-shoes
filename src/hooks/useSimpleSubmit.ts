@@ -50,7 +50,11 @@ export const useSimpleSubmit = () => {
 
       const { shoeDetails, solePhoto } = validateRequiredData();
       const rating = sessionStorage.getItem("rating") ? parseInt(sessionStorage.getItem("rating")!) : null;
-      validateImage(solePhoto);
+      
+      // Only validate image if photo is provided
+      if (solePhoto) {
+        validateImage(solePhoto);
+      }
 
       console.log("✅ Data validation successful");
 
