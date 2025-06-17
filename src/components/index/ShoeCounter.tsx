@@ -53,7 +53,6 @@ export const ShoeCounter = () => {
         <div className="glass-effect border border-red-100/60 rounded-2xl p-6 transition-all duration-300">
           <Activity className="h-8 w-8 text-red-400 mx-auto mb-3" />
           <p className="text-red-600 font-medium text-sm">running to fetch content</p>
-          <p className="text-red-500 text-xs mt-1">{error}</p>
         </div>
       </div>;
   }
