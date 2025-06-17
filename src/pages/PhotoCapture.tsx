@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Camera, Upload, Skip } from "lucide-react";
+import { Camera, Upload, SkipForward } from "lucide-react";
 import { useStepperProgress } from "@/hooks/useStepperProgress";
 import { Stepper } from "@/components/ui/stepper";
 
@@ -159,7 +159,7 @@ const PhotoCapture = () => {
               variant="secondary"
               className="w-full flex items-center justify-center"
             >
-              <Skip className="mr-2 h-4 w-4" /> Skip photo (optional)
+              <SkipForward className="mr-2 h-4 w-4" /> Skip photo (optional)
             </Button>
           </div>
         )}
@@ -204,7 +204,7 @@ const PhotoCapture = () => {
                 variant="secondary"
                 className="flex items-center justify-center"
               >
-                <Skip className="mr-2 h-4 w-4" /> Skip photo (optional)
+                <SkipForward className="mr-2 h-4 w-4" /> Skip photo (optional)
               </Button>
             </div>
           </div>
