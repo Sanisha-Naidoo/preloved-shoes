@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Sparkles, Zap } from 'lucide-react';
+import { Sparkles, Activity } from 'lucide-react';
 import { useShoeCounter } from '@/hooks/useShoeCounter';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -51,8 +51,8 @@ export const ShoeCounter = () => {
     console.error('ShoeCounter error:', error);
     return <div className="text-center py-6 animate-fade-in-up">
         <div className="glass-effect border border-red-100/60 rounded-2xl p-6 transition-all duration-300">
-          <Zap className="h-8 w-8 text-red-400 mx-auto mb-3" />
-          <p className="text-red-600 font-medium text-sm">Unable to load pair count</p>
+          <Activity className="h-8 w-8 text-red-400 mx-auto mb-3" />
+          <p className="text-red-600 font-medium text-sm">running to fetch content</p>
           <p className="text-red-500 text-xs mt-1">{error}</p>
         </div>
       </div>;
