@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import { initializeCamera, cleanupCameraResources } from "./cameraInitialization";
 import { capturePhotoFromVideo, uploadImageManually } from "./photoCapture";
@@ -90,6 +89,12 @@ export const createCameraActions = (state: any) => {
     setIsCameraOpen(false);
     
     toast.success("Photo deleted successfully!");
+    
+    // Restart the camera after deleting the photo
+    console.log("Restarting camera after photo deletion");
+    setTimeout(() => {
+      startCamera();
+    }, 100);
   };
 
   const cancelCameraAccess = () => {
