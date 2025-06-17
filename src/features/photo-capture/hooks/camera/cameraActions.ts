@@ -17,9 +17,9 @@ export const createCameraActions = (state: any) => {
     initAttemptRef,
   } = state;
 
-  const startCamera = async () => {
-    // Don't retry if we already have an image
-    if (capturedImage) {
+  const startCamera = async (forceRestart = false) => {
+    // Don't retry if we already have an image, unless forcing restart
+    if (capturedImage && !forceRestart) {
       console.log("Not starting camera: already have image");
       return;
     }
@@ -90,10 +90,10 @@ export const createCameraActions = (state: any) => {
     
     toast.success("Photo deleted successfully!");
     
-    // Restart the camera after deleting the photo
-    console.log("Restarting camera after photo deletion");
+    // Force restart the camera after deleting the photo
+    console.log("Force restarting camera after photo deletion");
     setTimeout(() => {
-      startCamera();
+      startCamera(true); // Force restart bypassing image check
     }, 100);
   };
 
