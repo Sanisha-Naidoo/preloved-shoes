@@ -8,7 +8,6 @@ import { Stepper } from "@/components/ui/stepper";
 import { SubmissionLoading } from "@/components/submit/SubmissionLoading";
 import { SubmissionError } from "@/components/submit/SubmissionError";
 import { SubmissionSuccess } from "@/components/submit/SubmissionSuccess";
-import { toast } from "sonner";
 
 const Submit = () => {
   const navigate = useNavigate();
@@ -25,21 +24,21 @@ const Submit = () => {
   } = useSimpleSubmit();
 
   useEffect(() => {
+    // Check if user has completed required steps - if not, redirect back
+    const shoeDetailsStr = sessionStorage.getItem("shoeDetails");
+    
+    if (!shoeDetailsStr) {
+      // User hasn't completed required steps, redirect to start
+      navigate("/manual-entry");
+      return;
+    }
+
     // Prevent multiple submission attempts
     if (hasAttemptedSubmission.current || isSubmitted || isSubmitting) {
       return;
     }
 
-    // Check for missing shoe details (required)
-    const shoeDetailsStr = sessionStorage.getItem("shoeDetails");
-    
-    if (!shoeDetailsStr) {
-      toast.error("Missing shoe details. Please go back and complete the form.");
-      return;
-    }
-    
-    // Photo is now optional - don't block submission if missing
-    console.log("Starting submission process - photo is optional");
+    console.log("Starting submission process");
 
     // Mark that we've attempted submission to prevent duplicates
     hasAttemptedSubmission.current = true;
@@ -62,9 +61,6 @@ const Submit = () => {
     navigate("/thank-you");
   };
 
-  // Check if we have critical missing data AND haven't submitted yet
-  const hasMissingCriticalData = !isSubmitted && !sessionStorage.getItem("shoeDetails");
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 p-4 flex flex-col">
       <div className="max-w-md mx-auto mb-6">
@@ -85,22 +81,9 @@ const Submit = () => {
                 error={error} 
                 onRetry={handleRetry} 
               />
-            ) : isSubmitting ? (
+            ) : (
               <SubmissionLoading />
-            ) : hasMissingCriticalData ? (
-              <div className="text-center">
-                <h2 className="text-2xl font-bold mb-4">Cannot Submit</h2>
-                <p className="text-gray-600 mb-6">
-                  Please go back and complete the required shoe information.
-                </p>
-                <button 
-                  onClick={() => navigate("/")} 
-                  className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
-                >
-                  Go Back
-                </button>
-              </div>
-            ) : null}
+            )}
           </CardContent>
         </Card>
       </div>

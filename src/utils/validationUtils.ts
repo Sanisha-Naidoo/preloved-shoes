@@ -12,34 +12,22 @@ export const validateRequiredData = () => {
   console.log("Sole photo exists:", !!solePhotoStr);
   
   if (!shoeDetailsStr) {
-    throw new Error("Missing shoe details. Please complete the shoe information form.");
+    throw new Error("Session data lost. Please restart the submission process.");
   }
   
   try {
     // Verify JSON is valid
     const shoeDetails = JSON.parse(shoeDetailsStr);
     
-    // Validate required fields in shoe details
-    const requiredFields = ['brand', 'size', 'sizeUnit', 'condition'];
-    const missingFields = requiredFields.filter(field => !shoeDetails[field]);
-    
-    if (missingFields.length > 0) {
-      throw new Error(`Missing required shoe information: ${missingFields.join(', ')}. Please complete all required fields.`);
-    }
-    
-    // Photo is now optional - validate only if present
-    if (solePhotoStr && !solePhotoStr.startsWith('data:image')) {
-      throw new Error("Invalid photo format. Please capture a new photo.");
+    // Basic validation - assume data was validated in previous steps
+    if (!shoeDetails.brand || !shoeDetails.size || !shoeDetails.condition) {
+      throw new Error("Session data corrupted. Please restart the submission process.");
     }
     
     console.log("Data validation successful");
     return { shoeDetails, solePhoto: solePhotoStr || null };
   } catch (e: any) {
     console.error("Data validation error:", e);
-    if (e.message.includes("Missing required") || e.message.includes("Invalid photo")) {
-      throw e; // Use the detailed error message we created
-    } else {
-      throw new Error("Invalid shoe data format. Please try again.");
-    }
+    throw new Error("Session data corrupted. Please restart the submission process.");
   }
 };

@@ -1,7 +1,6 @@
 
 import { useState, useRef } from "react";
 import { toast } from "sonner";
-import { validateRequiredData } from "@/utils/validationUtils";
 import { validateImage } from "@/utils/imageUtils";
 import { processAndUploadImage } from "@/hooks/useSubmitShoe/imageProcessing";
 import { createShoeRecord } from "@/hooks/useSubmitShoe/databaseOperations";
@@ -48,23 +47,30 @@ export const useSimpleSubmit = () => {
 
       console.log("🚀 Starting submission process");
 
-      const { shoeDetails, solePhoto } = validateRequiredData();
+      // Get data from sessionStorage - assume it's valid since user reached this step
+      const shoeDetailsStr = sessionStorage.getItem("shoeDetails");
+      const solePhotoStr = sessionStorage.getItem("solePhoto");
       const rating = sessionStorage.getItem("rating") ? parseInt(sessionStorage.getItem("rating")!) : null;
       
-      // Only validate image if photo is provided
-      if (solePhoto) {
-        validateImage(solePhoto);
+      if (!shoeDetailsStr) {
+        throw new Error("Session data lost. Please start over.");
       }
 
-      console.log("✅ Data validation successful");
+      const shoeDetails = JSON.parse(shoeDetailsStr);
+      
+      // Only validate image if photo is provided
+      if (solePhotoStr) {
+        validateImage(solePhotoStr);
+      }
+
+      console.log("✅ Data retrieval successful");
 
       console.log("📸 Processing and uploading image...");
-      const photoUrl = await processAndUploadImage(solePhoto);
+      const photoUrl = await processAndUploadImage(solePhotoStr);
       console.log("✅ Image upload successful:", photoUrl);
 
       console.log("💾 Creating shoe record...");
 
-      // Updated: createShoeRecord without userId (anonymous submission)
       const { shoeId } = await createShoeRecord({
         brand: shoeDetails.brand,
         model: shoeDetails.model,
@@ -75,7 +81,7 @@ export const useSimpleSubmit = () => {
         photoUrl
       });
 
-      // SYNC TO NOTION (no barcode)
+      // SYNC TO NOTION
       syncToNotion({
         brand: shoeDetails.brand,
         model: shoeDetails.model,
@@ -97,7 +103,7 @@ export const useSimpleSubmit = () => {
 
     } catch (error: any) {
       console.error("💥 Submission process failed:", error);
-      setError(error.message || "Submission failed");
+      setError(error.message || "Technical error occurred. Please try again.");
       toast.error(error.message || "Submission failed");
     } finally {
       setIsSubmitting(false);

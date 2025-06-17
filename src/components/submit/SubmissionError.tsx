@@ -1,8 +1,7 @@
-
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, RotateCcw, Home, ArrowLeft } from "lucide-react";
+import { AlertTriangle, RotateCcw, Home } from "lucide-react";
 
 interface SubmissionErrorProps {
   error: string;
@@ -15,34 +14,28 @@ export const SubmissionError: React.FC<SubmissionErrorProps> = ({
 }) => {
   const navigate = useNavigate();
   
-  // Determine error category to provide appropriate guidance
-  const isImageError = error.includes("photo") || error.includes("image") || error.includes("too large");
-  const isMissingDataError = error.includes("Missing") || error.includes("required");
-  
-  // Determine where to navigate if user needs to go back
-  const getBackNavigationPath = () => {
-    if (isImageError) return "/photo-capture";
-    if (isMissingDataError) return "/manual-entry";
-    return "/";
-  };
+  // Determine if this is a network/technical error that can be retried
+  const isRetryableError = error.includes("network") || 
+                          error.includes("timeout") || 
+                          error.includes("connection") ||
+                          error.includes("server") ||
+                          error.includes("failed to upload") ||
+                          error.includes("database");
   
   return (
     <div>
       <div className="h-24 w-24 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-6">
         <AlertTriangle className="h-12 w-12 text-red-600" />
       </div>
-      <h2 className="text-2xl font-bold mb-4">Submission Error</h2>
+      <h2 className="text-2xl font-bold mb-4">Technical Error</h2>
       <p className="text-gray-600 mb-4">{error}</p>
       
-      {/* Specific guidance based on error type */}
-      {isImageError && (
-        <p className="text-sm text-amber-600 mb-6">
-          There was a problem with your shoe image. Please go back and try taking a new photo.
-        </p>
-      )}
+      <p className="text-sm text-amber-600 mb-6">
+        This appears to be a technical issue. Please try again.
+      </p>
       
       <div className="space-y-4">
-        {onRetry && (
+        {onRetry && isRetryableError && (
           <Button 
             onClick={onRetry} 
             className="w-full flex items-center justify-center"
@@ -50,17 +43,6 @@ export const SubmissionError: React.FC<SubmissionErrorProps> = ({
           >
             <RotateCcw className="mr-2 h-4 w-4" />
             Try Again
-          </Button>
-        )}
-        
-        {(isMissingDataError || isImageError) && (
-          <Button 
-            onClick={() => navigate(getBackNavigationPath())} 
-            className="w-full flex items-center justify-center"
-            variant={onRetry ? "outline" : "default"}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Go Back and Fix
           </Button>
         )}
         
