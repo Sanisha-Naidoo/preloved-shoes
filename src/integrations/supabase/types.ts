@@ -45,6 +45,59 @@ export type Database = {
         }
         Relationships: []
       }
+      scan_entries: {
+        Row: {
+          created_at: string
+          description: string | null
+          file_size: number
+          file_type: string
+          file_url: string
+          filename: string
+          id: string
+          notes: string | null
+          notion_id: string | null
+          shoe_id: string | null
+          tags: string[] | null
+          upload_date: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          file_size: number
+          file_type: string
+          file_url: string
+          filename: string
+          id?: string
+          notes?: string | null
+          notion_id?: string | null
+          shoe_id?: string | null
+          tags?: string[] | null
+          upload_date?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          file_size?: number
+          file_type?: string
+          file_url?: string
+          filename?: string
+          id?: string
+          notes?: string | null
+          notion_id?: string | null
+          shoe_id?: string | null
+          tags?: string[] | null
+          upload_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scan_entries_shoe_id_fkey"
+            columns: ["shoe_id"]
+            isOneToOne: false
+            referencedRelation: "shoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shoes: {
         Row: {
           brand: string
@@ -96,21 +149,18 @@ export type Database = {
           message: string
           name: string
           timestamp: string
-          user_id: string | null
         }
         Insert: {
           id?: string
           message: string
           name: string
           timestamp?: string
-          user_id?: string | null
         }
         Update: {
           id?: string
           message?: string
           name?: string
           timestamp?: string
-          user_id?: string | null
         }
         Relationships: []
       }

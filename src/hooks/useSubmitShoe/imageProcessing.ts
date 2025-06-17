@@ -3,7 +3,14 @@ import { dataURLtoFile } from "@/utils/imageUtils";
 import { uploadFileWithRetry } from "@/utils/uploadUtils";
 import { logStep } from "./submissionLogger";
 
-export const processAndUploadImage = async (solePhoto: string): Promise<string> => {
+export const processAndUploadImage = async (solePhoto: string | null): Promise<string | null> => {
+  // If no photo provided, return null
+  if (!solePhoto) {
+    console.log("🖼️ No photo provided - skipping image processing");
+    logStep("No photo provided, skipping image upload");
+    return null;
+  }
+
   console.log("🖼️ IMAGE PROCESSING START", {
     dataLength: solePhoto?.length,
     startsWithData: solePhoto?.startsWith('data:'),

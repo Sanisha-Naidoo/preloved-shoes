@@ -6,7 +6,7 @@ import { createCleanupUtilities } from "./camera/cameraCleanup";
 import { createCameraEffects } from "./camera/cameraEffects";
 import { CameraState, CameraActions, CameraRefs } from "./camera/types";
 
-export const useCamera = (): CameraState & CameraActions & CameraRefs => {
+export const useCamera = (): CameraState & CameraActions & CameraRefs & { deletePhoto: () => void } => {
   // Initialize state
   const state = useCameraState();
   
@@ -100,6 +100,7 @@ export const useCamera = (): CameraState & CameraActions & CameraRefs => {
     videoRef: state.videoRef,
     canvasRef: state.canvasRef,
     capturePhoto: actions.capturePhoto,
+    deletePhoto: actions.deletePhoto,
     retryCamera: updatedCleanup.retryCamera,
     cancelCameraAccess: actions.cancelCameraAccess,
     startCamera: actions.startCamera,

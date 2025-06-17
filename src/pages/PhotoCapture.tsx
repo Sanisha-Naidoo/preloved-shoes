@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Camera, Upload } from "lucide-react";
+import { Camera, Upload, Skip } from "lucide-react";
 import { useStepperProgress } from "@/hooks/useStepperProgress";
 import { Stepper } from "@/components/ui/stepper";
 
@@ -27,6 +27,7 @@ const PhotoCapture = () => {
     videoRef,
     canvasRef,
     capturePhoto,
+    deletePhoto,
     retryCamera,
     cancelCameraAccess,
     uploadPhotoManually,
@@ -34,14 +35,28 @@ const PhotoCapture = () => {
   } = useCamera();
 
   const handleContinue = () => {
-    if (!capturedImage) {
-      toast.error("Please capture a photo of the sole before continuing.");
-      return;
+    // Save the image to session storage only when continuing (if there is one)
+    if (capturedImage) {
+      sessionStorage.setItem("solePhoto", capturedImage);
+    } else {
+      // Clear any existing photo if skipping
+      sessionStorage.removeItem("solePhoto");
     }
-    
-    // Now save the image to session storage only when continuing
-    sessionStorage.setItem("solePhoto", capturedImage);
     navigate("/rating");
+  };
+
+  const handleSkipPhoto = () => {
+    console.log("Skipping photo capture");
+    
+    // Clear any stored photo
+    sessionStorage.removeItem("solePhoto");
+    
+    // Stop the camera and release resources
+    stopCamera();
+    
+    // Navigate to rating
+    navigate("/rating");
+    toast.info("Photo skipped - you can continue without a photo");
   };
 
   // Fixed back button handler that properly resets the component state
@@ -107,6 +122,7 @@ const PhotoCapture = () => {
                 capturedImage={capturedImage}
                 onRetake={retryCamera}
                 onContinue={handleContinue}
+                onDelete={deletePhoto}
               />
             ) : (
               <div className="p-6 text-center">
@@ -129,13 +145,23 @@ const PhotoCapture = () => {
         
         {/* Moved "Upload Photo Instead" button to below the camera box */}
         {!capturedImage && (
-          <Button 
-            onClick={uploadPhotoManually}
-            variant="outline"
-            className="mb-4 w-full flex items-center justify-center"
-          >
-            <Upload className="mr-2 h-4 w-4" /> Upload photo from device instead
-          </Button>
+          <div className="space-y-3 mb-4">
+            <Button 
+              onClick={uploadPhotoManually}
+              variant="outline"
+              className="w-full flex items-center justify-center"
+            >
+              <Upload className="mr-2 h-4 w-4" /> Upload photo from device
+            </Button>
+            
+            <Button 
+              onClick={handleSkipPhoto}
+              variant="secondary"
+              className="w-full flex items-center justify-center"
+            >
+              <Skip className="mr-2 h-4 w-4" /> Skip photo (optional)
+            </Button>
+          </div>
         )}
 
         {/* Hidden canvas for capturing images */}
@@ -171,6 +197,14 @@ const PhotoCapture = () => {
                 className="flex items-center justify-center"
               >
                 <Camera className="mr-2 h-4 w-4" /> Try camera again
+              </Button>
+              
+              <Button
+                onClick={handleSkipPhoto}
+                variant="secondary"
+                className="flex items-center justify-center"
+              >
+                <Skip className="mr-2 h-4 w-4" /> Skip photo (optional)
               </Button>
             </div>
           </div>

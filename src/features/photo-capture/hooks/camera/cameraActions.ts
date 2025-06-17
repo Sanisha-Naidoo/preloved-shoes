@@ -76,6 +76,22 @@ export const createCameraActions = (state: any) => {
     setIsPhotoApproved(false);
   };
 
+  const deletePhoto = () => {
+    console.log("Deleting captured photo");
+    setCapturedImage(null);
+    setIsPhotoApproved(false);
+    
+    // Clear from session storage
+    sessionStorage.removeItem("solePhoto");
+    
+    // Reset camera state
+    setCameraError(null);
+    setIsLoading(false);
+    setIsCameraOpen(false);
+    
+    toast.success("Photo deleted successfully!");
+  };
+
   const cancelCameraAccess = () => {
     console.log("Camera access canceled by user");
     setIsLoading(false);
@@ -144,6 +160,7 @@ export const createCameraActions = (state: any) => {
     startCamera,
     stopCamera,
     capturePhoto,
+    deletePhoto,
     cancelCameraAccess,
     uploadPhotoManually,
     approvePhoto,

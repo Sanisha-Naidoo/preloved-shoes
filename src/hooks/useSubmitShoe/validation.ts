@@ -5,7 +5,7 @@ import { logStep } from "./submissionLogger";
 
 export interface ValidationResult {
   shoeDetails: any;
-  solePhoto: string;
+  solePhoto: string | null;
   rating: number | null;
 }
 
@@ -20,8 +20,13 @@ export const performValidation = (): ValidationResult => {
     rating 
   });
   
-  logStep("Validating image");
-  validateImage(solePhoto);
+  // Only validate image if photo is provided
+  if (solePhoto) {
+    logStep("Validating image");
+    validateImage(solePhoto);
+  } else {
+    logStep("No photo provided - skipping image validation");
+  }
   
   return { shoeDetails, solePhoto, rating };
 };

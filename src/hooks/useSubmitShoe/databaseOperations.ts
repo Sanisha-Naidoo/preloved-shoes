@@ -9,7 +9,7 @@ export interface ShoeData {
   sizeUnit: string;
   condition: string;
   rating: number | null;
-  photoUrl: string;
+  photoUrl: string | null;
 }
 
 // Updated to work without authentication - user_id is now optional
@@ -17,7 +17,7 @@ export const createShoeRecord = async (data: ShoeData, userId?: string): Promise
   logStep("Creating shoe record");
   
   try {
-    // Create the shoe record with optional user_id
+    // Create the shoe record with optional user_id and photoUrl
     const { data: shoeData, error: shoeError } = await supabase
       .from("shoes")
       .insert([

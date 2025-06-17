@@ -1,7 +1,7 @@
 
 /**
  * Validates that required data is present in sessionStorage
- * @returns An object containing validated shoe details and sole photo
+ * @returns An object containing validated shoe details and optional sole photo
  */
 export const validateRequiredData = () => {
   const shoeDetailsStr = sessionStorage.getItem("shoeDetails");
@@ -13,10 +13,6 @@ export const validateRequiredData = () => {
   
   if (!shoeDetailsStr) {
     throw new Error("Missing shoe details. Please complete the shoe information form.");
-  }
-  
-  if (!solePhotoStr) {
-    throw new Error("Missing shoe photo. Please capture a photo of your shoe sole.");
   }
   
   try {
@@ -31,16 +27,16 @@ export const validateRequiredData = () => {
       throw new Error(`Missing required shoe information: ${missingFields.join(', ')}. Please complete all required fields.`);
     }
     
-    // Validate photo data
-    if (!solePhotoStr.startsWith('data:image')) {
+    // Photo is now optional - validate only if present
+    if (solePhotoStr && !solePhotoStr.startsWith('data:image')) {
       throw new Error("Invalid photo format. Please capture a new photo.");
     }
     
     console.log("Data validation successful");
-    return { shoeDetails, solePhoto: solePhotoStr };
+    return { shoeDetails, solePhoto: solePhotoStr || null };
   } catch (e: any) {
     console.error("Data validation error:", e);
-    if (e.message.includes("Missing required")) {
+    if (e.message.includes("Missing required") || e.message.includes("Invalid photo")) {
       throw e; // Use the detailed error message we created
     } else {
       throw new Error("Invalid shoe data format. Please try again.");
