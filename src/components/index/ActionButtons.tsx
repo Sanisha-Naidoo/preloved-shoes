@@ -29,7 +29,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
 
   return (
     <div className="space-y-4 animate-fade-in-up">
-      {/* Primary Action Button - Shoe Details */}
+      {/* Primary Action Button - Shoe Details with matching gradient */}
       <Button 
         onClick={() => {
           console.log("Shoe details button clicked");
@@ -37,7 +37,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
           navigate('/manual-entry');
         }} 
         variant="default"
-        className="group w-full h-14 text-base font-semibold transition-all duration-500 ease-out button-premium bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600 hover:shadow-xl hover:shadow-green-500/30 border-0 rounded-2xl"
+        className="group w-full h-14 text-base font-semibold transition-all duration-500 ease-out button-premium bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 hover:shadow-xl hover:shadow-purple-500/30 border-0 rounded-2xl"
       >
         <div className="flex items-center justify-center gap-3">
           <div className="transition-all duration-300 text-white">
