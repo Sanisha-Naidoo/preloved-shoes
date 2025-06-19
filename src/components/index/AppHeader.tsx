@@ -17,7 +17,7 @@ export const AppHeader = () => {
           {/* Logo Section with Premium Styling and Beta Badge */}
           <div className="relative z-10 mb-8">
             <div className="relative bg-gradient-to-br from-white to-gray-50/50 backdrop-blur-sm rounded-2xl shadow-lg shadow-black/5 p-4 mx-auto w-32 h-32 flex items-center justify-center mb-6 border border-white/40 px-[8px] py-[8px] group/logo cursor-pointer overflow-hidden">
-              {/* Unique Geometric Logo with Interactive Effects */}
+              {/* Heart Icon with Interactive Effects */}
               <div className="relative w-20 h-20 transition-all duration-500 group-hover/logo:scale-110 group-hover/logo:rotate-12">
                 <svg 
                   className="w-full h-full transition-all duration-500 group-hover/logo:drop-shadow-lg" 
@@ -67,61 +67,30 @@ export const AppHeader = () => {
                     opacity="0.6"
                   />
                   
-                  {/* Main geometric shape - stylized "R" */}
+                  {/* Heart Shape with Interactive Effects */}
                   <g className="transition-all duration-500 group-hover/logo:scale-110" filter="url(#glow)">
-                    {/* Main vertical bar */}
-                    <rect 
-                      x="25" 
-                      y="20" 
-                      width="8" 
-                      height="60" 
-                      fill="url(#primaryGradient)" 
-                      rx="4"
-                      className="transition-all duration-500 group-hover/logo:fill-cyan-400"
-                    />
-                    
-                    {/* Top horizontal bar */}
-                    <rect 
-                      x="25" 
-                      y="20" 
-                      width="30" 
-                      height="8" 
-                      fill="url(#primaryGradient)" 
-                      rx="4"
-                    />
-                    
-                    {/* Middle horizontal bar */}
-                    <rect 
-                      x="25" 
-                      y="46" 
-                      width="25" 
-                      height="8" 
-                      fill="url(#accentGradient)" 
-                      rx="4"
-                    />
-                    
-                    {/* Top right curve */}
+                    {/* Main Heart Shape */}
                     <path 
-                      d="M55 20 Q70 20 70 35 Q70 50 55 50 L50 46 Q60 46 60 35 Q60 28 55 28" 
-                      fill="url(#primaryGradient)"
+                      d="M50 75 C35 60, 15 45, 15 30 C15 20, 25 15, 35 20 C40 22, 45 25, 50 30 C55 25, 60 22, 65 20 C75 15, 85 20, 85 30 C85 45, 65 60, 50 75 Z"
+                      fill="url(#primaryGradient)" 
+                      className="transition-all duration-500 group-hover/logo:fill-pink-400"
                     />
                     
-                    {/* Bottom diagonal leg */}
+                    {/* Heart Highlight */}
                     <path 
-                      d="M50 50 L70 80 L65 80 L50 58 Z" 
+                      d="M50 70 C38 58, 22 45, 22 32 C22 25, 28 21, 35 24 C40 26, 45 29, 50 34 C55 29, 60 26, 65 24 C72 21, 78 25, 78 32 C78 45, 62 58, 50 70 Z"
                       fill="url(#accentGradient)"
-                      className="transition-all duration-500 group-hover/logo:translate-x-1"
+                      opacity="0.8"
+                    />
+                    
+                    {/* Inner Heart Glow */}
+                    <path 
+                      d="M50 65 C40 55, 28 44, 28 34 C28 29, 32 26, 37 28 C41 29, 45 32, 50 37 C55 32, 59 29, 63 28 C68 26, 72 29, 72 34 C72 44, 60 55, 50 65 Z"
+                      fill="url(#centerGlow)"
+                      className="transition-all duration-500 group-hover/logo:opacity-100"
+                      opacity="0.6"
                     />
                   </g>
-                  
-                  {/* Center highlight */}
-                  <circle 
-                    cx="50" 
-                    cy="50" 
-                    r="25" 
-                    fill="url(#centerGlow)"
-                    className="transition-all duration-500 group-hover/logo:r-30"
-                  />
                   
                   {/* Floating geometric elements */}
                   <circle 
