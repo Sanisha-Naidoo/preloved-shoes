@@ -136,15 +136,15 @@ export const AppHeader = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-400/20 via-purple-500/20 to-pink-600/20 rounded-full blur-xl opacity-0 group-hover/logo:opacity-60 transition-all duration-500 animate-pulse"></div>
               </div>
               
-              {/* Beta Badge Overlay */}
-              <div className="absolute -top-2 -right-2 transition-all duration-300 group-hover/logo:scale-110">
-                <span className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold px-2 py-1 rounded-full shadow-lg shadow-indigo-500/25 border border-white/20 text-xs transition-all duration-300 hover:shadow-indigo-500/40">
+              {/* Beta Badge Overlay - Made Larger and More Visible */}
+              <div className="absolute -top-3 -right-3 transition-all duration-300 group-hover/logo:scale-110">
+                <span className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold px-3 py-1.5 rounded-full shadow-lg shadow-indigo-500/25 border border-white/20 text-sm transition-all duration-300 hover:shadow-indigo-500/40">
                   Beta
                 </span>
               </div>
             </div>
             
-            {/* Title with Typography Hierarchy */}
+            {/* Title with Typography Hierarchy - Consistent Colors */}
             <div className="space-y-2">
               <h1 className="font-black text-4xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent tracking-tight">
                 ReBOOT
@@ -157,14 +157,14 @@ export const AppHeader = () => {
             <ShoeCounter />
           </div>
 
-          {/* Floating Decorative Elements */}
+          {/* Floating Decorative Elements - Consistent Colors */}
           <div className="absolute top-4 right-4 w-2 h-2 bg-gradient-to-r from-indigo-400 to-purple-600 rounded-full opacity-60 animate-pulse"></div>
           <div className="absolute bottom-4 left-4 w-1.5 h-1.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full opacity-40 animate-pulse" style={{
           animationDelay: '1s'
         }}></div>
         </div>
 
-        {/* Ambient Glow Effects */}
+        {/* Ambient Glow Effects - Consistent Colors */}
         <div className="absolute inset-0 bg-gradient-to-r from-indigo-400/20 via-purple-500/20 to-pink-600/20 rounded-3xl blur-3xl -z-10 opacity-60 animate-pulse"></div>
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-300/10 to-purple-500/10 rounded-3xl blur-2xl -z-20"></div>
       </div>
