@@ -14,7 +14,16 @@ export const AppHeader = () => {
           {/* Subtle Grid Pattern Background */}
           <div className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(circle_at_1px_1px,_rgba(0,0,0,0.5)_1px,_transparent_0)] bg-[length:24px_24px] rounded-3xl"></div>
           
-          {/* Logo Section with Premium Styling and Beta Badge */}
+          {/* Beta Badge - Positioned in left corner */}
+          <div className="absolute top-4 left-4 z-20">
+            <div className="transition-all duration-300 group-hover:scale-105">
+              <span className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold px-2.5 py-1 rounded-full shadow-lg shadow-indigo-500/20 border border-white/20 text-xs transition-all duration-300 hover:shadow-indigo-500/40">
+                Beta
+              </span>
+            </div>
+          </div>
+          
+          {/* Logo Section with Premium Styling */}
           <div className="relative z-10 mb-8">
             <div className="relative bg-gradient-to-br from-white to-gray-50/50 backdrop-blur-sm rounded-2xl shadow-lg shadow-black/5 p-4 mx-auto w-32 h-32 flex items-center justify-center mb-6 border border-white/40 px-[8px] py-[8px] group/logo cursor-pointer">
               {/* Heart Icon with Interactive Effects */}
@@ -134,15 +143,6 @@ export const AppHeader = () => {
                 
                 {/* Pulsing glow effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-400/20 via-purple-500/20 to-pink-600/20 rounded-full blur-xl opacity-0 group-hover/logo:opacity-60 transition-all duration-500 animate-pulse"></div>
-              </div>
-            </div>
-            
-            {/* Beta Badge - Positioned outside the logo container for better visibility */}
-            <div className="absolute top-0 right-1/2 transform translate-x-12 -translate-y-2 z-20">
-              <div className="transition-all duration-300 group-hover:scale-110">
-                <span className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold px-4 py-2 rounded-full shadow-xl shadow-indigo-500/30 border border-white/30 text-sm transition-all duration-300 hover:shadow-indigo-500/50 hover:scale-105">
-                  Beta
-                </span>
               </div>
             </div>
             
