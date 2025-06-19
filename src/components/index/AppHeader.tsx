@@ -17,92 +17,75 @@ export const AppHeader = () => {
           {/* Logo Section with Premium Styling and Beta Badge */}
           <div className="relative z-10 mb-8">
             <div className="relative bg-gradient-to-br from-white to-gray-50/50 backdrop-blur-sm rounded-2xl shadow-lg shadow-black/5 p-4 mx-auto w-32 h-32 flex items-center justify-center mb-6 border border-white/40 px-[8px] py-[8px]">
-              {/* Modern Lovable-style Logo */}
+              {/* Beautiful Heart Logo with Lovable-style gradients */}
               <svg 
                 className="h-20 w-20 object-contain rounded-xl" 
                 viewBox="0 0 120 120" 
                 fill="none" 
                 xmlns="http://www.w3.org/2000/svg"
               >
-                {/* Gradient definitions */}
+                {/* Gradient definitions for modern look */}
                 <defs>
-                  <linearGradient id="bootGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#6366f1" />
-                    <stop offset="50%" stopColor="#8b5cf6" />
-                    <stop offset="100%" stopColor="#ec4899" />
+                  <linearGradient id="heartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#ff6b6b" />
+                    <stop offset="30%" stopColor="#ee5a52" />
+                    <stop offset="70%" stopColor="#ff4757" />
+                    <stop offset="100%" stopColor="#c44569" />
                   </linearGradient>
-                  <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#06b6d4" />
-                    <stop offset="100%" stopColor="#3b82f6" />
+                  <linearGradient id="heartShadow" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#000000" opacity="0.1" />
+                    <stop offset="100%" stopColor="#000000" opacity="0.3" />
                   </linearGradient>
-                  <linearGradient id="refreshGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#10b981" />
-                    <stop offset="100%" stopColor="#059669" />
+                  <linearGradient id="heartHighlight" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#ffffff" opacity="0.8" />
+                    <stop offset="50%" stopColor="#ffffff" opacity="0.3" />
+                    <stop offset="100%" stopColor="#ffffff" opacity="0.1" />
                   </linearGradient>
                 </defs>
                 
-                {/* Main boot silhouette with modern curves */}
+                {/* Heart shadow for depth */}
                 <path 
-                  d="M30 85 C30 75 28 65 30 55 C32 45 35 35 42 28 C50 20 60 18 70 18 C80 18 90 20 98 28 C105 35 108 45 110 55 C112 65 110 75 110 85 C110 90 105 92 100 92 L40 92 C35 92 30 90 30 85 Z" 
-                  fill="url(#bootGradient)" 
-                  opacity="0.95"
+                  d="M60 95 C55 90 25 65 25 40 C25 25 35 15 50 15 C55 15 60 20 60 20 C60 20 65 15 70 15 C85 15 95 25 95 40 C95 65 65 90 60 95 Z" 
+                  fill="url(#heartShadow)"
+                  transform="translate(2, 3)"
                 />
                 
-                {/* Sleek toe section */}
-                <ellipse 
-                  cx="70" 
+                {/* Main heart shape */}
+                <path 
+                  d="M60 92 C55 87 25 62 25 37 C25 22 35 12 50 12 C55 12 60 17 60 17 C60 17 65 12 70 12 C85 12 95 22 95 37 C95 62 65 87 60 92 Z" 
+                  fill="url(#heartGradient)"
+                />
+                
+                {/* Heart highlight for 3D effect */}
+                <path 
+                  d="M60 92 C55 87 25 62 25 37 C25 22 35 12 50 12 C55 12 60 17 60 17 C60 17 65 12 70 12 C85 12 95 22 95 37 C95 62 65 87 60 92 Z" 
+                  fill="url(#heartHighlight)"
+                  opacity="0.6"
+                />
+                
+                {/* Subtle inner glow */}
+                <circle 
+                  cx="45" 
                   cy="30" 
-                  rx="25" 
-                  ry="15" 
-                  fill="url(#accentGradient)" 
+                  r="8" 
+                  fill="white" 
+                  opacity="0.4"
+                />
+                
+                {/* Small sparkle effect */}
+                <circle 
+                  cx="75" 
+                  cy="25" 
+                  r="2" 
+                  fill="white" 
                   opacity="0.8"
                 />
-                
-                {/* Modern lacing system */}
-                <g stroke="white" strokeWidth="2.5" strokeLinecap="round" opacity="0.9">
-                  <line x1="55" y1="40" x2="85" y2="40"/>
-                  <line x1="57" y1="50" x2="83" y2="50"/>
-                  <line x1="59" y1="60" x2="81" y2="60"/>
-                  <line x1="61" y1="70" x2="79" y2="70"/>
-                </g>
-                
-                {/* Lovable-style refresh icon */}
                 <circle 
-                  cx="95" 
-                  cy="25" 
-                  r="12" 
-                  fill="url(#refreshGradient)" 
-                  opacity="0.95"
-                />
-                
-                {/* Refresh arrow with modern styling */}
-                <path 
-                  d="M88 25 C88 20 92 16 97 16 C102 16 106 20 106 25 C106 30 102 34 97 34 M97 19 L100 16 L100 22 M97 31 L94 34 L94 28" 
-                  stroke="white" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                  fill="none"
-                />
-                
-                {/* Subtle shadow/depth */}
-                <ellipse 
-                  cx="70" 
-                  cy="95" 
-                  rx="35" 
-                  ry="8" 
-                  fill="#000000" 
-                  opacity="0.1"
-                />
-                
-                {/* Highlight for premium feel */}
-                <path 
-                  d="M35 50 C45 35 60 25 75 25 C85 25 95 30 100 40" 
-                  stroke="white" 
-                  strokeWidth="1.5" 
-                  strokeLinecap="round" 
-                  fill="none" 
-                  opacity="0.4"
+                  cx="35" 
+                  cy="45" 
+                  r="1.5" 
+                  fill="white" 
+                  opacity="0.6"
                 />
               </svg>
               
