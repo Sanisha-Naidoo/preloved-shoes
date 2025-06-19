@@ -2,6 +2,7 @@
 import React from "react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { ShoeCounter } from "./ShoeCounter";
+
 export const AppHeader = () => {
   console.log('AppHeader rendering...');
   return <header className="px-6 py-12 text-center">
@@ -16,8 +17,39 @@ export const AppHeader = () => {
           {/* Logo Section with Premium Styling and Beta Badge */}
           <div className="relative z-10 mb-8">
             <div className="relative bg-gradient-to-br from-white to-gray-50/50 backdrop-blur-sm rounded-2xl shadow-lg shadow-black/5 p-4 mx-auto w-32 h-32 flex items-center justify-center mb-6 border border-white/40 px-[8px] py-[8px]">
-              {/* Reboot Logo Image */}
-              <img src="/lovable-uploads/ba6fcc1a-24b1-4e24-8750-43bdc56bb2fb.png" alt="ReBOOT Logo" className="h-20 w-20 object-contain rounded-xl" />
+              {/* Custom SVG Logo */}
+              <svg 
+                className="h-20 w-20 object-contain rounded-xl" 
+                viewBox="0 0 100 100" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                {/* Boot sole base */}
+                <ellipse cx="50" cy="75" rx="35" ry="15" fill="#1f2937" opacity="0.8"/>
+                
+                {/* Boot upper */}
+                <path 
+                  d="M25 70 Q25 40 35 30 Q45 20 55 20 Q65 20 75 30 Q75 40 75 70 Q75 75 70 75 L30 75 Q25 75 25 70 Z" 
+                  fill="#374151" 
+                />
+                
+                {/* Boot toe cap */}
+                <ellipse cx="50" cy="30" rx="20" ry="12" fill="#4b5563"/>
+                
+                {/* Laces */}
+                <line x1="40" y1="35" x2="60" y2="35" stroke="#9ca3af" strokeWidth="2"/>
+                <line x1="42" y1="45" x2="58" y2="45" stroke="#9ca3af" strokeWidth="2"/>
+                <line x1="44" y1="55" x2="56" y2="55" stroke="#9ca3af" strokeWidth="2"/>
+                
+                {/* Refresh/reboot symbol */}
+                <circle cx="75" cy="25" r="8" fill="#22c55e" opacity="0.9"/>
+                <path 
+                  d="M71 21 Q75 17 79 21 Q79 25 75 29 Q71 25 71 21 Z" 
+                  fill="white" 
+                  strokeWidth="1.5"
+                />
+              </svg>
+              
               {/* Beta Badge Overlay */}
               <div className="absolute -top-2 -right-2">
                 <span className="bg-gradient-to-r from-black to-gray-800 text-white font-semibold px-2 py-1 rounded-full shadow-lg shadow-black/25 border border-gray-400/20 text-xs">
