@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { useShoeCounter } from '@/hooks/useShoeCounter';
-import { Shirt, Hanger } from 'lucide-react';
+import { Shirt, Loader2 } from 'lucide-react';
 
 export const ShoeCounter = () => {
   const {
@@ -32,7 +31,7 @@ export const ShoeCounter = () => {
     return (
       <div className="text-center space-y-3">
         <div className="flex items-center justify-center gap-2 text-gray-600">
-          <Hanger className="h-5 w-5 animate-pulse" />
+          <Loader2 className="h-5 w-5 animate-spin" />
           <span className="text-sm font-medium animate-pulse">hang on, fetching stuff...</span>
         </div>
       </div>
