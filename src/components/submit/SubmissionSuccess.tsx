@@ -42,10 +42,10 @@ export const SubmissionSuccess: React.FC<SubmissionSuccessProps> = ({
         </Button>
         <Button 
           onClick={onFinish}
-          className="flex items-center justify-center"
+          className="flex items-center justify-center bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 hover:shadow-xl hover:shadow-purple-500/30 border-0 rounded-2xl button-premium"
         >
           <ArrowRight className="mr-2 h-4 w-4" />
-          Finish
+          Return Home
         </Button>
       </div>
     </div>

@@ -58,7 +58,7 @@ const Submit = () => {
   };
 
   const handleFinish = () => {
-    navigate("/thank-you");
+    navigate("/");
   };
 
   return (
