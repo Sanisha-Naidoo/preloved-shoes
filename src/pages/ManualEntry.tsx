@@ -29,7 +29,7 @@ const ManualEntry = () => {
       <div className="absolute bottom-20 left-10 w-96 h-96 bg-gradient-to-br from-emerald-200/15 to-teal-200/15 rounded-full blur-3xl opacity-40"></div>
       <Button variant="ghost" className="mb-6" onClick={() => {
         triggerHapticFeedback();
-        navigate("/");
+        navigate(-1);
       }}>
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back
