@@ -21,28 +21,27 @@ const ManualEntry = () => {
   useSwipeNavigation(triggerHapticFeedback);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex flex-col relative overflow-hidden p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex flex-col p-4">
       {/* Subtle Background Pattern */}
-      <div className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(circle_at_1px_1px,_rgba(34,197,94,0.3)_1px,_transparent_0)] bg-[length:32px_32px]"></div>
+      <div className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(circle_at_1px_1px,_rgba(34,197,94,0.3)_1px,_transparent_0)] bg-[length:32px_32px] pointer-events-none"></div>
       {/* Ambient Background Shapes */}
-      <div className="absolute top-20 right-10 w-72 h-72 bg-gradient-to-br from-green-200/20 to-emerald-200/20 rounded-full blur-3xl opacity-60"></div>
-      <div className="absolute bottom-20 left-10 w-96 h-96 bg-gradient-to-br from-emerald-200/15 to-teal-200/15 rounded-full blur-3xl opacity-40"></div>
-      <Button 
-        variant="ghost" 
-        className="mb-6 relative z-50 pointer-events-auto" 
-        onClick={(e) => {
-          console.log("Back button clicked", e);
-          e.preventDefault();
-          e.stopPropagation();
-          triggerHapticFeedback();
-          navigate(-1);
-        }}
-        onMouseDown={() => console.log("Mouse down on back button")}
-        onMouseUp={() => console.log("Mouse up on back button")}
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back
-      </Button>
+      <div className="absolute top-20 right-10 w-72 h-72 bg-gradient-to-br from-green-200/20 to-emerald-200/20 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
+      <div className="absolute bottom-20 left-10 w-96 h-96 bg-gradient-to-br from-emerald-200/15 to-teal-200/15 rounded-full blur-3xl opacity-40 pointer-events-none"></div>
+      
+      <div className="relative z-10">
+        <Button 
+          variant="ghost" 
+          className="mb-6" 
+          onClick={() => {
+            console.log("Back button clicked!");
+            triggerHapticFeedback();
+            navigate(-1);
+          }}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back
+        </Button>
+      </div>
 
       <div className="max-w-md mx-auto relative z-10">
         {/* Progress Stepper */}
