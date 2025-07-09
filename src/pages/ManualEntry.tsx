@@ -28,8 +28,11 @@ const ManualEntry = () => {
       <div className="absolute top-20 right-10 w-72 h-72 bg-gradient-to-br from-green-200/20 to-emerald-200/20 rounded-full blur-3xl opacity-60"></div>
       <div className="absolute bottom-20 left-10 w-96 h-96 bg-gradient-to-br from-emerald-200/15 to-teal-200/15 rounded-full blur-3xl opacity-40"></div>
       <Button variant="ghost" className="mb-6" onClick={() => {
+        console.log("Back button clicked");
         triggerHapticFeedback();
+        console.log("About to navigate(-1)");
         navigate(-1);
+        console.log("navigate(-1) called");
       }}>
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back
