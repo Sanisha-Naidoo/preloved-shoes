@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -35,7 +34,12 @@ const ManualEntry = () => {
           onClick={() => {
             console.log("Back button clicked!");
             triggerHapticFeedback();
-            navigate(-1);
+
+            if (window.history.length > 2) {
+              window.history.back(); // Browser-style back
+            } else {
+              navigate("/"); // Fallback if no history
+            }
           }}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -55,16 +59,16 @@ const ManualEntry = () => {
         <div className="bg-white/70 backdrop-blur-xl border border-white/30 shadow-2xl shadow-gray-500/10 rounded-3xl p-6 transition-all duration-500 ease-out hover:shadow-3xl hover:shadow-gray-500/15 hover:bg-white/80">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <BrandField control={form.control} selectedBrand={selectedBrand} />
-            <ModelField control={form.control} />
-            <SizeField control={form.control} validateSize={validateSize} />
-            <ConditionField control={form.control} />
+              <BrandField control={form.control} selectedBrand={selectedBrand} />
+              <ModelField control={form.control} />
+              <SizeField control={form.control} validateSize={validateSize} />
+              <ConditionField control={form.control} />
 
-            <Button type="submit" className="w-full h-14 text-base font-medium bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 hover:shadow-xl hover:shadow-purple-500/30 border-0 rounded-2xl button-premium">
-              Continue
-            </Button>
-          </form>
-        </Form>
+              <Button type="submit" className="w-full h-14 text-base font-medium bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 hover:shadow-xl hover:shadow-purple-500/30 border-0 rounded-2xl button-premium">
+                Continue
+              </Button>
+            </form>
+          </Form>
         </div>
       </div>
     </div>
