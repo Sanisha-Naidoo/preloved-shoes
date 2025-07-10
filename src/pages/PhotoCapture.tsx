@@ -88,9 +88,12 @@ const PhotoCapture = () => {
       {/* Ambient Background Shapes */}
       <div className="absolute top-20 right-10 w-72 h-72 bg-gradient-to-br from-green-200/20 to-emerald-200/20 rounded-full blur-3xl opacity-60"></div>
       <div className="absolute bottom-20 left-10 w-96 h-96 bg-gradient-to-br from-emerald-200/15 to-teal-200/15 rounded-full blur-3xl opacity-40"></div>
-      <PhotoCaptureHeader onBack={handleBackClick} />
-
       <div className="max-w-md mx-auto relative z-10">
+        <h1 className="text-2xl font-bold mb-2">Capture Sole Photo</h1>
+        <p className="text-gray-600 mb-6">
+          Take a clear photo of the sole of your shoe. Hold your phone about 30cm away for best results.
+        </p>
+
         {/* Progress Stepper */}
         <div className="mb-6">
           <Stepper steps={steps} currentStep={currentStep} />
