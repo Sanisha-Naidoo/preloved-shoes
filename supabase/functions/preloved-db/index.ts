@@ -27,7 +27,8 @@ serve(async (req) => {
         
         // Insert directly into preloved.shoes using Supabase client
         const { data: result, error } = await supabaseAdmin
-          .from('preloved.shoes')
+          .schema('preloved')
+          .from('shoes')
           .insert({
             brand,
             model: model || null,
@@ -57,7 +58,8 @@ serve(async (req) => {
         const { shoeId, qrCodeDataURL } = data
         
         const { data: result, error } = await supabaseAdmin
-          .from('preloved.shoes')
+          .schema('preloved')
+          .from('shoes')
           .update({ qr_code: qrCodeDataURL })
           .eq('id', shoeId)
           .select('id, qr_code')
@@ -76,7 +78,8 @@ serve(async (req) => {
 
       case 'get_shoe_count': {
         const { count, error } = await supabaseAdmin
-          .from('preloved.shoes')
+          .schema('preloved')
+          .from('shoes')
           .select('*', { count: 'exact', head: true })
 
         if (error) {
@@ -94,7 +97,8 @@ serve(async (req) => {
         const { shoeId } = data
         
         const { data: result, error } = await supabaseAdmin
-          .from('preloved.shoes')
+          .schema('preloved')
+          .from('shoes')
           .select('id')
           .eq('id', shoeId)
           .maybeSingle()
