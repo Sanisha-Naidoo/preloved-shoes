@@ -27,12 +27,12 @@ serve(async (req) => {
         
         // Use raw SQL to insert into preloved schema
         const { data: result, error } = await supabaseAdmin.rpc('exec_sql', {
-          sql: `
+          sql_query: `
             INSERT INTO preloved.shoes (brand, model, size, size_unit, condition, rating, photo_url, sole_photo_url, user_id)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             RETURNING id
           `,
-          params: [brand, model || null, size, sizeUnit, condition, rating, photoUrl, photoUrl, userId || null]
+          sql_params: [brand, model || null, size, sizeUnit, condition, rating?.toString(), photoUrl, photoUrl, userId || null]
         })
 
         if (error) {
@@ -55,13 +55,13 @@ serve(async (req) => {
         const { shoeId, qrCodeDataURL } = data
         
         const { data: result, error } = await supabaseAdmin.rpc('exec_sql', {
-          sql: `
+          sql_query: `
             UPDATE preloved.shoes 
             SET qr_code = $1 
             WHERE id = $2 
             RETURNING id, qr_code
           `,
-          params: [qrCodeDataURL, shoeId]
+          sql_params: [qrCodeDataURL, shoeId]
         })
 
         if (error) {
@@ -82,8 +82,8 @@ serve(async (req) => {
 
       case 'get_shoe_count': {
         const { data: result, error } = await supabaseAdmin.rpc('exec_sql', {
-          sql: 'SELECT COUNT(*) as count FROM preloved.shoes',
-          params: []
+          sql_query: 'SELECT COUNT(*) as count FROM preloved.shoes',
+          sql_params: []
         })
 
         if (error) {
@@ -102,8 +102,8 @@ serve(async (req) => {
         const { shoeId } = data
         
         const { data: result, error } = await supabaseAdmin.rpc('exec_sql', {
-          sql: 'SELECT EXISTS(SELECT 1 FROM preloved.shoes WHERE id = $1) as exists',
-          params: [shoeId]
+          sql_query: 'SELECT EXISTS(SELECT 1 FROM preloved.shoes WHERE id = $1) as exists',
+          sql_params: [shoeId]
         })
 
         if (error) {

@@ -488,6 +488,10 @@ export type Database = {
         }
         Returns: string
       }
+      exec_sql: {
+        Args: { sql_query: string; sql_params?: string[] }
+        Returns: Json
+      }
       extend_trustee_session: {
         Args: { session_token_param: string }
         Returns: boolean
