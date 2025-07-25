@@ -14,6 +14,122 @@ export type Database = {
   }
   public: {
     Tables: {
+      feedback_reports: {
+        Row: {
+          actual_behavior: string | null
+          created_at: string
+          description: string
+          expected_behavior: string | null
+          feedback_type: string
+          id: string
+          page_url: string | null
+          priority: string
+          reproduction_steps: string | null
+          screenshot_url: string | null
+          status: string
+          title: string
+          updated_at: string
+          user_agent: string | null
+          user_email: string
+        }
+        Insert: {
+          actual_behavior?: string | null
+          created_at?: string
+          description: string
+          expected_behavior?: string | null
+          feedback_type: string
+          id?: string
+          page_url?: string | null
+          priority?: string
+          reproduction_steps?: string | null
+          screenshot_url?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_agent?: string | null
+          user_email: string
+        }
+        Update: {
+          actual_behavior?: string | null
+          created_at?: string
+          description?: string
+          expected_behavior?: string | null
+          feedback_type?: string
+          id?: string
+          page_url?: string | null
+          priority?: string
+          reproduction_steps?: string | null
+          screenshot_url?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_email?: string
+        }
+        Relationships: []
+      }
+      galleries: {
+        Row: {
+          allow_guest_uploads: boolean
+          created_at: string
+          description: string | null
+          home_id: string
+          id: string
+          is_default: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          allow_guest_uploads?: boolean
+          created_at?: string
+          description?: string | null
+          home_id: string
+          id?: string
+          is_default?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          allow_guest_uploads?: boolean
+          created_at?: string
+          description?: string | null
+          home_id?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "galleries_home_id_fkey"
+            columns: ["home_id"]
+            isOneToOne: false
+            referencedRelation: "trustee_homes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      magic_link_requests: {
+        Row: {
+          email: string
+          id: string
+          ip_address: unknown | null
+          requested_at: string | null
+        }
+        Insert: {
+          email: string
+          id?: string
+          ip_address?: unknown | null
+          requested_at?: string | null
+        }
+        Update: {
+          email?: string
+          id?: string
+          ip_address?: unknown | null
+          requested_at?: string | null
+        }
+        Relationships: []
+      }
       notion_locks: {
         Row: {
           locked_at: string
@@ -169,12 +285,247 @@ export type Database = {
         }
         Relationships: []
       }
+      trustee_actions: {
+        Row: {
+          action_type: string
+          approved_by: string[] | null
+          created_at: string | null
+          file_id: string | null
+          gallery_id: string | null
+          id: string
+          proposed_by: string
+          rejected_by: string[] | null
+          status: string
+          target_gallery_id: string | null
+        }
+        Insert: {
+          action_type: string
+          approved_by?: string[] | null
+          created_at?: string | null
+          file_id?: string | null
+          gallery_id?: string | null
+          id?: string
+          proposed_by: string
+          rejected_by?: string[] | null
+          status?: string
+          target_gallery_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          approved_by?: string[] | null
+          created_at?: string | null
+          file_id?: string | null
+          gallery_id?: string | null
+          id?: string
+          proposed_by?: string
+          rejected_by?: string[] | null
+          status?: string
+          target_gallery_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trustee_actions_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "trustee_files"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trustee_actions_gallery_id_fkey"
+            columns: ["gallery_id"]
+            isOneToOne: false
+            referencedRelation: "trustee_homes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trustee_actions_target_gallery_id_fkey"
+            columns: ["target_gallery_id"]
+            isOneToOne: false
+            referencedRelation: "galleries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trustee_files: {
+        Row: {
+          caption: string | null
+          encrypted_iv: string
+          file_name: string
+          file_size: number
+          file_type: string
+          gallery_id: string | null
+          home_id: string
+          id: string
+          ipfs_cid: string
+          status: string
+          uploaded_at: string
+          uploader_email: string
+        }
+        Insert: {
+          caption?: string | null
+          encrypted_iv: string
+          file_name: string
+          file_size: number
+          file_type: string
+          gallery_id?: string | null
+          home_id: string
+          id?: string
+          ipfs_cid: string
+          status?: string
+          uploaded_at?: string
+          uploader_email: string
+        }
+        Update: {
+          caption?: string | null
+          encrypted_iv?: string
+          file_name?: string
+          file_size?: number
+          file_type?: string
+          gallery_id?: string | null
+          home_id?: string
+          id?: string
+          ipfs_cid?: string
+          status?: string
+          uploaded_at?: string
+          uploader_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trustee_files_gallery_id_fkey"
+            columns: ["gallery_id"]
+            isOneToOne: false
+            referencedRelation: "galleries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trustee_homes: {
+        Row: {
+          created_at: string | null
+          id: string
+          shared_key: string
+          slug: string
+          trustee_1_email: string
+          trustee_2_email: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          shared_key: string
+          slug: string
+          trustee_1_email: string
+          trustee_2_email: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          shared_key?: string
+          slug?: string
+          trustee_1_email?: string
+          trustee_2_email?: string
+        }
+        Relationships: []
+      }
+      trustee_sessions: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          home_id: string | null
+          id: string
+          is_active: boolean
+          last_activity: string
+          session_token: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at?: string
+          home_id?: string | null
+          id?: string
+          is_active?: boolean
+          last_activity?: string
+          session_token: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          home_id?: string | null
+          id?: string
+          is_active?: boolean
+          last_activity?: string
+          session_token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trustee_sessions_home_id_fkey"
+            columns: ["home_id"]
+            isOneToOne: false
+            referencedRelation: "trustee_homes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      cleanup_expired_trustee_sessions: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_old_magic_link_requests: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      copy_file_to_gallery: {
+        Args: {
+          file_id_param: string
+          target_gallery_id_param: string
+          user_email_param: string
+        }
+        Returns: string
+      }
+      extend_trustee_session: {
+        Args: { session_token_param: string }
+        Returns: boolean
+      }
+      get_galleries_for_home: {
+        Args: { home_id_param: string }
+        Returns: {
+          id: string
+          name: string
+          description: string
+          is_default: boolean
+        }[]
+      }
+      get_public_gallery_data: {
+        Args: { gallery_slug: string; gallery_id_param?: string }
+        Returns: {
+          home_slug: string
+          shared_key: string
+          gallery_id: string
+          gallery_name: string
+          gallery_description: string
+          trustee_1_email: string
+          trustee_2_email: string
+          last_updated: string
+        }[]
+      }
+      move_file_to_gallery: {
+        Args: {
+          file_id_param: string
+          target_gallery_id_param: string
+          user_email_param: string
+        }
+        Returns: boolean
+      }
+      validate_email: {
+        Args: { email_input: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
