@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -12,20 +11,23 @@ export const useShoeCounter = () => {
   useEffect(() => {
     console.log('useShoeCounter effect starting...');
     
-    // Fetch initial count
+    // Fetch initial count using raw SQL
     const fetchInitialCount = async () => {
       try {
         console.log('Fetching initial shoe count...');
-        const { count: shoeCount, error: fetchError } = await supabase
-          .from('shoes')
-          .select('*', { count: 'exact', head: true });
+        const { data: countResult, error: fetchError } = await supabase
+          .rpc('exec_sql', { 
+            sql: 'SELECT COUNT(*) as count FROM preloved.shoes',
+            params: []
+          });
 
         if (fetchError) {
           console.error('Error fetching shoe count:', fetchError);
           setError('Failed to load shoe count');
         } else {
+          const shoeCount = countResult?.[0]?.count || 0;
           console.log('Initial shoe count fetched:', shoeCount);
-          setCount(shoeCount || 0);
+          setCount(parseInt(shoeCount));
         }
       } catch (err) {
         console.error('Error in fetchInitialCount:', err);
@@ -45,7 +47,7 @@ export const useShoeCounter = () => {
         'postgres_changes',
         {
           event: 'INSERT',
-          schema: 'public',
+          schema: 'preloved',
           table: 'shoes'
         },
         (payload) => {

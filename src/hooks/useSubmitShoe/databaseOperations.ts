@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { logStep } from "./submissionLogger";
 
@@ -12,41 +11,43 @@ export interface ShoeData {
   photoUrl: string | null;
 }
 
+// Helper function for raw SQL queries
+const executeRawSQL = async (query: string, params: any[] = []) => {
+  const { data, error } = await supabase
+    .rpc('exec_sql', { sql: query, params });
+  
+  if (error) throw error;
+  return data;
+};
+
 // Updated to work without authentication - user_id is now optional
 export const createShoeRecord = async (data: ShoeData, userId?: string): Promise<{ shoeId: string }> => {
   logStep("Creating shoe record");
   
   try {
-    // Create the shoe record with optional user_id and photoUrl
-    const { data: shoeData, error: shoeError } = await supabase
-      .from("shoes")
-      .insert([
-        {
-          brand: data.brand,
-          model: data.model || null,
-          size: data.size,
-          size_unit: data.sizeUnit,
-          condition: data.condition,
-          rating: data.rating,
-          photo_url: data.photoUrl,
-          sole_photo_url: data.photoUrl,
-          user_id: userId || null // Allow null for anonymous submissions
-        },
-      ])
-      .select()
-      .single();
+    // Create the shoe record with optional user_id and photoUrl using raw SQL
+    const result = await executeRawSQL(`
+      INSERT INTO preloved.shoes (brand, model, size, size_unit, condition, rating, photo_url, sole_photo_url, user_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING id
+    `, [
+      data.brand,
+      data.model || null,
+      data.size,
+      data.sizeUnit,
+      data.condition,
+      data.rating,
+      data.photoUrl,
+      data.photoUrl,
+      userId || null
+    ]);
 
-    if (shoeError) {
-      logStep("Error saving shoe data", shoeError);
-      throw shoeError;
-    }
-
-    if (!shoeData) {
+    if (!result || !result[0]?.id) {
       logStep("No shoe data returned after insert");
       throw new Error("Failed to create shoe record");
     }
 
-    const shoeId = shoeData.id;
+    const shoeId = result[0].id;
     logStep("Shoe data saved successfully", { shoeId });
 
     return { shoeId };
@@ -73,46 +74,38 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
   try {
     console.log("💾 Updating QR code in database...");
     
-    // Use upsert approach to handle any potential issues
-    const { data: updateData, error: updateError } = await supabase
-      .from("shoes")
-      .update({ qr_code: qrCodeDataURL })
-      .eq("id", shoeId)
-      .select("id, qr_code")
-      .single();
+    // Update QR code using raw SQL
+    const updateResult = await executeRawSQL(`
+      UPDATE preloved.shoes 
+      SET qr_code = $1 
+      WHERE id = $2 
+      RETURNING id, qr_code
+    `, [qrCodeDataURL, shoeId]);
 
-    if (updateError) {
-      console.error("❌ QR update failed:", updateError);
+    if (!updateResult || updateResult.length === 0) {
+      // Try to check if record exists
+      const existsResult = await executeRawSQL(`
+        SELECT id FROM preloved.shoes WHERE id = $1
+      `, [shoeId]);
       
-      // If update fails, try a different approach - check if record exists first
-      const { data: existingRecord, error: checkError } = await supabase
-        .from("shoes")
-        .select("id, qr_code")
-        .eq("id", shoeId)
-        .single();
-        
-      if (checkError || !existingRecord) {
-        throw new Error(`Shoe record not found or inaccessible: ${checkError?.message || 'Record not found'}`);
+      if (!existsResult || existsResult.length === 0) {
+        throw new Error(`Shoe record not found: ${shoeId}`);
       }
       
-      // Record exists but update failed - this might be an RLS or transaction issue
-      throw new Error(`QR code update failed: ${updateError.message}`);
+      throw new Error(`QR code update failed for shoe: ${shoeId}`);
     }
 
-    if (!updateData) {
-      throw new Error("Update operation returned no data");
-    }
-
-    const hasQrCode = !!updateData.qr_code;
+    const updatedRecord = updateResult[0];
+    const hasQrCode = !!updatedRecord.qr_code;
     
     if (hasQrCode) {
       console.log("🎉 QR code successfully saved", { 
         id: shoeId, 
-        qrCodeLength: updateData.qr_code.length 
+        qrCodeLength: updatedRecord.qr_code.length 
       });
       logStep("QR code saved to database successfully", { 
         shoeId, 
-        qrCodeLength: updateData.qr_code.length 
+        qrCodeLength: updatedRecord.qr_code.length 
       });
       return true;
     } else {
