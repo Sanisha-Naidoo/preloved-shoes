@@ -353,7 +353,122 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      notion_locks: {
+        Row: {
+          locked_at: string | null
+          shoe_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          locked_at?: string | null
+          shoe_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          locked_at?: string | null
+          shoe_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_notion_locks_shoe_id"
+            columns: ["shoe_id"]
+            isOneToOne: true
+            referencedRelation: "shoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scan_entries: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          file_size: number | null
+          file_type: string | null
+          file_url: string | null
+          filename: string | null
+          id: string | null
+          notes: string | null
+          notion_id: string | null
+          shoe_id: string | null
+          tags: string[] | null
+          upload_date: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          filename?: string | null
+          id?: string | null
+          notes?: string | null
+          notion_id?: string | null
+          shoe_id?: string | null
+          tags?: string[] | null
+          upload_date?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          filename?: string | null
+          id?: string | null
+          notes?: string | null
+          notion_id?: string | null
+          shoe_id?: string | null
+          tags?: string[] | null
+          upload_date?: string | null
+        }
+        Relationships: []
+      }
+      shoes: {
+        Row: {
+          brand: string | null
+          condition: string | null
+          created_at: string | null
+          id: string | null
+          model: string | null
+          photo_url: string | null
+          qr_code: string | null
+          rating: number | null
+          size: string | null
+          size_unit: string | null
+          sole_photo_url: string | null
+          user_id: string | null
+        }
+        Insert: {
+          brand?: string | null
+          condition?: string | null
+          created_at?: string | null
+          id?: string | null
+          model?: string | null
+          photo_url?: string | null
+          qr_code?: string | null
+          rating?: number | null
+          size?: string | null
+          size_unit?: string | null
+          sole_photo_url?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          brand?: string | null
+          condition?: string | null
+          created_at?: string | null
+          id?: string | null
+          model?: string | null
+          photo_url?: string | null
+          qr_code?: string | null
+          rating?: number | null
+          size?: string | null
+          size_unit?: string | null
+          sole_photo_url?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       cleanup_expired_trustee_sessions: {
