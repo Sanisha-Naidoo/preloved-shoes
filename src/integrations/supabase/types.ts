@@ -130,24 +130,6 @@ export type Database = {
         }
         Relationships: []
       }
-      notion_locks: {
-        Row: {
-          locked_at: string
-          shoe_id: string
-          user_id: string | null
-        }
-        Insert: {
-          locked_at?: string
-          shoe_id: string
-          user_id?: string | null
-        }
-        Update: {
-          locked_at?: string
-          shoe_id?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           created_at: string | null
@@ -163,104 +145,6 @@ export type Database = {
           created_at?: string | null
           email?: string | null
           id?: string
-        }
-        Relationships: []
-      }
-      scan_entries: {
-        Row: {
-          created_at: string
-          description: string | null
-          file_size: number
-          file_type: string
-          file_url: string
-          filename: string
-          id: string
-          notes: string | null
-          notion_id: string | null
-          shoe_id: string | null
-          tags: string[] | null
-          upload_date: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          file_size: number
-          file_type: string
-          file_url: string
-          filename: string
-          id?: string
-          notes?: string | null
-          notion_id?: string | null
-          shoe_id?: string | null
-          tags?: string[] | null
-          upload_date?: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          file_size?: number
-          file_type?: string
-          file_url?: string
-          filename?: string
-          id?: string
-          notes?: string | null
-          notion_id?: string | null
-          shoe_id?: string | null
-          tags?: string[] | null
-          upload_date?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "scan_entries_shoe_id_fkey"
-            columns: ["shoe_id"]
-            isOneToOne: false
-            referencedRelation: "shoes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      shoes: {
-        Row: {
-          brand: string
-          condition: string
-          created_at: string
-          id: string
-          model: string | null
-          photo_url: string | null
-          qr_code: string | null
-          rating: number | null
-          size: string
-          size_unit: string
-          sole_photo_url: string | null
-          user_id: string | null
-        }
-        Insert: {
-          brand: string
-          condition: string
-          created_at?: string
-          id?: string
-          model?: string | null
-          photo_url?: string | null
-          qr_code?: string | null
-          rating?: number | null
-          size: string
-          size_unit?: string
-          sole_photo_url?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          brand?: string
-          condition?: string
-          created_at?: string
-          id?: string
-          model?: string | null
-          photo_url?: string | null
-          qr_code?: string | null
-          rating?: number | null
-          size?: string
-          size_unit?: string
-          sole_photo_url?: string | null
-          user_id?: string | null
         }
         Relationships: []
       }
