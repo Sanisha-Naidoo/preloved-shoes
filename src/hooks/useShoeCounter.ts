@@ -11,23 +11,21 @@ export const useShoeCounter = () => {
   useEffect(() => {
     console.log('useShoeCounter effect starting...');
     
-    // Fetch initial count using raw SQL
+    // Fetch initial count using edge function
     const fetchInitialCount = async () => {
       try {
         console.log('Fetching initial shoe count...');
-        const { data: countResult, error: fetchError } = await supabase
-          .rpc('exec_sql', { 
-            sql: 'SELECT COUNT(*) as count FROM preloved.shoes',
-            params: []
-          });
+        const { data: result, error: fetchError } = await supabase.functions.invoke('preloved-db', {
+          body: { operation: 'get_shoe_count', data: {} }
+        });
 
         if (fetchError) {
           console.error('Error fetching shoe count:', fetchError);
           setError('Failed to load shoe count');
         } else {
-          const shoeCount = countResult?.[0]?.count || 0;
+          const shoeCount = result?.count || 0;
           console.log('Initial shoe count fetched:', shoeCount);
-          setCount(parseInt(shoeCount));
+          setCount(shoeCount);
         }
       } catch (err) {
         console.error('Error in fetchInitialCount:', err);
@@ -52,8 +50,6 @@ export const useShoeCounter = () => {
         },
         (payload) => {
           console.log('New shoe added:', payload);
-          // Ensure payload.new exists and has the expected structure if needed,
-          // for now, just incrementing.
           setCount(prevCount => prevCount + 1);
         }
       )

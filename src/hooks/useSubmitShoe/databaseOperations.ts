@@ -11,13 +11,14 @@ export interface ShoeData {
   photoUrl: string | null;
 }
 
-// Helper function for raw SQL queries
-const executeRawSQL = async (query: string, params: any[] = []) => {
-  const { data, error } = await supabase
-    .rpc('exec_sql', { sql: query, params });
+// Helper function to call the edge function
+const callPrelovedDB = async (operation: string, data: any) => {
+  const { data: result, error } = await supabase.functions.invoke('preloved-db', {
+    body: { operation, data }
+  });
   
   if (error) throw error;
-  return data;
+  return result;
 };
 
 // Updated to work without authentication - user_id is now optional
@@ -25,32 +26,24 @@ export const createShoeRecord = async (data: ShoeData, userId?: string): Promise
   logStep("Creating shoe record");
   
   try {
-    // Create the shoe record with optional user_id and photoUrl using raw SQL
-    const result = await executeRawSQL(`
-      INSERT INTO preloved.shoes (brand, model, size, size_unit, condition, rating, photo_url, sole_photo_url, user_id)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-      RETURNING id
-    `, [
-      data.brand,
-      data.model || null,
-      data.size,
-      data.sizeUnit,
-      data.condition,
-      data.rating,
-      data.photoUrl,
-      data.photoUrl,
-      userId || null
-    ]);
+    const result = await callPrelovedDB('create_shoe', {
+      brand: data.brand,
+      model: data.model,
+      size: data.size,
+      sizeUnit: data.sizeUnit,
+      condition: data.condition,
+      rating: data.rating,
+      photoUrl: data.photoUrl,
+      userId
+    });
 
-    if (!result || !result[0]?.id) {
+    if (!result?.shoeId) {
       logStep("No shoe data returned after insert");
       throw new Error("Failed to create shoe record");
     }
 
-    const shoeId = result[0].id;
-    logStep("Shoe data saved successfully", { shoeId });
-
-    return { shoeId };
+    logStep("Shoe data saved successfully", { shoeId: result.shoeId });
+    return { shoeId: result.shoeId };
 
   } catch (error: any) {
     logStep("Failed to create shoe record", error);
@@ -74,43 +67,31 @@ export const updateShoeWithQRCode = async (shoeId: string, qrCodeDataURL: string
   try {
     console.log("💾 Updating QR code in database...");
     
-    // Update QR code using raw SQL
-    const updateResult = await executeRawSQL(`
-      UPDATE preloved.shoes 
-      SET qr_code = $1 
-      WHERE id = $2 
-      RETURNING id, qr_code
-    `, [qrCodeDataURL, shoeId]);
+    const result = await callPrelovedDB('update_qr_code', {
+      shoeId,
+      qrCodeDataURL
+    });
 
-    if (!updateResult || updateResult.length === 0) {
-      // Try to check if record exists
-      const existsResult = await executeRawSQL(`
-        SELECT id FROM preloved.shoes WHERE id = $1
-      `, [shoeId]);
+    if (!result?.qr_code) {
+      // Check if shoe exists
+      const existsResult = await callPrelovedDB('check_shoe_exists', { shoeId });
       
-      if (!existsResult || existsResult.length === 0) {
+      if (!existsResult?.exists) {
         throw new Error(`Shoe record not found: ${shoeId}`);
       }
       
       throw new Error(`QR code update failed for shoe: ${shoeId}`);
     }
 
-    const updatedRecord = updateResult[0];
-    const hasQrCode = !!updatedRecord.qr_code;
-    
-    if (hasQrCode) {
-      console.log("🎉 QR code successfully saved", { 
-        id: shoeId, 
-        qrCodeLength: updatedRecord.qr_code.length 
-      });
-      logStep("QR code saved to database successfully", { 
-        shoeId, 
-        qrCodeLength: updatedRecord.qr_code.length 
-      });
-      return true;
-    } else {
-      throw new Error("QR code field is still empty after update");
-    }
+    console.log("🎉 QR code successfully saved", { 
+      id: shoeId, 
+      qrCodeLength: result.qr_code.length 
+    });
+    logStep("QR code saved to database successfully", { 
+      shoeId, 
+      qrCodeLength: result.qr_code.length 
+    });
+    return true;
 
   } catch (error: any) {
     console.error("💥 QR code update failed:", error);
