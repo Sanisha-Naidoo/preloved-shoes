@@ -27,8 +27,7 @@ Deno.serve(async (req) => {
 
     // Fetch shoes from the preloved schema
     const { data: shoes, error } = await supabaseAdmin
-      .schema('preloved')
-      .from('shoes')
+      .from('preloved.shoes')
       .select('id, brand, model, size, condition')
       .eq('status', 'active')
       .order('created_at', { ascending: false });

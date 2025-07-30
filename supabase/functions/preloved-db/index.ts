@@ -27,8 +27,7 @@ serve(async (req) => {
         
         // Direct database operation using service role permissions
         const { data: result, error } = await supabaseAdmin
-          .schema('preloved')
-          .from('shoes')
+          .from('preloved.shoes')
           .insert({
             brand,
             model: model || null,
@@ -58,8 +57,7 @@ serve(async (req) => {
         const { shoeId, qrCodeDataURL } = data
         
         const { data: result, error } = await supabaseAdmin
-          .schema('preloved')
-          .from('shoes')
+          .from('preloved.shoes')
           .update({ qr_code: qrCodeDataURL })
           .eq('id', shoeId)
           .select('id, qr_code')
@@ -78,8 +76,7 @@ serve(async (req) => {
 
       case 'get_shoe_count': {
         const { count, error } = await supabaseAdmin
-          .schema('preloved')
-          .from('shoes')
+          .from('preloved.shoes')
           .select('*', { count: 'exact', head: true })
 
         if (error) {
@@ -97,8 +94,7 @@ serve(async (req) => {
         const { shoeId } = data
         
         const { data: result, error } = await supabaseAdmin
-          .schema('preloved')
-          .from('shoes')
+          .from('preloved.shoes')
           .select('id')
           .eq('id', shoeId)
           .maybeSingle()
