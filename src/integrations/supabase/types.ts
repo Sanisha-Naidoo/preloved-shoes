@@ -148,27 +148,6 @@ export type Database = {
         }
         Relationships: []
       }
-      shoutbox_messages: {
-        Row: {
-          id: string
-          message: string
-          name: string
-          timestamp: string
-        }
-        Insert: {
-          id?: string
-          message: string
-          name: string
-          timestamp?: string
-        }
-        Update: {
-          id?: string
-          message?: string
-          name?: string
-          timestamp?: string
-        }
-        Relationships: []
-      }
       trustee_actions: {
         Row: {
           action_type: string
@@ -229,6 +208,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      trustee_consent: {
+        Row: {
+          consent_token: string
+          created_at: string
+          expires_at: string
+          id: string
+          is_expired: boolean
+          trustee_1_accepted_at: string | null
+          trustee_1_email: string
+          trustee_2_accepted_at: string | null
+          trustee_2_email: string
+          updated_at: string
+        }
+        Insert: {
+          consent_token?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_expired?: boolean
+          trustee_1_accepted_at?: string | null
+          trustee_1_email: string
+          trustee_2_accepted_at?: string | null
+          trustee_2_email: string
+          updated_at?: string
+        }
+        Update: {
+          consent_token?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_expired?: boolean
+          trustee_1_accepted_at?: string | null
+          trustee_1_email?: string
+          trustee_2_accepted_at?: string | null
+          trustee_2_email?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       trustee_files: {
         Row: {
@@ -353,122 +371,7 @@ export type Database = {
       }
     }
     Views: {
-      notion_locks: {
-        Row: {
-          locked_at: string | null
-          shoe_id: string | null
-          user_id: string | null
-        }
-        Insert: {
-          locked_at?: string | null
-          shoe_id?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          locked_at?: string | null
-          shoe_id?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_notion_locks_shoe_id"
-            columns: ["shoe_id"]
-            isOneToOne: true
-            referencedRelation: "shoes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      scan_entries: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          file_size: number | null
-          file_type: string | null
-          file_url: string | null
-          filename: string | null
-          id: string | null
-          notes: string | null
-          notion_id: string | null
-          shoe_id: string | null
-          tags: string[] | null
-          upload_date: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          description?: string | null
-          file_size?: number | null
-          file_type?: string | null
-          file_url?: string | null
-          filename?: string | null
-          id?: string | null
-          notes?: string | null
-          notion_id?: string | null
-          shoe_id?: string | null
-          tags?: string[] | null
-          upload_date?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          description?: string | null
-          file_size?: number | null
-          file_type?: string | null
-          file_url?: string | null
-          filename?: string | null
-          id?: string | null
-          notes?: string | null
-          notion_id?: string | null
-          shoe_id?: string | null
-          tags?: string[] | null
-          upload_date?: string | null
-        }
-        Relationships: []
-      }
-      shoes: {
-        Row: {
-          brand: string | null
-          condition: string | null
-          created_at: string | null
-          id: string | null
-          model: string | null
-          photo_url: string | null
-          qr_code: string | null
-          rating: number | null
-          size: string | null
-          size_unit: string | null
-          sole_photo_url: string | null
-          user_id: string | null
-        }
-        Insert: {
-          brand?: string | null
-          condition?: string | null
-          created_at?: string | null
-          id?: string | null
-          model?: string | null
-          photo_url?: string | null
-          qr_code?: string | null
-          rating?: number | null
-          size?: string | null
-          size_unit?: string | null
-          sole_photo_url?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          brand?: string | null
-          condition?: string | null
-          created_at?: string | null
-          id?: string | null
-          model?: string | null
-          photo_url?: string | null
-          qr_code?: string | null
-          rating?: number | null
-          size?: string | null
-          size_unit?: string | null
-          sole_photo_url?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       cleanup_expired_trustee_sessions: {
@@ -486,10 +389,6 @@ export type Database = {
           user_email_param: string
         }
         Returns: string
-      }
-      exec_sql: {
-        Args: { sql_query: string; sql_params?: string[] }
-        Returns: Json
       }
       extend_trustee_session: {
         Args: { session_token_param: string }
@@ -517,6 +416,10 @@ export type Database = {
           last_updated: string
         }[]
       }
+      has_mutual_consent: {
+        Args: { email1: string; email2: string }
+        Returns: boolean
+      }
       move_file_to_gallery: {
         Args: {
           file_id_param: string
@@ -524,6 +427,14 @@ export type Database = {
           user_email_param: string
         }
         Returns: boolean
+      }
+      process_consent_response: {
+        Args: {
+          consent_token_param: string
+          email_param: string
+          accept_param: boolean
+        }
+        Returns: Json
       }
       validate_email: {
         Args: { email_input: string }
