@@ -25,27 +25,25 @@ serve(async (req) => {
       case 'create_shoe': {
         const { brand, model, size, sizeUnit, condition, rating, photoUrl, userId } = data
         
-        // Use direct SQL query to insert into preloved.shoes table
+        // Use RPC call to preloved schema function
         const { data: result, error } = await supabaseAdmin
-          .from('preloved.shoes')
-          .insert({
-            brand: brand,
-            model: model || null,
-            size: size,
-            size_unit: sizeUnit,
-            condition: condition,
-            rating: rating,
-            photo_url: photoUrl,
-            user_id: userId || null
+          .rpc('preloved.create_shoe', {
+            p_brand: brand,
+            p_model: model || null,
+            p_size: size,
+            p_size_unit: sizeUnit,
+            p_condition: condition,
+            p_rating: rating,
+            p_photo_url: photoUrl,
+            p_user_id: userId || null
           })
-          .select('id')
 
         if (error) {
           console.error('Create shoe error:', error)
           throw error
         }
         
-        const shoeId = result?.[0]?.id
+        const shoeId = result
         console.log('Shoe created successfully:', shoeId)
         return new Response(JSON.stringify({ shoeId }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -56,17 +54,17 @@ serve(async (req) => {
         const { shoeId, qrCodeDataURL } = data
         
         const { data: result, error } = await supabaseAdmin
-          .from('preloved.shoes')
-          .update({ qr_code: qrCodeDataURL })
-          .eq('id', shoeId)
-          .select('qr_code')
+          .rpc('preloved.update_qr_code', {
+            p_shoe_id: shoeId,
+            p_qr_code: qrCodeDataURL
+          })
 
         if (error) {
           console.error('Update QR code error:', error)
           throw error
         }
         
-        const qrCode = result?.[0]?.qr_code
+        const qrCode = result
         console.log('QR code updated successfully:', qrCode)
         return new Response(JSON.stringify({
           qr_code: qrCode
@@ -76,10 +74,9 @@ serve(async (req) => {
       }
 
       case 'get_shoe_count': {
-        // Direct query to preloved.shoes table using service role key
-        const { count, error } = await supabaseAdmin
-          .from('preloved.shoes')
-          .select('*', { count: 'exact', head: true })
+        // Use RPC call to preloved schema function
+        const { data: count, error } = await supabaseAdmin
+          .rpc('preloved.get_shoe_count')
 
         if (error) {
           console.error('Get shoe count error:', error)
@@ -95,20 +92,18 @@ serve(async (req) => {
       case 'check_shoe_exists': {
         const { shoeId } = data
         
-        const { data: result, error } = await supabaseAdmin
-          .from('preloved.shoes')
-          .select('id')
-          .eq('id', shoeId)
-          .limit(1)
+        const { data: exists, error } = await supabaseAdmin
+          .rpc('preloved.check_shoe_exists', {
+            p_shoe_id: shoeId
+          })
 
         if (error) {
           console.error('Check shoe exists error:', error)
           throw error
         }
         
-        const exists = result && result.length > 0
         console.log('Shoe exists check:', exists)
-        return new Response(JSON.stringify({ exists }), {
+        return new Response(JSON.stringify({ exists: exists || false }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
