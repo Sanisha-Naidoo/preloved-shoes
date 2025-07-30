@@ -25,25 +25,27 @@ serve(async (req) => {
       case 'create_shoe': {
         const { brand, model, size, sizeUnit, condition, rating, photoUrl, userId } = data
         
-        // Use RPC call to preloved schema function
+        // Use direct SQL query to insert into preloved.shoes table
         const { data: result, error } = await supabaseAdmin
-          .rpc('preloved.create_shoe', {
-            brand_param: brand,
-            size_param: size,
-            condition_param: condition,
-            model_param: model || null,
-            size_unit_param: sizeUnit,
-            rating_param: rating,
-            photo_url_param: photoUrl,
-            user_id_param: userId || null
+          .from('preloved.shoes')
+          .insert({
+            brand: brand,
+            model: model || null,
+            size: size,
+            size_unit: sizeUnit,
+            condition: condition,
+            rating: rating,
+            photo_url: photoUrl,
+            user_id: userId || null
           })
+          .select('id')
 
         if (error) {
           console.error('Create shoe error:', error)
           throw error
         }
         
-        const shoeId = result?.[0]?.shoe_id
+        const shoeId = result?.[0]?.id
         console.log('Shoe created successfully:', shoeId)
         return new Response(JSON.stringify({ shoeId }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -54,10 +56,10 @@ serve(async (req) => {
         const { shoeId, qrCodeDataURL } = data
         
         const { data: result, error } = await supabaseAdmin
-          .rpc('preloved.update_qr_code', {
-            shoe_id_param: shoeId,
-            qr_code_data_url_param: qrCodeDataURL
-          })
+          .from('preloved.shoes')
+          .update({ qr_code: qrCodeDataURL })
+          .eq('id', shoeId)
+          .select('qr_code')
 
         if (error) {
           console.error('Update QR code error:', error)
@@ -74,17 +76,17 @@ serve(async (req) => {
       }
 
       case 'get_shoe_count': {
-        const { data: result, error } = await supabaseAdmin
-          .rpc('preloved.get_shoe_count')
+        const { count, error } = await supabaseAdmin
+          .from('preloved.shoes')
+          .select('*', { count: 'exact', head: true })
 
         if (error) {
           console.error('Get shoe count error:', error)
           throw error
         }
         
-        const count = result || 0
         console.log('Shoe count retrieved:', count)
-        return new Response(JSON.stringify({ count }), {
+        return new Response(JSON.stringify({ count: count || 0 }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
@@ -93,16 +95,17 @@ serve(async (req) => {
         const { shoeId } = data
         
         const { data: result, error } = await supabaseAdmin
-          .rpc('preloved.check_shoe_exists', {
-            shoe_id_param: shoeId
-          })
+          .from('preloved.shoes')
+          .select('id')
+          .eq('id', shoeId)
+          .limit(1)
 
         if (error) {
           console.error('Check shoe exists error:', error)
           throw error
         }
         
-        const exists = result?.[0]?.shoe_exists || false
+        const exists = result && result.length > 0
         console.log('Shoe exists check:', exists)
         return new Response(JSON.stringify({ exists }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
