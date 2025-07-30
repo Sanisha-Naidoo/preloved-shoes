@@ -25,30 +25,27 @@ serve(async (req) => {
       case 'create_shoe': {
         const { brand, model, size, sizeUnit, condition, rating, photoUrl, userId } = data
         
-        // Direct database operation using service role permissions
+        // Use RPC call to preloved schema function
         const { data: result, error } = await supabaseAdmin
-          .from('preloved.shoes')
-          .insert({
-            brand,
-            model: model || null,
-            size,
-            size_unit: sizeUnit,
-            condition,
-            rating: rating?.toString() || null,
-            photo_url: photoUrl,
-            sole_photo_url: photoUrl,
-            user_id: userId || null
+          .rpc('preloved.create_shoe', {
+            p_brand: brand,
+            p_model: model || null,
+            p_size: size,
+            p_size_unit: sizeUnit,
+            p_condition: condition,
+            p_rating: rating?.toString() || null,
+            p_photo_url: photoUrl,
+            p_user_id: userId || null
           })
-          .select('id')
-          .single()
 
         if (error) {
           console.error('Create shoe error:', error)
           throw error
         }
         
-        console.log('Shoe created successfully:', result)
-        return new Response(JSON.stringify({ shoeId: result.id }), {
+        const shoeId = result?.[0]?.shoe_id
+        console.log('Shoe created successfully:', shoeId)
+        return new Response(JSON.stringify({ shoeId }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
@@ -57,35 +54,38 @@ serve(async (req) => {
         const { shoeId, qrCodeDataURL } = data
         
         const { data: result, error } = await supabaseAdmin
-          .from('preloved.shoes')
-          .update({ qr_code: qrCodeDataURL })
-          .eq('id', shoeId)
-          .select('id, qr_code')
-          .single()
+          .rpc('preloved.update_qr_code', {
+            p_shoe_id: shoeId,
+            p_qr_code: qrCodeDataURL
+          })
 
         if (error) {
           console.error('Update QR code error:', error)
           throw error
         }
         
-        console.log('QR code updated successfully:', result)
-        return new Response(JSON.stringify(result), {
+        const updatedRecord = result?.[0]
+        console.log('QR code updated successfully:', updatedRecord)
+        return new Response(JSON.stringify({
+          id: updatedRecord?.shoe_id,
+          qr_code: updatedRecord?.qr_code
+        }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
 
       case 'get_shoe_count': {
-        const { count, error } = await supabaseAdmin
-          .from('preloved.shoes')
-          .select('*', { count: 'exact', head: true })
+        const { data: result, error } = await supabaseAdmin
+          .rpc('preloved.get_shoe_count')
 
         if (error) {
           console.error('Get shoe count error:', error)
           throw error
         }
         
+        const count = result?.[0]?.count || 0
         console.log('Shoe count retrieved:', count)
-        return new Response(JSON.stringify({ count: count || 0 }), {
+        return new Response(JSON.stringify({ count }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
@@ -94,17 +94,16 @@ serve(async (req) => {
         const { shoeId } = data
         
         const { data: result, error } = await supabaseAdmin
-          .from('preloved.shoes')
-          .select('id')
-          .eq('id', shoeId)
-          .maybeSingle()
+          .rpc('preloved.check_shoe_exists', {
+            p_shoe_id: shoeId
+          })
 
         if (error) {
           console.error('Check shoe exists error:', error)
           throw error
         }
         
-        const exists = !!result
+        const exists = result?.[0]?.shoe_exists || false
         console.log('Shoe exists check:', exists)
         return new Response(JSON.stringify({ exists }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }

@@ -25,12 +25,9 @@ Deno.serve(async (req) => {
 
     console.log('Fetching shoes from preloved.shoes table');
 
-    // Fetch shoes from the preloved schema
+    // Fetch shoes using RPC call to preloved schema function
     const { data: shoes, error } = await supabaseAdmin
-      .from('preloved.shoes')
-      .select('id, brand, model, size, condition')
-      .eq('status', 'active')
-      .order('created_at', { ascending: false });
+      .rpc('preloved.get_shoes_for_notion');
 
     if (error) {
       console.error('Database error:', error);
