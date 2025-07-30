@@ -76,17 +76,18 @@ serve(async (req) => {
       }
 
       case 'get_shoe_count': {
-        const { count, error } = await supabaseAdmin
-          .from('preloved.shoes')
-          .select('*', { count: 'exact', head: true })
+        // Use direct SQL query to access preloved schema
+        const { data: result, error } = await supabaseAdmin
+          .rpc('', { query: 'SELECT COUNT(*) as count FROM preloved.shoes' })
 
         if (error) {
           console.error('Get shoe count error:', error)
           throw error
         }
         
+        const count = result?.[0]?.count || 0
         console.log('Shoe count retrieved:', count)
-        return new Response(JSON.stringify({ count: count || 0 }), {
+        return new Response(JSON.stringify({ count }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
