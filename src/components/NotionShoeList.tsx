@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from "react";
-
-// Optionally: Implement a GET endpoint on the edge function for secure proxying
+import { supabase } from "@/integrations/supabase/client";
 
 type NotionShoe = {
   id: string;
@@ -9,33 +8,39 @@ type NotionShoe = {
   Model?: string;
   Size?: string;
   Condition?: string;
-  // barcode removed
 };
 
 const fetchNotionShoes = async () => {
-  const res = await fetch("/api/notion-shoes"); // See note: you should proxy through an edge function
-  if (!res.ok) throw new Error("Failed to fetch Notion data");
-  return await res.json();
+  const { data, error } = await supabase.functions.invoke('notion-shoes');
+  if (error) throw new Error(`Failed to fetch shoe data: ${error.message}`);
+  return data;
 };
 
 export const NotionShoeList: React.FC = () => {
   const [shoes, setShoes] = useState<NotionShoe[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchNotionShoes()
-      .then((data) => setShoes(data))
+      .then((data) => {
+        setShoes(data);
+        setError(null);
+      })
       .catch((e) => {
+        console.error('Failed to fetch shoes:', e);
         setShoes([]);
+        setError(e.message);
       })
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div>Loading Notion shoes…</div>;
-  if (!shoes.length) return <div>No shoes found in Notion database.</div>;
+  if (loading) return <div className="text-center p-4">Loading shoes from database…</div>;
+  if (error) return <div className="text-center p-4 text-red-600">Error: {error}</div>;
+  if (!shoes.length) return <div className="text-center p-4">No shoes found in database.</div>;
   return (
     <div>
-      <h2 className="font-bold text-xl my-4">Shoes in Notion Database</h2>
+      <h2 className="font-bold text-xl my-4">Shoes in Database ({shoes.length})</h2>
       <table className="min-w-full table-auto border">
         <thead>
           <tr>
