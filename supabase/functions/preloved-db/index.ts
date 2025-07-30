@@ -26,28 +26,37 @@ serve(async (req) => {
         const { brand, model, size, sizeUnit, condition, rating, photoUrl, userId } = data
         
         const { data: result, error } = await supabaseAdmin
-          .from('shoes')
-          .insert({
-            brand,
-            model: model || null,
-            size,
-            size_unit: sizeUnit,
-            condition,
-            rating: rating?.toString(),
-            photo_url: photoUrl,
-            sole_photo_url: photoUrl,
-            user_id: userId || null
+          .rpc('exec_sql', {
+            sql: `
+              INSERT INTO preloved.shoes (brand, model, size, size_unit, condition, rating, photo_url, sole_photo_url, user_id)
+              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+              RETURNING id
+            `,
+            params: [
+              brand,
+              model || null,
+              size,
+              sizeUnit,
+              condition,
+              rating?.toString() || null,
+              photoUrl,
+              photoUrl,
+              userId || null
+            ]
           })
-          .select('id')
-          .single()
 
         if (error) {
           console.error('Create shoe error:', error)
           throw error
         }
         
-        console.log('Shoe created successfully:', result.id)
-        return new Response(JSON.stringify({ shoeId: result.id }), {
+        const shoeId = result?.[0]?.id
+        if (!shoeId) {
+          throw new Error('Failed to create shoe record')
+        }
+        
+        console.log('Shoe created successfully:', shoeId)
+        return new Response(JSON.stringify({ shoeId }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
