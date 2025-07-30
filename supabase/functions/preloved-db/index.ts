@@ -28,14 +28,14 @@ serve(async (req) => {
         // Use RPC call to preloved schema function
         const { data: result, error } = await supabaseAdmin
           .rpc('preloved.create_shoe', {
-            p_brand: brand,
-            p_model: model || null,
-            p_size: size,
-            p_size_unit: sizeUnit,
-            p_condition: condition,
-            p_rating: rating?.toString() || null,
-            p_photo_url: photoUrl,
-            p_user_id: userId || null
+            brand_param: brand,
+            size_param: size,
+            condition_param: condition,
+            model_param: model || null,
+            size_unit_param: sizeUnit,
+            rating_param: rating,
+            photo_url_param: photoUrl,
+            user_id_param: userId || null
           })
 
         if (error) {
@@ -55,8 +55,8 @@ serve(async (req) => {
         
         const { data: result, error } = await supabaseAdmin
           .rpc('preloved.update_qr_code', {
-            p_shoe_id: shoeId,
-            p_qr_code: qrCodeDataURL
+            shoe_id_param: shoeId,
+            qr_code_data_url_param: qrCodeDataURL
           })
 
         if (error) {
@@ -64,11 +64,10 @@ serve(async (req) => {
           throw error
         }
         
-        const updatedRecord = result?.[0]
-        console.log('QR code updated successfully:', updatedRecord)
+        const qrCode = result?.[0]?.qr_code
+        console.log('QR code updated successfully:', qrCode)
         return new Response(JSON.stringify({
-          id: updatedRecord?.shoe_id,
-          qr_code: updatedRecord?.qr_code
+          qr_code: qrCode
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
@@ -83,7 +82,7 @@ serve(async (req) => {
           throw error
         }
         
-        const count = result?.[0]?.count || 0
+        const count = result || 0
         console.log('Shoe count retrieved:', count)
         return new Response(JSON.stringify({ count }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -95,7 +94,7 @@ serve(async (req) => {
         
         const { data: result, error } = await supabaseAdmin
           .rpc('preloved.check_shoe_exists', {
-            p_shoe_id: shoeId
+            shoe_id_param: shoeId
           })
 
         if (error) {
