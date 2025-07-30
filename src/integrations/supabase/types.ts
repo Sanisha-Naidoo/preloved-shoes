@@ -374,10 +374,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      check_shoe_exists_in_preloved: {
-        Args: { p_shoe_id: string }
-        Returns: boolean
-      }
       cleanup_expired_trustee_sessions: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -391,19 +387,6 @@ export type Database = {
           file_id_param: string
           target_gallery_id_param: string
           user_email_param: string
-        }
-        Returns: string
-      }
-      create_shoe_in_preloved: {
-        Args: {
-          p_brand: string
-          p_model: string
-          p_size: string
-          p_size_unit: string
-          p_condition: string
-          p_rating: string
-          p_photo_url: string
-          p_user_id: string
         }
         Returns: string
       }
@@ -433,10 +416,6 @@ export type Database = {
           last_updated: string
         }[]
       }
-      get_shoe_count_from_preloved: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
       has_mutual_consent: {
         Args: { email1: string; email2: string }
         Returns: boolean
@@ -455,10 +434,6 @@ export type Database = {
           email_param: string
           accept_param: boolean
         }
-        Returns: Json
-      }
-      update_qr_code_in_preloved: {
-        Args: { p_shoe_id: string; p_qr_code: string }
         Returns: Json
       }
       validate_email: {
