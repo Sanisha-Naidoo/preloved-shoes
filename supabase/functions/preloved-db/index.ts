@@ -74,19 +74,42 @@ serve(async (req) => {
       }
 
       case 'get_shoe_count': {
-        // Use RPC call to preloved schema function
+        console.log('Starting get_shoe_count operation...')
+        
+        // TEMPORARY: Test if the edge function itself works
+        try {
+          console.log('Testing hardcoded response first...')
+          const response = { count: 23 }
+          console.log('Sending hardcoded response:', response)
+          return new Response(JSON.stringify(response), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
+        } catch (err) {
+          console.error('Even hardcoded response failed:', err)
+          throw err
+        }
+        
+        // TODO: Uncomment this once we confirm edge function works
+        /*
+        console.log('Calling get_shoe_count RPC function...')
         const { data: count, error } = await supabaseAdmin
           .rpc('get_shoe_count')
 
+        console.log('RPC response:', { count, error })
+
         if (error) {
           console.error('Get shoe count error:', error)
+          console.error('Error details:', JSON.stringify(error, null, 2))
           throw error
         }
         
-        console.log('Shoe count retrieved:', count)
-        return new Response(JSON.stringify({ count: count || 0 }), {
+        console.log('Shoe count retrieved successfully:', count)
+        const response = { count: count || 0 }
+        console.log('Sending response:', response)
+        return new Response(JSON.stringify(response), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
+        */
       }
 
       case 'check_shoe_exists': {
