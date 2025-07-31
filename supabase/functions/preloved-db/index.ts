@@ -137,26 +137,13 @@ serve(async (req) => {
       case 'get_all_shoes': {
         console.log('Starting get_all_shoes operation...')
         
-        // Direct query to get all shoes for the dependent app
+        // Use RPC call to preloved schema function
         const { data: shoes, error } = await supabaseAdmin
-          .from('preloved.shoes')
-          .select('*')
-          .order('created_at', { ascending: false })
+          .rpc('get_shoes_for_notion')
 
         if (error) {
           console.error('Get all shoes error:', error)
-          // Try RPC fallback
-          const { data: rpcShoes, error: rpcError } = await supabaseAdmin
-            .rpc('get_shoes_for_notion')
-          
-          if (rpcError) {
-            console.error('RPC fallback error:', rpcError)
-            throw rpcError
-          }
-          
-          return new Response(JSON.stringify({ shoes: rpcShoes || [] }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
+          throw error
         }
         
         console.log('All shoes retrieved:', shoes?.length || 0, 'shoes')
