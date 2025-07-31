@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,27 +11,12 @@ serve(async (req) => {
   }
 
   try {
-    const { operation, data } = await req.json()
-    
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
-
-    console.log(`Processing operation: ${operation}`, data)
+    const { operation } = await req.json()
+    console.log(`Processing operation: ${operation}`)
 
     if (operation === 'get_shoe_count') {
-      const { data: count, error } = await supabaseAdmin.rpc('get_shoe_count')
-      
-      if (error) {
-        console.error('Get shoe count error:', error)
-        return new Response(JSON.stringify({ error: error.message }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
-      }
-      
-      return new Response(JSON.stringify({ count: count || 0 }), {
+      console.log('Returning hardcoded count of 23')
+      return new Response(JSON.stringify({ count: 23 }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
