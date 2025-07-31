@@ -27,7 +27,7 @@ serve(async (req) => {
         
         // Use RPC call to preloved schema function
         const { data: result, error } = await supabaseAdmin
-          .rpc('preloved.create_shoe', {
+          .rpc('create_shoe', {
             p_brand: brand,
             p_model: model || null,
             p_size: size,
@@ -54,7 +54,7 @@ serve(async (req) => {
         const { shoeId, qrCodeDataURL } = data
         
         const { data: result, error } = await supabaseAdmin
-          .rpc('preloved.update_qr_code', {
+          .rpc('update_qr_code', {
             p_shoe_id: shoeId,
             p_qr_code: qrCodeDataURL
           })
@@ -76,7 +76,7 @@ serve(async (req) => {
       case 'get_shoe_count': {
         // Use RPC call to preloved schema function
         const { data: count, error } = await supabaseAdmin
-          .rpc('preloved.get_shoe_count')
+          .rpc('get_shoe_count')
 
         if (error) {
           console.error('Get shoe count error:', error)
@@ -93,7 +93,7 @@ serve(async (req) => {
         const { shoeId } = data
         
         const { data: exists, error } = await supabaseAdmin
-          .rpc('preloved.check_shoe_exists', {
+          .rpc('check_shoe_exists', {
             p_shoe_id: shoeId
           })
 
