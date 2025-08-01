@@ -12,7 +12,8 @@ serve(async (req) => {
   }
 
   try {
-    const { operation } = await req.json()
+    const requestBody = await req.json()
+    const { operation, data } = requestBody
     console.log(`Processing operation: ${operation}`)
 
     // This operation works - don't touch it
@@ -47,7 +48,6 @@ serve(async (req) => {
 
     // Create shoe operation for main app
     if (operation === 'create_shoe') {
-      const { data } = await req.json()
       console.log('Creating shoe with data:', data)
       
       const { data: result, error } = await supabaseAdmin.rpc('create_shoe', {
@@ -76,7 +76,6 @@ serve(async (req) => {
 
     // Update QR code operation for main app
     if (operation === 'update_qr_code') {
-      const { data } = await req.json()
       console.log('Updating QR code for shoe:', data.shoeId)
       
       const { data: result, error } = await supabaseAdmin.rpc('update_shoe_qr_code', {
@@ -99,7 +98,6 @@ serve(async (req) => {
 
     // Check shoe exists operation for main app
     if (operation === 'check_shoe_exists') {
-      const { data } = await req.json()
       console.log('Checking if shoe exists:', data.shoeId)
       
       const { data: result, error } = await supabaseAdmin.rpc('check_shoe_exists', {
