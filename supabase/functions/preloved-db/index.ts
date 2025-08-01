@@ -23,13 +23,13 @@ serve(async (req) => {
       })
     }
 
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
     // Add operations for dependent app
     if (operation === 'get_shoes_for_notion' || operation === 'get_shoes' || operation === 'get_all_shoes') {
-      const supabaseAdmin = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-      )
-
       const { data: shoes, error } = await supabaseAdmin.rpc('get_shoes_for_notion')
       
       if (error) {
@@ -41,6 +41,80 @@ serve(async (req) => {
       }
       
       return new Response(JSON.stringify({ shoes: shoes || [] }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Create shoe operation for main app
+    if (operation === 'create_shoe') {
+      const { data } = await req.json()
+      console.log('Creating shoe with data:', data)
+      
+      const { data: result, error } = await supabaseAdmin.rpc('create_shoe', {
+        p_brand: data.brand,
+        p_model: data.model,
+        p_size: data.size,
+        p_size_unit: data.sizeUnit,
+        p_condition: data.condition,
+        p_rating: data.rating,
+        p_photo_url: data.photoUrl,
+        p_user_id: data.userId || null
+      })
+      
+      if (error) {
+        console.error('Create shoe error:', error)
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+      
+      return new Response(JSON.stringify({ shoeId: result }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Update QR code operation for main app
+    if (operation === 'update_qr_code') {
+      const { data } = await req.json()
+      console.log('Updating QR code for shoe:', data.shoeId)
+      
+      const { data: result, error } = await supabaseAdmin.rpc('update_shoe_qr_code', {
+        p_shoe_id: data.shoeId,
+        p_qr_code_url: data.qrCodeDataURL
+      })
+      
+      if (error) {
+        console.error('Update QR code error:', error)
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+      
+      return new Response(JSON.stringify({ success: result }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Check shoe exists operation for main app
+    if (operation === 'check_shoe_exists') {
+      const { data } = await req.json()
+      console.log('Checking if shoe exists:', data.shoeId)
+      
+      const { data: result, error } = await supabaseAdmin.rpc('check_shoe_exists', {
+        p_shoe_id: data.shoeId
+      })
+      
+      if (error) {
+        console.error('Check shoe exists error:', error)
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+      
+      return new Response(JSON.stringify({ exists: result }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
