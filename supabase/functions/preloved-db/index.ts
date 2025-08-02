@@ -53,10 +53,10 @@ serve(async (req) => {
       
       const { data: result, error } = await supabaseAdmin.rpc('create_shoe', {
         p_brand: data.brand,
-        p_model: data.model,
         p_size: data.size,
-        p_size_unit: data.sizeUnit,
         p_condition: data.condition,
+        p_model: data.model,
+        p_size_unit: data.sizeUnit,
         p_rating: data.rating,
         p_photo_url: data.photoUrl,
         p_user_id: data.userId || null
@@ -70,7 +70,9 @@ serve(async (req) => {
         })
       }
       
-      return new Response(JSON.stringify({ shoeId: result }), {
+      // result is an array with {shoe_id: uuid}
+      const shoeId = result?.[0]?.shoe_id
+      return new Response(JSON.stringify({ shoeId }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
