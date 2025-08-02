@@ -31,7 +31,7 @@ serve(async (req) => {
 
     // Add operations for dependent app
     if (operation === 'get_shoes_for_notion' || operation === 'get_shoes' || operation === 'get_all_shoes') {
-      const { data: shoes, error } = await supabaseAdmin.rpc('get_shoes_for_notion')
+      const { data: shoes, error } = await supabaseAdmin.rpc('preloved.get_shoes_for_notion')
       
       if (error) {
         console.error('Get shoes error:', error)
@@ -50,7 +50,7 @@ serve(async (req) => {
     if (operation === 'create_shoe') {
       console.log('Creating shoe with data:', data)
       
-      const { data: result, error } = await supabaseAdmin.rpc('create_shoe', {
+      const { data: result, error } = await supabaseAdmin.rpc('preloved.create_shoe', {
         p_brand: data.brand,
         p_model: data.model,
         p_size: data.size,
@@ -78,7 +78,7 @@ serve(async (req) => {
     if (operation === 'update_qr_code') {
       console.log('Updating QR code for shoe:', data.shoeId)
       
-      const { data: result, error } = await supabaseAdmin.rpc('update_shoe_qr_code', {
+      const { data: result, error } = await supabaseAdmin.rpc('preloved.update_shoe_qr_code', {
         p_shoe_id: data.shoeId,
         p_qr_code_url: data.qrCodeDataURL
       })
@@ -100,7 +100,7 @@ serve(async (req) => {
     if (operation === 'check_shoe_exists') {
       console.log('Checking if shoe exists:', data.shoeId)
       
-      const { data: result, error } = await supabaseAdmin.rpc('check_shoe_exists', {
+      const { data: result, error } = await supabaseAdmin.rpc('preloved.check_shoe_exists', {
         p_shoe_id: data.shoeId
       })
       
