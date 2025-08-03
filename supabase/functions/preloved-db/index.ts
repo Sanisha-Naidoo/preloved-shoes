@@ -16,10 +16,26 @@ serve(async (req) => {
     const { operation, data } = requestBody
     console.log(`Processing operation: ${operation}`)
 
-    // This operation works - don't touch it
+    // Get real shoe count from database
     if (operation === 'get_shoe_count') {
-      console.log('Returning hardcoded count of 23')
-      return new Response(JSON.stringify({ count: 23 }), {
+      const supabaseAdmin = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+        { db: { schema: 'preloved' } }
+      )
+      
+      const { data, error } = await supabaseAdmin.rpc('get_shoe_count')
+      
+      if (error) {
+        console.error('Error getting shoe count:', error)
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+      
+      console.log('Returning real shoe count:', data)
+      return new Response(JSON.stringify({ count: data || 0 }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
