@@ -68,14 +68,14 @@ serve(async (req) => {
       console.log('Creating shoe with data:', data)
       
       const { data: result, error } = await supabaseAdmin.rpc('create_shoe', {
-        p_brand: data.brand,
-        p_size: data.size,
-        p_condition: data.condition,
-        p_model: data.model,
-        p_size_unit: data.sizeUnit,
-        p_rating: data.rating,
-        p_photo_url: data.photoUrl,
-        p_user_id: data.userId || null
+        brand: data.brand,
+        size: data.size,
+        condition: data.condition,
+        size_unit: data.sizeUnit,
+        model: data.model,
+        rating: data.rating,
+        photo_url: data.photoUrl,
+        user_id: data.userId || null
       })
       
       if (error) {
@@ -98,8 +98,8 @@ serve(async (req) => {
       console.log('Updating QR code for shoe:', data.shoeId)
       
       const { data: result, error } = await supabaseAdmin.rpc('update_shoe_qr_code', {
-        p_shoe_id: data.shoeId,
-        p_qr_code_url: data.qrCodeDataURL
+        shoe_id_input: data.shoeId,
+        qr_code_data_url: data.qrCodeDataURL
       })
       
       if (error) {
@@ -120,7 +120,7 @@ serve(async (req) => {
       console.log('Checking if shoe exists:', data.shoeId)
       
       const { data: result, error } = await supabaseAdmin.rpc('check_shoe_exists', {
-        p_shoe_id: data.shoeId
+        shoe_id_input: data.shoeId
       })
       
       if (error) {
@@ -131,7 +131,9 @@ serve(async (req) => {
         })
       }
       
-      return new Response(JSON.stringify({ exists: result }), {
+      // Handle the new return format - extract boolean from array
+      const exists = result && result.length > 0 ? result[0].shoe_exists : false
+      return new Response(JSON.stringify({ exists }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
