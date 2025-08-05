@@ -34,7 +34,7 @@ export const createShoeRecord = async (data: ShoeData, userId?: string): Promise
       condition: data.condition,
       rating: data.rating,
       photoUrl: data.photoUrl,
-      userId
+      userId: userId || null // Explicitly pass null for anonymous users
     });
 
     if (!result?.shoeId) {
@@ -47,6 +47,12 @@ export const createShoeRecord = async (data: ShoeData, userId?: string): Promise
 
   } catch (error: any) {
     logStep("Failed to create shoe record", error);
+    
+    // Handle rate limit errors specifically
+    if (error.message?.includes('Rate limit exceeded')) {
+      throw new Error('Too many submissions. Please wait before submitting another shoe.');
+    }
+    
     throw error;
   }
 };

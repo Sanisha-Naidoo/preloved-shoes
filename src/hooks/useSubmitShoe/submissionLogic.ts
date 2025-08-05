@@ -7,6 +7,7 @@ import { processAndUploadImage } from "./imageProcessing";
 import { createShoeRecord } from "./databaseOperations";
 import { handleSubmissionError } from "./errorHandling";
 import { clearSessionData } from "./sessionCleanup";
+import { supabase } from "@/integrations/supabase/client";
 
 export const executeSubmission = async (
   state,
@@ -39,8 +40,13 @@ export const executeSubmission = async (
     const photoUrl = await processAndUploadImage(solePhoto);
     console.log("✅ Image upload successful:", photoUrl);
 
-    // 3. Save the shoe data to the database (no user authentication required)
+    // 3. Save the shoe data to the database (with user context if available)
     console.log("💾 Step 3: Creating shoe record...");
+    
+    // Get current user if authenticated (for future functionality)
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id || null;
+    
     const { shoeId } = await createShoeRecord({
       brand: shoeDetails.brand,
       model: shoeDetails.model,
@@ -49,7 +55,7 @@ export const executeSubmission = async (
       condition: shoeDetails.condition,
       rating,
       photoUrl
-    }); // No userId parameter - anonymous submission
+    }, userId?.toString());
     console.log("✅ Shoe record created with ID:", shoeId);
 
     setState.setSubmissionId(shoeId);
