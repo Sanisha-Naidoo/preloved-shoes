@@ -239,3 +239,22 @@
     @apply bg-white/70 backdrop-blur-xl border border-white/30;
   }
 }
+
+/* Mobile safe-area padding utilities */
+@layer utilities {
+  .pt-safe { padding-top: calc(env(safe-area-inset-top) + 1rem); }
+  .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom) + 1rem); }
+  .px-safe { padding-left: 1rem; padding-right: 1rem; }
+}
+
+/* Ensure dropdowns/popovers are opaque and above other UI */
+@layer components {
+  [data-radix-popper-content-wrapper] { z-index: 60 !important; }
+  [data-radix-popper-content-wrapper] > div {
+    background-color: hsl(var(--popover)) !important;
+    color: hsl(var(--popover-foreground));
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 10px 25px -5px hsl(var(--foreground) / 0.12), 0 6px 10px -6px hsl(var(--foreground) / 0.08);
+    backdrop-filter: none;
+  }
+}

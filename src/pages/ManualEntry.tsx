@@ -20,7 +20,7 @@ const ManualEntry = () => {
   useSwipeNavigation(triggerHapticFeedback);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex flex-col p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex flex-col px-4 pt-safe pb-safe">
       {/* Subtle Background Pattern */}
       <div className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(circle_at_1px_1px,_rgba(34,197,94,0.3)_1px,_transparent_0)] bg-[length:32px_32px] pointer-events-none"></div>
       {/* Ambient Background Shapes */}
